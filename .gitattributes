@@ -1,0 +1,14 @@
+# Saltos de línea del repositorio: LF para todo el texto, sin importar el sistema operativo.
+* text=auto eol=lf
+
+# Scripts de Windows necesitan CRLF.
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binarios: sin conversión.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.pdf binary
+*.xlsx binary
