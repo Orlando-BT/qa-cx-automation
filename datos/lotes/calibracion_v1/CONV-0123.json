@@ -1,0 +1,91 @@
+{
+  "conversation_id": "CONV-0123",
+  "canal": "chat",
+  "tipo_interaccion": "ce",
+  "agente": "Diego Herrera",
+  "cuenta_id": "CTA-116",
+  "metadatos_caso": {
+    "tipificacion_agente": "Emisión de CFDI",
+    "numero_caso": "CASO-41925",
+    "estado_caso": "cerrado",
+    "escalado": false,
+    "campos_capturados": {
+      "rfc_receptor": "presente",
+      "uso_cfdi": "presente"
+    }
+  },
+  "mensajes": [
+    {
+      "n": 1,
+      "emisor": "cliente",
+      "timestamp": "2026-10-21T13:44:18",
+      "texto": "Hola, un cliente me pide factura y no sé qué uso de CFDI ponerle."
+    },
+    {
+      "n": 2,
+      "emisor": "agente",
+      "timestamp": "2026-10-21T13:44:58",
+      "texto": "¡Hola, buenas tardes! Bienvenido a Contamix, te atiende Diego, con gusto te ayudo. Tus datos personales serán tratados conforme a nuestro aviso de privacidad. ¿Con quién tengo el gusto?"
+    },
+    {
+      "n": 3,
+      "emisor": "cliente",
+      "timestamp": "2026-10-21T13:45:28",
+      "texto": "Raúl Esparza, de Materiales del Centro."
+    },
+    {
+      "n": 4,
+      "emisor": "agente",
+      "timestamp": "2026-10-21T13:45:58",
+      "texto": "Ok Raúl, mucho gusto. El uso de CFDI lo define tu cliente. Cual es el uso que te indicó? Normalmente viene en su solicitud de factura."
+    },
+    {
+      "n": 5,
+      "emisor": "cliente",
+      "timestamp": "2026-10-21T13:47:18",
+      "texto": "Me dijo G03, gastos en general."
+    },
+    {
+      "n": 6,
+      "emisor": "agente",
+      "timestamp": "2026-10-21T13:47:53",
+      "texto": "Perfecto, ahorita te explico. Al crear la factura en Facturación > Nueva factura, en el campo Uso de CFDI eliges G03 Gastos en general. Revisa que el RFC, nombre, código postal y régimen fiscal de tu cliente coincidan con su constancia, y al final das clic en Timbrar."
+    },
+    {
+      "n": 7,
+      "emisor": "cliente",
+      "timestamp": "2026-10-21T13:49:23",
+      "texto": "Listo, ya timbró."
+    },
+    {
+      "n": 8,
+      "emisor": "agente",
+      "timestamp": "2026-10-21T13:49:53",
+      "texto": "Excelente. Esos datos se quedan guardados en la base de datos de tu catálogo de clientes, así que la próxima vez ya te aparecen. Tu número de caso es CASO-41925 y con esto queda la solución."
+    },
+    {
+      "n": 9,
+      "emisor": "cliente",
+      "timestamp": "2026-10-21T13:50:33",
+      "texto": "Gracias."
+    },
+    {
+      "n": 10,
+      "emisor": "agente",
+      "timestamp": "2026-10-21T13:50:58",
+      "texto": "Te comento que tenemos la campaña Cierre Fiscal Contamix con 15% de descuento en el pago anual hasta el 31 de diciembre, y que también nos encuentras en soporte@contamix.example. Hay algo más en lo que te pueda ayudar?"
+    },
+    {
+      "n": 11,
+      "emisor": "cliente",
+      "timestamp": "2026-10-21T13:51:28",
+      "texto": "No, es todo."
+    },
+    {
+      "n": 12,
+      "emisor": "agente",
+      "timestamp": "2026-10-21T13:51:48",
+      "texto": "Gracias por contactar a Contamix, Raúl. Te atendió Diego, ¡que tengas buena tarde!"
+    }
+  ]
+}

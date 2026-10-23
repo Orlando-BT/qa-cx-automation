@@ -1,0 +1,98 @@
+{
+  "conversation_id": "CONV-0102",
+  "canal": "chat",
+  "tipo_interaccion": "ce",
+  "agente": "Carolina Reyes",
+  "cuenta_id": "CTA-114",
+  "metadatos_caso": {
+    "tipificacion_agente": "Aclaración de cargo de suscripción",
+    "numero_caso": "CASO-41377",
+    "estado_caso": "en_seguimiento",
+    "escalado": true,
+    "campos_capturados": {
+      "referencia_pago": "presente",
+      "fecha_cargo": "presente",
+      "monto_cargo": "presente"
+    }
+  },
+  "mensajes": [
+    {
+      "n": 1,
+      "emisor": "cliente",
+      "timestamp": "2026-10-05T15:40:02",
+      "texto": "Buenas tardes, me cobraron dos veces la mensualidad este mes y ya me urge que me regresen mi dinero."
+    },
+    {
+      "n": 2,
+      "emisor": "agente",
+      "timestamp": "2026-10-05T15:40:31",
+      "texto": "¡Buenas tardes! Gracias por contactar a Contamix, mi nombre es Carolina. Lamento mucho el doble cargo, entiendo tu preocupación y con gusto te ayudo a aclararlo. Tus datos personales están protegidos conforme a nuestro aviso de privacidad."
+    },
+    {
+      "n": 3,
+      "emisor": "agente",
+      "timestamp": "2026-10-05T15:40:46",
+      "texto": "Para revisar tu cuenta necesito validar tu identidad. ¿Me compartes el nombre del titular y el teléfono registrado?"
+    },
+    {
+      "n": 4,
+      "emisor": "cliente",
+      "timestamp": "2026-10-05T15:41:36",
+      "texto": "Sergio Navarro Camacho, el teléfono es 55 5546 7814."
+    },
+    {
+      "n": 5,
+      "emisor": "agente",
+      "timestamp": "2026-10-05T15:42:16",
+      "texto": "Gracias, Sergio, tus datos coinciden. Veo dos cargos de 699 pesos con fecha del 3 de octubre en la tarjeta registrada en tu cuenta. ¿Me confirmas si los dos ya aparecen aplicados en tu estado de cuenta?"
+    },
+    {
+      "n": 6,
+      "emisor": "cliente",
+      "timestamp": "2026-10-05T15:43:26",
+      "texto": "Sí, los dos ya están aplicados. Referencias 88213 y 88214."
+    },
+    {
+      "n": 7,
+      "emisor": "agente",
+      "timestamp": "2026-10-05T15:44:01",
+      "texto": "Gracias. Ya registré tu aclaración con la referencia de pago, la fecha y el monto de los cargos, y la escalé al área de Cobranza, que es la que autoriza los reembolsos. Tu número de caso es CASO-41377."
+    },
+    {
+      "n": 8,
+      "emisor": "cliente",
+      "timestamp": "2026-10-05T15:44:46",
+      "texto": "¿Y cuándo me devuelven?"
+    },
+    {
+      "n": 9,
+      "emisor": "agente",
+      "timestamp": "2026-10-05T15:45:26",
+      "texto": "Cobranza revisa la aclaración y te da respuesta en un máximo de 48 horas hábiles. Si procede el reembolso, el depósito se refleja según los tiempos de tu banco. Te contactaremos al teléfono que termina en ******7814 o a tu correo registrado."
+    },
+    {
+      "n": 10,
+      "emisor": "cliente",
+      "timestamp": "2026-10-05T15:46:16",
+      "texto": "Está bien, gracias por la ayuda."
+    },
+    {
+      "n": 11,
+      "emisor": "agente",
+      "timestamp": "2026-10-05T15:46:46",
+      "texto": "Para recapitular: confirmamos el doble cargo del 3 de octubre, escalamos tu aclaración a Cobranza con el caso CASO-41377 y te darán seguimiento en un máximo de 48 horas hábiles. Te comento también que con la campaña Cierre Fiscal Contamix tienes 15% de descuento si cambias a pago anual antes del 31 de diciembre. Para temas de cobro también puedes escribir a pagos@contamix.example. ¿Hay algo más en lo que te pueda ayudar?"
+    },
+    {
+      "n": 12,
+      "emisor": "cliente",
+      "timestamp": "2026-10-05T15:47:26",
+      "texto": "No, es todo."
+    },
+    {
+      "n": 13,
+      "emisor": "agente",
+      "timestamp": "2026-10-05T15:47:51",
+      "texto": "Gracias por contactar a Contamix, Sergio. Te atendió Carolina, fue un gusto atenderte. ¡Que tengas buena tarde!"
+    }
+  ]
+}

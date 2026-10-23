@@ -2,7 +2,7 @@
 
 Fuente de verdad de nombres de campos, columnas y valores permitidos. Ningún archivo del proyecto (código JS, prompts, workflows, métricas) puede usar un nombre o un valor que no esté aquí o en los demás archivos de `contrato/`. Si falta algo, se reporta al orquestador; el contrato solo cambia con aprobación del dueño.
 
-Estado: borrador de Fase 0.
+Estado: Fase 0 aprobada; cambios de Fase 1 aprobados por el dueño el 23-oct-2026.
 
 La carpeta `contrato/ejemplos/` contiene ejemplos que cumplen los esquemas: payload, salida del LLM, evaluación y evaluación sin mensajes del agente. Son **ilustrativos y ficticios**: no son datos del lote de calibración ni deben usarse como tales.
 
@@ -172,7 +172,8 @@ Agrupa frases o términos que usa una regla JS. Cada fila de `listas` tiene una 
 | `despedida` | `frase_criterio` | `cierre.despedida`, `critico.abandono` |
 | `pide_datos_identidad` | `frase_criterio` | `identidad.pide_datos` |
 | `declina_validacion` | `frase_criterio` | `identidad.datos_coinciden` |
-| `plazo_seguimiento` | `frase_criterio` | `solucion.seguimiento_en_plazo` (expresión regular que captura el número, el rango y la unidad) |
+| `plazo_seguimiento` | `frase_criterio` | `solucion.seguimiento_en_plazo` (expresión regular que captura el número, el rango y la unidad; no reconoce minutos, que no son plazo de seguimiento: `rubrica.md` 3.11) |
+| `numero_en_palabras` | `frase_criterio` | `solucion.seguimiento_en_plazo`: JS la aplica **antes** de `plazo_seguimiento` para convertir números escritos con palabras en cifras (ver convención debajo de esta tabla) |
 | `termino_prohibido` | `termino_prohibido` | `comunicacion.tecnicismos` (tecnicismos y nombres de sistemas internos) |
 | `frase_negativa` | `frase_negativa` | `comunicacion.frases_negativas` |
 | `vicio_lenguaje` | `vicio_lenguaje` | `comunicacion.vicios_lenguaje` |
@@ -180,6 +181,16 @@ Agrupa frases o términos que usa una regla JS. Cada fila de `listas` tiene una 
 | `sigla_permitida` | `sigla_permitida` | `empatia.mayusculas_sostenidas` (siglas que no cuentan como mayúsculas sostenidas: RFC, CFDI, SAT, UUID...) |
 
 La marca (`apertura.marca`, `cierre.marca`) no usa lista: se toma de `config.marca`. El nombre del agente se toma de `agente` del payload.
+
+**Convención de `numero_en_palabras`** (Fase 1):
+- `valor`: la palabra o frase del número, en minúsculas y sin acentos (`dos`, `veinticuatro`, `cuarenta y ocho`). `es_regex = no`.
+- `notas`: el número en cifra (`2`, `24`, `48`). En esta lista, `notas` es un **dato que lee `reglas-js`**, no un comentario. Es la única excepción a que `notas` sea solo comentario.
+- **Validación al cargar la lista** (si falla, error explícito y no se evalúa; no se ignora la fila):
+  - `notas` es un entero no vacío (`^[0-9]+$`);
+  - no hay palabras duplicadas (comparadas sin acentos ni mayúsculas);
+  - no hay cifras duplicadas: cada número tiene una sola palabra o frase. Por eso la lista incluye `una` y no `uno` (ambas valdrían 1).
+- `tipo_lista = frase_criterio`: la enumeración `tipo_lista` no tiene un valor específico para tablas de conversión, y la lista sirve a un criterio (`solucion.seguimiento_en_plazo`).
+- Uso: sobre el texto normalizado del agente, JS reemplaza cada `valor` por su cifra, de la frase más larga a la más corta y con límite de palabra (para que "cuarenta y ocho" no se lea como "ocho"), y después aplica `plazo_seguimiento`.
 
 ## 5. Clasificación de subelementos
 
@@ -200,6 +211,7 @@ Antes de enviar la conversación al LLM, JS-2 reemplaza datos personales por mar
 
 Reglas adicionales:
 - **Canales oficiales:** los correos y teléfonos de `config.canales_oficiales_correos` y `config.canales_oficiales_telefonos` no son datos personales. No se enmascaran y no activan `critico.confidencialidad`.
+- **RFC genéricos:** los RFC de `config.rfc_genericos_permitidos` (`XAXX010101000`, público en general; `XEXX010101000`, extranjeros) no son datos personales. Igual que los canales oficiales, no se enmascaran y no activan `critico.confidencialidad`. Tampoco cuentan como dato de identidad.
 - **Datos ya enmascarados parcialmente por el agente** (por ejemplo `j***@abarrotesluna.example`, `******5678`): no coinciden con los patrones de dato completo, así que no se reemplazan. Ver la regla de confidencialidad en `rubrica.md`.
 - **Nombre de pila solo:** se enmascara como el mismo `[NOMBRE_n]` del titular. No se enmascara cuando coincide con el nombre de pila del agente dentro de un mensaje del agente, para no ocultar su presentación.
 

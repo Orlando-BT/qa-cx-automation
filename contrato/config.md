@@ -1,6 +1,6 @@
 # Configuración (contrato)
 
-Claves de la hoja `config` de Google Sheets. El código lee estos valores en tiempo de ejecución; ninguna regla, umbral, tiempo o precio se escribe fijo en el código. Estado: borrador de Fase 0.
+Claves de la hoja `config` de Google Sheets. El código lee estos valores en tiempo de ejecución; ninguna regla, umbral, tiempo o precio se escribe fijo en el código. Estado: Fase 0 aprobada; cambios de Fase 1 aprobados por el dueño el 23-oct-2026.
 
 Convenciones:
 - `tipo` usa la enumeración `tipo_dato_config` del glosario: `entero`, `decimal`, `texto`, `booleano` (`si`/`no`), `lista` (valores separados por `|`).
@@ -98,17 +98,21 @@ Todos en segundos, salvo que el nombre diga otra unidad. Los timestamps de los m
 | Clave | Valor por defecto | Tipo | Descripción | Supuesto |
 |---|---|---|---|---|
 | `identidad_datos_comparables` | `correo\|rfc\|telefono\|titular` | lista | Datos que JS-2 extrae y compara contra la hoja `cuentas`. `titular` solo cuenta cuando coincide y nunca cuenta como incorrecto (`rubrica.md` sección 4). | si |
-| `identidad_min_datos_solicitados` | `2` | entero | Datos distintos que el cliente debe proporcionar para considerar los datos suficientes. Si no los da y el agente declina sin dar información, no hay error. | si |
-| `identidad_umbral_datos_incorrectos` | `2` | entero | Con al menos este número de datos incorrectos, el agente debe declinar. | no |
+| `identidad_min_datos_correctos` | `2` | entero | Datos comparables distintos que el cliente debe acertar (coincidir con la hoja `cuentas`) para que la validación sea exitosa. Un dato que el cliente no sabe o no proporciona cuenta como no acertado. Los datos alternativos que el agente pida después de un dato fallido o desconocido cuentan para el mínimo. Si no se alcanza, el agente debe declinar y no dar información de la cuenta (`rubrica.md` sección 4). | no (decisión del dueño) |
+
+Cambio de Fase 1 (decisión del dueño): `identidad_min_datos_correctos` sustituye a `identidad_min_datos_solicitados` y a `identidad_umbral_datos_incorrectos`, que se quitaron.
+- `identidad_min_datos_solicitados` contaba datos **proporcionados**, correctos o no; con la regla nueva solo cuentan los acertados, así que quedaba redundante.
+- `identidad_umbral_datos_incorrectos` hacía fallar la validación con 2 datos incorrectos aunque el cliente acertara 2 alternativos; eso contradice la regla nueva, en la que los datos alternativos cuentan para el mínimo. Los datos incorrectos ya no cambian el resultado; se registran solo como evidencia.
 
 ## 6b. Confidencialidad: canales oficiales y enmascarado parcial (ámbito `ce`)
 
-Los contactos oficiales de la marca pueden mencionarse sin activar `critico.confidencialidad`, y JS-2 no los enmascara. Son valores **ficticios**: el dominio usa el TLD reservado `.example` (RFC 2606) para garantizar que no es un dominio real. No se deben reemplazar por dominios o teléfonos reales en el repositorio.
+Los contactos oficiales de la marca y los RFC genéricos (`rfc_genericos_permitidos`) pueden mencionarse sin activar `critico.confidencialidad`, y JS-2 no los enmascara. Son valores **ficticios**: el dominio usa el TLD reservado `.example` (RFC 2606) para garantizar que no es un dominio real. No se deben reemplazar por dominios o teléfonos reales en el repositorio.
 
 | Clave | Valor por defecto | Tipo | Descripción | Supuesto |
 |---|---|---|---|---|
 | `canales_oficiales_correos` | `soporte@contamix.example\|facturacion@contamix.example\|pagos@contamix.example` | lista | Correos oficiales permitidos. Se comparan sin distinguir mayúsculas. | si |
 | `canales_oficiales_telefonos` | `5550001000\|5550002000` | lista | Teléfonos oficiales permitidos (10 dígitos, ficticios, prefijo 555 de uso ilustrativo). Se comparan solo dígitos. | si |
+| `rfc_genericos_permitidos` | `XAXX010101000\|XEXX010101000` | lista | RFC genéricos del SAT (público en general y extranjeros). Igual que los canales oficiales: JS-2 no los enmascara y no activan `critico.confidencialidad`. Se comparan en mayúsculas. | no (decisión del dueño) |
 | `enmascarado_caracter` | `*` | texto | Carácter que el agente usa para ocultar parte de un dato de la cuenta. | si |
 | `enmascarado_correo_visibles_inicio` | `1` | entero | Caracteres visibles al inicio de la parte local del correo; dominio completo visible. Ejemplo: `j***@abarrotesluna.example`. | si |
 | `enmascarado_telefono_visibles_final` | `4` | entero | Dígitos visibles al final del teléfono. Ejemplo: `******5678`. | si |
@@ -126,9 +130,12 @@ Regla (`rubrica.md`, `critico.confidencialidad`): tras una validación exitosa, 
 
 | Clave | Valor por defecto | Tipo | Descripción | Supuesto |
 |---|---|---|---|---|
-| `modelo_evaluador` | `por_verificar` | texto | Modelo económico de OpenAI con salida estructurada estricta. ID exacto por verificar en la documentación oficial. | si |
+| `modelo_evaluador` | `gpt-6-luna` | texto | Modelo económico de OpenAI con salida estructurada estricta. Verificado con la prueba A del 23-oct-2026 (aceptó `llm_output.schema.json` en modo estricto). | no |
 | `modelo_generador` | `por_verificar` | texto | Modelo económico de Anthropic para el simulador. ID exacto por verificar en la documentación oficial. | si |
-| `llm_temperatura` | `0` | decimal | Temperatura del evaluador. | no |
+| `llm_temperatura` | `0` | decimal | Temperatura del evaluador. No aplica a `gpt-6-luna`: no se envía (la prueba A del 23-oct-2026 mostró que ese modelo rechaza `temperature`). La fila se conserva para modelos que sí la acepten. | no |
+| `llm_esfuerzo_razonamiento` | `none` | texto | Esfuerzo de razonamiento que se envía al evaluador (`reasoning.effort`). Fijado con la prueba A del 23-oct-2026: `gpt-6-luna` rechaza `temperature`, así que se usa el esfuerzo mínimo aceptado (`none`) y no se envía `llm_temperatura`. | no |
+| `claves_esquema_excluidas_evaluador` |  | lista | Claves del esquema de salida (`llm_output.schema.json`) que JS-4 quita antes de enviarlo a OpenAI. Vacía por defecto (celda vacía). Solo se llena con lo que demuestre una prueba real; la prueba A del 23-oct-2026 aceptó el esquema tal cual, así que queda vacía. | no |
+| `max_tokens_generador` | `8000` | entero | Máximo de tokens de salida por llamada al generador del simulador (Claude). | si |
 
 ## 9. Reintentos (ámbito `todos`)
 
@@ -145,8 +152,8 @@ Los precios se expresan en USD por millón de tokens.
 
 | Clave | Valor por defecto | Tipo | Descripción | Supuesto |
 |---|---|---|---|---|
-| `precio_entrada_usd_millon_evaluador` | `por_verificar` | decimal | Precio de tokens de entrada del modelo evaluador. | si |
-| `precio_salida_usd_millon_evaluador` | `por_verificar` | decimal | Precio de tokens de salida del modelo evaluador. | si |
+| `precio_entrada_usd_millon_evaluador` | `0.10` | decimal | Precio de tokens de entrada de `gpt-6-luna`. Verificado el 22-oct-2026 en developers.openai.com/api/docs/pricing. | no |
+| `precio_salida_usd_millon_evaluador` | `0.50` | decimal | Precio de tokens de salida de `gpt-6-luna`. Verificado el 22-oct-2026 en developers.openai.com/api/docs/pricing. | no |
 | `precio_entrada_usd_millon_generador` | `por_verificar` | decimal | Precio de tokens de entrada del modelo generador. | si |
 | `precio_salida_usd_millon_generador` | `por_verificar` | decimal | Precio de tokens de salida del modelo generador. | si |
 | `costo_estimado_por_evaluacion_usd` | `pendiente_fase_1` | decimal | Costo esperado de una evaluación; base de la alerta de costo relativo. Mientras esté en `pendiente_fase_1`, esa alerta no se evalúa. | no (decisión D4) |
@@ -202,9 +209,12 @@ Modo de las alertas de calidad: **se decide por el lote de la conversación**.
   - solo se envía alerta operativa si `alerta_tipo_interaccion_sin_rubrica = si`;
   - **limitación:** las conversaciones `sales` recibidas antes de la Fase 5b no quedan guardadas y deben reenviarse al webhook cuando exista la rúbrica;
   - el formulario del simulador (W0) deberá incluir el campo `tipo_interaccion` (Fase 2).
-- **Verificaciones técnicas pendientes para Fase 1 (`evaluador-llm`):**
-  - `llm_output.schema.json` usa `minimum` en un campo de tipo `["integer", "null"]` (`primer_mensaje_info_cuenta.mensaje_n`). Se verifica con una llamada real. Si OpenAI no lo acepta en modo estricto, se quita del esquema y esa validación pasa a JS-5. Por ahora el esquema se deja como está.
-  - Verificar que OpenAI acepte `$schema`, `title` y `minItems` en el esquema de salida estructurada; si no, JS-4 los quita antes de enviar.
+- **Verificaciones técnicas de Fase 1 (`evaluador-llm`):**
+  - **Resuelto (prueba A, 23-oct-2026):** `llm_output.schema.json` usa `minimum` en un campo de tipo `["integer", "null"]` (`primer_mensaje_info_cuenta.mensaje_n`). `gpt-6-luna` aceptó el esquema tal cual en modo estricto. "Aceptado" significa que la API no rechazó el esquema; no garantiza que el modelo respete `minimum`, así que JS-5 sigue validando `mensaje_n ≥ 1` por su cuenta.
+  - **Resuelto (M6, prueba A, 23-oct-2026):** OpenAI aceptó `$schema`, `title`, `minItems`, `pattern` y `minimum` en el esquema de salida estructurada. No hubo que quitar ninguna clave: `claves_esquema_excluidas_evaluador` queda vacía. Si un modelo futuro rechaza alguna clave, se agrega a esa lista (solo con lo que demuestre una prueba real) y JS-4 la quita antes de enviar.
+  - **Resuelto (prueba A, 23-oct-2026):** `gpt-6-luna` rechaza `temperature` (HTTP 400, "Unsupported parameter: 'temperature' is not supported with this model.") y acepta `reasoning.effort = none` sin `temperature`. Por eso `llm_esfuerzo_razonamiento = none` y `llm_temperatura` no se envía con este modelo (la fila se conserva para modelos que la acepten).
   - `payload.schema.json` usa `propertyNames` e `if/then/else`. Son válidos en JSON Schema draft 2020-12, pero **no** son aptos para la salida estructurada del generador. El prompt del generador necesitará un esquema simplificado o validar después con JS (W0, paso 4).
   - El prompt del evaluador debe indicar qué mensajes citar en un `no_cumple` por omisión (cuando lo que falta es una acción del agente; por ejemplo, citar los mensajes del cierre o del tramo donde debía ocurrir). Así se cumple la regla 9 de JS-5 (`rubrica.md` 6.1), que exige `mensajes` no vacío.
+- **Backlog Fase 5: número de caso como dato alternativo de identidad (requiere casos previos por cuenta, p. ej. desde HubSpot).** Hoy está RESERVADO e inactivo: no está en `identidad_datos_comparables`, no hay columnas ni hojas nuevas, y no cuenta para `identidad_min_datos_correctos` (`rubrica.md` sección 4). Activarlo exige un cambio de contrato aprobado por el dueño: casos previos por cuenta, una clave de lista y la regla de comparación.
 - **Cambios y versiones:** cambiar una clave de ámbito `ce` (secciones 2 a 7) cambia el comportamiento de las reglas. Por eso se sube `version_reglas` de `ce`, y las métricas siempre se comparan dentro de la misma versión y del mismo lote.
+- **Cambios de Fase 1 antes de la primera evaluación; `reglas_ce_v1` se congela al cerrar la Fase 1.** Como todavía no se ha evaluado ninguna conversación, los cambios aprobados el 23-oct-2026 (validación de identidad con `identidad_min_datos_correctos`, minutos fuera de los plazos de seguimiento, `numero_en_palabras`, RFC genéricos y exclusión de datos de terceros en `pide_datos_identidad`) se incorporan a `reglas_ce_v1` sin subir la versión. Cualquier cambio posterior al cierre de la Fase 1 sube la versión.

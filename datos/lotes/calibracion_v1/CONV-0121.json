@@ -1,0 +1,98 @@
+{
+  "conversation_id": "CONV-0121",
+  "canal": "chat",
+  "tipo_interaccion": "ce",
+  "agente": "Diego Herrera",
+  "cuenta_id": "CTA-102",
+  "metadatos_caso": {
+    "tipificacion_agente": "Aclaración de cargo de suscripción",
+    "numero_caso": "CASO-42230",
+    "estado_caso": "en_seguimiento",
+    "escalado": true,
+    "campos_capturados": {
+      "referencia_pago": "presente",
+      "fecha_cargo": "presente",
+      "monto_cargo": "presente"
+    }
+  },
+  "mensajes": [
+    {
+      "n": 1,
+      "emisor": "cliente",
+      "timestamp": "2026-10-19T11:08:26",
+      "texto": "Hola, me llegó un cargo de Contamix que no reconozco, es más alto que mi plan."
+    },
+    {
+      "n": 2,
+      "emisor": "agente",
+      "timestamp": "2026-10-19T11:09:01",
+      "texto": "¡Hola! Bienvenido a Contamix, te atiende Diego y con gusto te ayudo a revisarlo. Tus datos personales serán tratados conforme a nuestro aviso de privacidad."
+    },
+    {
+      "n": 3,
+      "emisor": "agente",
+      "timestamp": "2026-10-19T11:09:16",
+      "texto": "Para revisar tu cuenta necesito validar tu identidad. ¿Me compartes el RFC y el correo registrados en la cuenta?"
+    },
+    {
+      "n": 4,
+      "emisor": "cliente",
+      "timestamp": "2026-10-19T11:10:16",
+      "texto": "El RFC es DSA150622RT4."
+    },
+    {
+      "n": 5,
+      "emisor": "agente",
+      "timestamp": "2026-10-19T11:10:46",
+      "texto": "Gracias. Veo que tu cuenta tiene el plan Pyme mensual y el 1 de octubre se hizo un cargo de 1,299 pesos en lugar de 699, que corresponde al plan Empresarial. ¿Me compartes también el correo registrado para terminar la validación?"
+    },
+    {
+      "n": 6,
+      "emisor": "cliente",
+      "timestamp": "2026-10-19T11:11:41",
+      "texto": "Sí, es rsalinas@salpe.example. Nunca cambiamos de plan."
+    },
+    {
+      "n": 7,
+      "emisor": "agente",
+      "timestamp": "2026-10-19T11:12:16",
+      "texto": "Gracias, Rodrigo, tus datos coinciden. Registré tu aclaración con la referencia del pago, la fecha y el monto, y la escalé al área de Cobranza, que es la que autoriza los reembolsos. Tu número de caso es CASO-42230."
+    },
+    {
+      "n": 8,
+      "emisor": "cliente",
+      "timestamp": "2026-10-19T11:13:01",
+      "texto": "¿Cuándo me resuelven?"
+    },
+    {
+      "n": 9,
+      "emisor": "agente",
+      "timestamp": "2026-10-19T11:13:31",
+      "texto": "Cobranza te dará seguimiento en un máximo de 48 horas hábiles. Si procede el reembolso de la diferencia, el depósito se refleja según los tiempos de tu banco."
+    },
+    {
+      "n": 10,
+      "emisor": "cliente",
+      "timestamp": "2026-10-19T11:14:11",
+      "texto": "Va, gracias."
+    },
+    {
+      "n": 11,
+      "emisor": "agente",
+      "timestamp": "2026-10-19T11:14:41",
+      "texto": "Para recapitular: el cargo del 1 de octubre fue mayor al de tu plan Pyme, escalamos la aclaración a Cobranza con el caso CASO-42230 y te darán seguimiento en un máximo de 48 horas hábiles. Te comparto que con la campaña Cierre Fiscal Contamix tienes 15% de descuento si pasas a pago anual antes del 31 de diciembre. Para temas de cobro también está pagos@contamix.example. ¿Hay algo más en lo que te pueda ayudar?"
+    },
+    {
+      "n": 12,
+      "emisor": "cliente",
+      "timestamp": "2026-10-19T11:15:16",
+      "texto": "No, gracias."
+    },
+    {
+      "n": 13,
+      "emisor": "agente",
+      "timestamp": "2026-10-19T11:15:41",
+      "texto": "Gracias por tu tiempo, Rodrigo. Te atendió Diego de Contamix, fue un gusto atenderte. ¡Que tengas buen día!"
+    }
+  ]
+}

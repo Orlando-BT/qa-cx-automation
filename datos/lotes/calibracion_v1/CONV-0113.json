@@ -1,0 +1,92 @@
+{
+  "conversation_id": "CONV-0113",
+  "canal": "chat",
+  "tipo_interaccion": "ce",
+  "agente": "Tomás Aguilar",
+  "cuenta_id": "CTA-102",
+  "metadatos_caso": {
+    "tipificacion_agente": "Emisión de complemento de pago",
+    "numero_caso": "CASO-41455",
+    "estado_caso": "cerrado",
+    "escalado": false,
+    "campos_capturados": {
+      "uuid_factura": "presente",
+      "fecha_pago": "presente",
+      "monto_pago": "presente"
+    }
+  },
+  "mensajes": [
+    {
+      "n": 1,
+      "emisor": "cliente",
+      "timestamp": "2026-10-09T13:31:44",
+      "texto": "Hola, buenas. Un cliente me pagó la mitad de una factura y no sé cómo registrar ese pago."
+    },
+    {
+      "n": 2,
+      "emisor": "agente",
+      "timestamp": "2026-10-09T13:32:29",
+      "texto": "¡Hola, buenas tardes! Bienvenido a Contamix, te atiende Tomás. Tus datos personales serán tratados conforme a nuestro aviso de privacidad. ¿Con quién tengo el gusto?"
+    },
+    {
+      "n": 3,
+      "emisor": "cliente",
+      "timestamp": "2026-10-09T13:33:09",
+      "texto": "Rodrigo Salinas."
+    },
+    {
+      "n": 4,
+      "emisor": "agente",
+      "timestamp": "2026-10-09T13:33:34",
+      "texto": "Mucho gusto, Rodrigo, con gusto te ayudo. ¿La factura se emitió con método de pago PPD o PUE? Lo puedes ver en el detalle de la factura."
+    },
+    {
+      "n": 5,
+      "emisor": "cliente",
+      "timestamp": "2026-10-09T13:35:34",
+      "texto": "Ya la encontré, dice PPD."
+    },
+    {
+      "n": 6,
+      "emisor": "agente",
+      "timestamp": "2026-10-09T13:36:04",
+      "texto": "Perfecto. Como es PPD, necesitas emitir un complemento de pago por ese abono. Entra a Facturación > Complementos de pago > Nuevo, elige a tu cliente y la factura, y captura la fecha en que recibiste el pago, la forma de pago y el monto pagado. Contamix calcula el saldo pendiente automáticamente. Al final da clic en Timbrar."
+    },
+    {
+      "n": 7,
+      "emisor": "cliente",
+      "timestamp": "2026-10-09T13:37:54",
+      "texto": "Listo, ya lo timbré. ¿Hay alguna fecha límite para hacerlo?"
+    },
+    {
+      "n": 8,
+      "emisor": "agente",
+      "timestamp": "2026-10-09T13:38:29",
+      "texto": "Sí, el complemento se debe emitir a más tardar el día 5 del mes siguiente a aquel en que recibiste el pago. Cuando te paguen la otra mitad, harás otro complemento igual, con la parcialidad número 2."
+    },
+    {
+      "n": 9,
+      "emisor": "cliente",
+      "timestamp": "2026-10-09T13:39:09",
+      "texto": "Excelente, muchas gracias."
+    },
+    {
+      "n": 10,
+      "emisor": "agente",
+      "timestamp": "2026-10-09T13:39:39",
+      "texto": "Para recapitular: registraste el pago parcial de tu factura PPD con un complemento de pago y ya quedó timbrado. Con esta solución tu caso queda cerrado con el número CASO-41455. Si necesitas una guía, en nuestro centro de ayuda ayuda.contamix.example encuentras el paso a paso. ¿Hay algo más en lo que te pueda ayudar?"
+    },
+    {
+      "n": 11,
+      "emisor": "cliente",
+      "timestamp": "2026-10-09T13:40:14",
+      "texto": "No, eso es todo."
+    },
+    {
+      "n": 12,
+      "emisor": "agente",
+      "timestamp": "2026-10-09T13:40:39",
+      "texto": "Gracias por comunicarte a Contamix, Rodrigo. En unos momentos te llegará una breve encuesta para calificar la atención. Te atendió Tomás, fue un gusto atenderte. ¡Que tengas excelente tarde!"
+    }
+  ]
+}

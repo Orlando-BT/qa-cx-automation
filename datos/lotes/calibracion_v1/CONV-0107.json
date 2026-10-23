@@ -1,0 +1,100 @@
+{
+  "conversation_id": "CONV-0107",
+  "canal": "chat",
+  "tipo_interaccion": "ce",
+  "agente": "Paola Jiménez",
+  "cuenta_id": "CTA-105",
+  "metadatos_caso": {
+    "tipificacion_agente": "Consulta de planes y promociones",
+    "numero_caso": "CASO-41602",
+    "estado_caso": "cerrado",
+    "escalado": false,
+    "campos_capturados": {}
+  },
+  "mensajes": [
+    {
+      "n": 1,
+      "emisor": "cliente",
+      "timestamp": "2026-10-06T10:48:21",
+      "texto": "Hola, buenos días. Mi RFC es MTI120417PZ9. Quiero saber si me conviene renovar anual con la promoción y cuándo vence mi plan."
+    },
+    {
+      "n": 2,
+      "emisor": "agente",
+      "timestamp": "2026-10-06T10:49:01",
+      "texto": "¡Hola, buenos días! Te damos la bienvenida a Contamix, te atiende Paola. Con gusto te ayudo con la información de tu plan. Tus datos personales serán tratados conforme a nuestro aviso de privacidad."
+    },
+    {
+      "n": 3,
+      "emisor": "agente",
+      "timestamp": "2026-10-06T10:49:16",
+      "texto": "Para consultar tu cuenta necesito validar tu identidad. Ya tengo el RFC; ¿me compartes también el correo registrado o el nombre del titular?"
+    },
+    {
+      "n": 4,
+      "emisor": "cliente",
+      "timestamp": "2026-10-06T10:50:26",
+      "texto": "Es monica.trevino@mueblestrevino.example, soy Mónica Treviño."
+    },
+    {
+      "n": 5,
+      "emisor": "agente",
+      "timestamp": "2026-10-06T10:51:01",
+      "texto": "Gracias, Mónica, tus datos coinciden. Tu cuenta tiene el plan Empresarial con pago mensual y la siguiente renovación es el 15 de noviembre."
+    },
+    {
+      "n": 6,
+      "emisor": "cliente",
+      "timestamp": "2026-10-06T10:52:01",
+      "texto": "¿Y cuánto me ahorro si me paso a anual?"
+    },
+    {
+      "n": 7,
+      "emisor": "agente",
+      "timestamp": "2026-10-06T10:52:36",
+      "texto": "Con la campaña Cierre Fiscal Contamix tienes 15% de descuento en el pago anual de cualquier plan si contratas o renuevas antes del 31 de diciembre. En el plan Empresarial, el pago anual normal sería de 15,588 pesos más IVA y con el descuento queda en 13,249.80 pesos más IVA. La campaña no aplica a pagos mensuales ni es retroactiva."
+    },
+    {
+      "n": 8,
+      "emisor": "agente",
+      "timestamp": "2026-10-06T10:54:41",
+      "texto": "Mónica, ¿sigues en línea? Quedo atenta por si quieres que te explique cómo hacer el cambio a pago anual."
+    },
+    {
+      "n": 9,
+      "emisor": "cliente",
+      "timestamp": "2026-10-06T10:58:01",
+      "texto": "Perdón, me llamaron. Sí, ¿cómo lo hago?"
+    },
+    {
+      "n": 10,
+      "emisor": "agente",
+      "timestamp": "2026-10-06T10:58:31",
+      "texto": "No te preocupes. Lo puede hacer el Administrador de la cuenta desde Configuración > Mi plan, eligiendo el pago anual; el 15% se aplica siempre que lo hagas antes del 31 de diciembre."
+    },
+    {
+      "n": 11,
+      "emisor": "cliente",
+      "timestamp": "2026-10-06T10:59:31",
+      "texto": "Perfecto, lo hago con el administrador."
+    },
+    {
+      "n": 12,
+      "emisor": "agente",
+      "timestamp": "2026-10-06T11:00:01",
+      "texto": "Para recapitular: tu plan Empresarial se renueva el 15 de noviembre y, si cambias a pago anual antes del 31 de diciembre, obtienes el 15% de descuento de la campaña. Con esta solución a tu consulta cierro el caso con el número CASO-41602. Si tienes otra duda, nuestro horario de atención es de lunes a viernes de 8:00 a 20:00. ¿Hay algo más en lo que te pueda ayudar?"
+    },
+    {
+      "n": 13,
+      "emisor": "cliente",
+      "timestamp": "2026-10-06T11:00:41",
+      "texto": "No, gracias."
+    },
+    {
+      "n": 14,
+      "emisor": "agente",
+      "timestamp": "2026-10-06T11:01:06",
+      "texto": "Gracias por tu preferencia, Mónica. Te llegará una breve encuesta para calificar la atención. Te atendió Paola de Contamix, ¡que tengas excelente día!"
+    }
+  ]
+}

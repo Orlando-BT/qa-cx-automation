@@ -1,0 +1,103 @@
+{
+  "conversation_id": "CONV-0122",
+  "canal": "chat",
+  "tipo_interaccion": "ce",
+  "agente": "Mariana López",
+  "cuenta_id": "CTA-104",
+  "metadatos_caso": {
+    "tipificacion_agente": "Error de timbrado de CFDI",
+    "numero_caso": "CASO-41530",
+    "estado_caso": "cerrado",
+    "escalado": false,
+    "campos_capturados": {
+      "rfc_receptor": "presente",
+      "mensaje_rechazo": "presente"
+    }
+  },
+  "mensajes": [
+    {
+      "n": 1,
+      "emisor": "cliente",
+      "timestamp": "2026-10-20T17:12:09",
+      "texto": "Buenas tardes, no puedo timbrar una factura, me sale un error del receptor."
+    },
+    {
+      "n": 2,
+      "emisor": "agente",
+      "timestamp": "2026-10-20T17:12:59",
+      "texto": "¡Buenas tardes! Gracias por contactar a Contamix, te atiende Mariana y con gusto te ayudo. Tus datos personales serán tratados conforme a nuestro aviso de privacidad. ¿Con quién tengo el gusto?"
+    },
+    {
+      "n": 3,
+      "emisor": "cliente",
+      "timestamp": "2026-10-20T17:13:29",
+      "texto": "Héctor Villanueva, de Taquería Los Arcos."
+    },
+    {
+      "n": 4,
+      "emisor": "agente",
+      "timestamp": "2026-10-20T17:13:54",
+      "texto": "Mucho gusto, Héctor. ¿Qué mensaje exacto te aparece al intentar timbrar? ¿Es un cliente nuevo o ya le habías facturado antes?"
+    },
+    {
+      "n": 5,
+      "emisor": "cliente",
+      "timestamp": "2026-10-20T17:14:54",
+      "texto": "Dice que el nombre del receptor no corresponde con el RFC. Es un cliente nuevo, una empresa."
+    },
+    {
+      "n": 6,
+      "emisor": "agente",
+      "timestamp": "2026-10-20T17:15:29",
+      "texto": "Gracias. En CFDI 4.0 el nombre o razón social del receptor debe ser idéntico al de su Constancia de Situación Fiscal y sin el régimen societario; es decir, sin \"SA de CV\". Revisa en Catálogos > Clientes cómo lo capturaste y comparalo con la constancia de tu cliente."
+    },
+    {
+      "n": 7,
+      "emisor": "cliente",
+      "timestamp": "2026-10-20T17:16:59",
+      "texto": "Sí, lo tenía con SA de CV. Ya lo quité y ya timbró."
+    },
+    {
+      "n": 8,
+      "emisor": "agente",
+      "timestamp": "2026-10-20T17:17:29",
+      "texto": "¡Excelente! También revisa que el código postal y el régimen fiscal coincidan con la constancia; así evitas rechazos en las siguientes facturas para ese cliente."
+    },
+    {
+      "n": 9,
+      "emisor": "cliente",
+      "timestamp": "2026-10-20T17:18:09",
+      "texto": "Perfecto, lo reviso."
+    },
+    {
+      "n": 10,
+      "emisor": "agente",
+      "timestamp": "2026-10-20T17:18:39",
+      "texto": "Para recapitular: el timbrado se rechazaba porque el nombre del receptor incluía el régimen societario; lo corregiste en el catálogo de clientes y la factura ya quedó timbrada. Con esta solución cierro tu caso con el número CASO-41530. Aprovecho para contarte de la campaña Cierre Fiscal Contamix: 15% de descuento en el pago anual de cualquier plan hasta el 31 de diciembre."
+    },
+    {
+      "n": 11,
+      "emisor": "cliente",
+      "timestamp": "2026-10-20T17:19:24",
+      "texto": "Va, lo voy a considerar."
+    },
+    {
+      "n": 12,
+      "emisor": "agente",
+      "timestamp": "2026-10-20T17:19:49",
+      "texto": "Si te surge otra duda, nos encuentras en este chat de lunes a viernes de 8:00 a 20:00 o en soporte@contamix.example. ¿Hay algo más en lo que te pueda ayudar?"
+    },
+    {
+      "n": 13,
+      "emisor": "cliente",
+      "timestamp": "2026-10-20T17:20:19",
+      "texto": "No, gracias."
+    },
+    {
+      "n": 14,
+      "emisor": "agente",
+      "timestamp": "2026-10-20T17:20:44",
+      "texto": "Gracias a ti por contactar a Contamix, Héctor. Te llegará una breve encuesta para calificar la atención. Te atendió Mariana, ¡que tengas excelente tarde!"
+    }
+  ]
+}

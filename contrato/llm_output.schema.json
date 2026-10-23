@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Salida del evaluador LLM (rúbrica ce, reglas_ce_v1 / evaluador_ce_v1)",
-  "description": "Solo juicios semánticos con evidencia. El modelo NUNCA calcula nota, ponderación, resultado de sección ni decide el resultado final de criterios híbridos; eso lo hace JavaScript. La conversación llega enmascarada ([EMAIL_n], [RFC_n], [TELEFONO_n], [NOMBRE_n]) y con mensajes numerados. Nota técnica: el uso de minimum en campos de tipo [integer, null] (primer_mensaje_info_cuenta.mensaje_n) se verifica en Fase 1 con una llamada real a OpenAI; si no se acepta en modo estricto, se quita del esquema y esa validación pasa a JS-5. Otras verificaciones de Fase 1 en config.md (notas de diseño). Las reglas de coherencia que aplica JS-5 sobre esta salida están en rubrica.md 6.1.",
+  "description": "Solo juicios semánticos con evidencia. El modelo NUNCA calcula nota, ponderación, resultado de sección ni decide el resultado final de criterios híbridos; eso lo hace JavaScript. La conversación llega enmascarada ([EMAIL_n], [RFC_n], [TELEFONO_n], [NOMBRE_n]) y con mensajes numerados. Nota técnica (resuelta con la prueba A del 23-oct-2026): gpt-6-luna aceptó este esquema tal cual en modo estricto, incluidos $schema, title, minItems, pattern y minimum en el campo de tipo [integer, null] (primer_mensaje_info_cuenta.mensaje_n). Aceptado significa que la API no rechazó el esquema; JS-5 sigue validando mensaje_n >= 1 por su cuenta. Detalle en config.md (notas de diseño). Las reglas de coherencia que aplica JS-5 sobre esta salida están en rubrica.md 6.1.",
   "type": "object",
   "additionalProperties": false,
   "required": [

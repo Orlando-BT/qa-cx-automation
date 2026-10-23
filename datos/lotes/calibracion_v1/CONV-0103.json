@@ -1,0 +1,91 @@
+{
+  "conversation_id": "CONV-0103",
+  "canal": "chat",
+  "tipo_interaccion": "ce",
+  "agente": "Andrés Soto",
+  "cuenta_id": "CTA-110",
+  "metadatos_caso": {
+    "tipificacion_agente": "Error de timbrado de CFDI",
+    "numero_caso": "CASO-42317",
+    "estado_caso": "cerrado",
+    "escalado": false,
+    "campos_capturados": {
+      "uuid_factura": "presente",
+      "motivo_cancelacion": "presente"
+    }
+  },
+  "mensajes": [
+    {
+      "n": 1,
+      "emisor": "cliente",
+      "timestamp": "2026-10-05T10:33:08",
+      "texto": "Buenos días. Le facturé a un paciente un tratamiento que al final no se hizo. ¿Cómo cancelo la factura?"
+    },
+    {
+      "n": 2,
+      "emisor": "agente",
+      "timestamp": "2026-10-05T10:33:48",
+      "texto": "¡Buenos días! Bienvenido a Contamix, te atiende Andrés y con gusto te ayudo con la cancelación. Tus datos personales serán tratados conforme a nuestro aviso de privacidad. ¿Con quién tengo el gusto?"
+    },
+    {
+      "n": 3,
+      "emisor": "cliente",
+      "timestamp": "2026-10-05T10:34:18",
+      "texto": "Gustavo Ortega."
+    },
+    {
+      "n": 4,
+      "emisor": "agente",
+      "timestamp": "2026-10-05T10:34:48",
+      "texto": "Mucho gusto, Gustavo. ¿De cuánto fue la factura? ¿La vas a sustituir por otra o simplemente no debió emitirse?"
+    },
+    {
+      "n": 5,
+      "emisor": "cliente",
+      "timestamp": "2026-10-05T10:35:48",
+      "texto": "Fueron 3,500 pesos. No se va a sustituir, el tratamiento no se hizo."
+    },
+    {
+      "n": 6,
+      "emisor": "agente",
+      "timestamp": "2026-10-05T10:36:23",
+      "texto": "Entonces corresponde el motivo 03, no se llevó a cabo la operación. Entra a Facturación > Facturas emitidas, busca la factura, da clic en Cancelar, elige el motivo 03 y confirma. Como el total es mayor a 1,000 pesos, tu paciente debe aceptar la cancelación en el portal del SAT."
+    },
+    {
+      "n": 7,
+      "emisor": "cliente",
+      "timestamp": "2026-10-05T10:37:43",
+      "texto": "Ya la mandé. ¿Y si mi paciente no la acepta?"
+    },
+    {
+      "n": 8,
+      "emisor": "agente",
+      "timestamp": "2026-10-05T10:38:18",
+      "texto": "Tiene 72 horas para aceptarla o rechazarla; si no responde, la cancelación se considera aceptada. Si la rechaza, la factura sigue vigente y tendrías que ponerte de acuerdo con tu paciente, porque desde Contamix no es posible forzar la cancelación."
+    },
+    {
+      "n": 9,
+      "emisor": "cliente",
+      "timestamp": "2026-10-05T10:38:58",
+      "texto": "Entendido, gracias."
+    },
+    {
+      "n": 10,
+      "emisor": "agente",
+      "timestamp": "2026-10-05T10:39:28",
+      "texto": "Para recapitular: cancelaste la factura del tratamiento con el motivo 03 y solo falta la aceptación de tu paciente, que tiene 72 horas para responder. Con esta solución cierro tu caso con el número CASO-42317. Te comento que con la campaña Cierre Fiscal Contamix tienes 15% de descuento en el pago anual hasta el 31 de diciembre. ¿Hay algo más en lo que te pueda ayudar?"
+    },
+    {
+      "n": 11,
+      "emisor": "cliente",
+      "timestamp": "2026-10-05T10:40:03",
+      "texto": "No, es todo."
+    },
+    {
+      "n": 12,
+      "emisor": "agente",
+      "timestamp": "2026-10-05T10:40:28",
+      "texto": "Gracias por contactar a Contamix, Gustavo. Recuerda que también nos encuentras en soporte@contamix.example. Al cerrar el chat te llegará una breve encuesta para calificar la atención. Te atendió Andrés, ¡que tengas buen día!"
+    }
+  ]
+}

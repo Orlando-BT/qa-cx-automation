@@ -1,0 +1,91 @@
+{
+  "conversation_id": "CONV-0110",
+  "canal": "chat",
+  "tipo_interaccion": "ce",
+  "agente": "Paola Jiménez",
+  "cuenta_id": "CTA-110",
+  "metadatos_caso": {
+    "tipificacion_agente": "Alta y permisos de usuarios",
+    "numero_caso": "CASO-40873",
+    "estado_caso": "cerrado",
+    "escalado": false,
+    "campos_capturados": {
+      "usuario_afectado": "presente",
+      "rol_asignado": "presente"
+    }
+  },
+  "mensajes": [
+    {
+      "n": 1,
+      "emisor": "cliente",
+      "timestamp": "2026-10-07T11:20:15",
+      "texto": "Hola, quiero dar de alta a mi nueva asistente para que pueda facturar."
+    },
+    {
+      "n": 2,
+      "emisor": "agente",
+      "timestamp": "2026-10-07T11:20:57",
+      "texto": "¡Hola! Bienvenido a Contamix, te atiende Paola. Con gusto te ayudo a darla de alta. Antes, te comento que tus datos personales serán tratados conforme a nuestro aviso de privacidad. ¿Con quién tengo el gusto?"
+    },
+    {
+      "n": 3,
+      "emisor": "cliente",
+      "timestamp": "2026-10-07T11:21:27",
+      "texto": "Gustavo Ortega, de la clínica Sonrisa Plena."
+    },
+    {
+      "n": 4,
+      "emisor": "agente",
+      "timestamp": "2026-10-07T11:21:55",
+      "texto": "Mucho gusto, Gustavo. ¿Tu usuario es Administrador de la cuenta? Solo un Administrador puede dar de alta usuarios. ¿Tu asistente solo va a facturar o también necesita ver reportes?"
+    },
+    {
+      "n": 5,
+      "emisor": "cliente",
+      "timestamp": "2026-10-07T11:23:00",
+      "texto": "Sí, soy el administrador. Solo va a facturar."
+    },
+    {
+      "n": 6,
+      "emisor": "agente",
+      "timestamp": "2026-10-07T11:23:30",
+      "texto": "Perfecto, entonces el rol indicado es Facturista. Entra a Configuración > Usuarios > Nuevo usuario, captura su nombre y correo, elige el rol Facturista y guarda. Le llegará una invitación a su correo para crear su contraseña."
+    },
+    {
+      "n": 7,
+      "emisor": "cliente",
+      "timestamp": "2026-10-07T11:25:05",
+      "texto": "Ya lo hice, pero me dice que llegué al límite de usuarios."
+    },
+    {
+      "n": 8,
+      "emisor": "agente",
+      "timestamp": "2026-10-07T11:25:40",
+      "texto": "Eso pasa cuando el plan llega a su límite de usuarios: el plan Básico incluye 2, el Pyme 5 y el Empresarial 15. Tienes dos opciones: desactivar en Configuración > Usuarios a alguien que ya no use la cuenta, o cambiar a un plan con más usuarios; el cambio a un plan mayor se aplica de inmediato con cobro proporcional."
+    },
+    {
+      "n": 9,
+      "emisor": "cliente",
+      "timestamp": "2026-10-07T11:27:00",
+      "texto": "Desactivé a un exempleado y ya pude darla de alta."
+    },
+    {
+      "n": 10,
+      "emisor": "agente",
+      "timestamp": "2026-10-07T11:27:30",
+      "texto": "¡Excelente! Para recapitular: diste de alta a tu asistente con el rol Facturista después de desactivar a un usuario que ya no se usaba. Con esta solución queda registrado tu caso con el número CASO-40873. Por cierto, tenemos la campaña Cierre Fiscal Contamix con 15% de descuento en el pago anual hasta el 31 de diciembre."
+    },
+    {
+      "n": 11,
+      "emisor": "agente",
+      "timestamp": "2026-10-07T11:29:35",
+      "texto": "Gustavo, ¿sigues ahí? Quedo atenta por si tienes alguna otra duda."
+    },
+    {
+      "n": 12,
+      "emisor": "agente",
+      "timestamp": "2026-10-07T11:31:45",
+      "texto": "Al no recibir respuesta, cierro el chat. Gracias por contactar a Contamix, te atendió Paola. ¡Que tengas excelente día!"
+    }
+  ]
+}

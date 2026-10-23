@@ -1,0 +1,78 @@
+{
+  "conversation_id": "CONV-0114",
+  "canal": "chat",
+  "tipo_interaccion": "ce",
+  "agente": "Diego Herrera",
+  "cuenta_id": "CTA-108",
+  "metadatos_caso": {
+    "tipificacion_agente": "Restablecimiento de contraseña",
+    "numero_caso": "CASO-41720",
+    "estado_caso": "cerrado",
+    "escalado": false,
+    "campos_capturados": {
+      "usuario_afectado": "presente"
+    }
+  },
+  "mensajes": [
+    {
+      "n": 1,
+      "emisor": "cliente",
+      "timestamp": "2026-10-09T16:55:12",
+      "texto": "Buenas tardes, no puedo entrar a Contamix, ya me bloqueé y tengo pacientes que facturar hoy. Estoy desesperado."
+    },
+    {
+      "n": 2,
+      "emisor": "agente",
+      "timestamp": "2026-10-09T16:55:52",
+      "texto": "Buenas tardes. Contamix, le atiende Diego. Sus datos se tratan conforme al aviso de privacidad. Usuario?"
+    },
+    {
+      "n": 3,
+      "emisor": "cliente",
+      "timestamp": "2026-10-09T16:56:37",
+      "texto": "Es alonso.medina@consultoriomedina.example"
+    },
+    {
+      "n": 4,
+      "emisor": "agente",
+      "timestamp": "2026-10-09T16:57:12",
+      "texto": "En la pantalla de inicio de sesión dé clic en ¿Olvidaste tu contraseña? y escriba ese correo. Le llega un enlace que vence en 30 minutos."
+    },
+    {
+      "n": 5,
+      "emisor": "cliente",
+      "timestamp": "2026-10-09T16:58:32",
+      "texto": "Ya lo hice tres veces y no me llega nada. Me urge."
+    },
+    {
+      "n": 6,
+      "emisor": "agente",
+      "timestamp": "2026-10-09T16:59:02",
+      "texto": "Revise spam."
+    },
+    {
+      "n": 7,
+      "emisor": "cliente",
+      "timestamp": "2026-10-09T17:00:02",
+      "texto": "Ah, ahí estaba. Ya entré."
+    },
+    {
+      "n": 8,
+      "emisor": "agente",
+      "timestamp": "2026-10-09T17:00:27",
+      "texto": "Resumen: no le llegaba el correo de restablecimiento porque estaba en spam; ya entró. Quedó con solución, caso CASO-41720. Algo más?"
+    },
+    {
+      "n": 9,
+      "emisor": "cliente",
+      "timestamp": "2026-10-09T17:00:57",
+      "texto": "No."
+    },
+    {
+      "n": 10,
+      "emisor": "agente",
+      "timestamp": "2026-10-09T17:01:17",
+      "texto": "Gracias por contactar a Contamix. Hasta luego."
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "conversation_id": "CONV-0108",
+  "canal": "chat",
+  "tipo_interaccion": "ce",
+  "agente": "Tomás Aguilar",
+  "cuenta_id": "CTA-103",
+  "metadatos_caso": {
+    "tipificacion_agente": "Cancelación de CFDI",
+    "numero_caso": "CASO-41688",
+    "estado_caso": "en_seguimiento",
+    "escalado": false,
+    "campos_capturados": {
+      "uuid_factura": "presente",
+      "motivo_cancelacion": "presente"
+    }
+  },
+  "mensajes": [
+    {
+      "n": 1,
+      "emisor": "cliente",
+      "timestamp": "2026-10-06T12:03:55",
+      "texto": "Hola, buen día. Emití una factura con el RFC del cliente equivocado. ¿Cómo la cancelo y la vuelvo a hacer? ¿Y mi cliente tiene que aceptar algo?"
+    },
+    {
+      "n": 2,
+      "emisor": "agente",
+      "timestamp": "2026-10-06T12:04:35",
+      "texto": "¡Hola, muy buen día! Bienvenida a Contamix, te atiende Tomás. Qué pena que te haya pasado, no te preocupes, es algo muy común y con gusto te ayudo. Tus datos personales serán tratados conforme a nuestro aviso de privacidad. ¿Con quién tengo el gusto?"
+    },
+    {
+      "n": 3,
+      "emisor": "cliente",
+      "timestamp": "2026-10-06T12:05:05",
+      "texto": "Fernanda Ibarra."
+    },
+    {
+      "n": 4,
+      "emisor": "agente",
+      "timestamp": "2026-10-06T12:05:35",
+      "texto": "Mucho gusto, Fernanda. La cancelación se hace en Facturación > Facturas emitidas, con el botón Cancelar, donde eliges el motivo."
+    },
+    {
+      "n": 5,
+      "emisor": "cliente",
+      "timestamp": "2026-10-06T12:06:35",
+      "texto": "¿Pero qué motivo pongo? ¿Y cómo la vuelvo a hacer con el RFC bien? No quiero que se me duplique."
+    },
+    {
+      "n": 6,
+      "emisor": "agente",
+      "timestamp": "2026-10-06T12:07:15",
+      "texto": "Entiendo perfectamente tu preocupación, Fernanda, es muy válido que no quieras duplicarla. Primero emite la nueva factura con el RFC correcto desde Facturación > Nueva factura. Después cancela la anterior con el motivo 01, comprobante emitido con errores con relación, y selecciona la nueva como sustituta."
+    },
+    {
+      "n": 7,
+      "emisor": "cliente",
+      "timestamp": "2026-10-06T12:08:25",
+      "texto": "Va... ¿y lo de si mi cliente tiene que aceptar la cancelación?"
+    },
+    {
+      "n": 8,
+      "emisor": "agente",
+      "timestamp": "2026-10-06T12:09:00",
+      "texto": "Excelente pregunta. Déjame consultarlo con mi equipo para darte la información exacta y te escribimos por correo para darte seguimiento en un máximo de 24 horas hábiles. Agradezco mucho tu comprensión."
+    },
+    {
+      "n": 9,
+      "emisor": "cliente",
+      "timestamp": "2026-10-06T12:09:50",
+      "texto": "Bueno, gracias."
+    },
+    {
+      "n": 10,
+      "emisor": "agente",
+      "timestamp": "2026-10-06T12:10:20",
+      "texto": "Para recapitular: te compartí cómo emitir la nueva factura y cancelar la anterior con el motivo 01, y quedamos de darte seguimiento por correo sobre la aceptación de tu cliente con el caso CASO-41688. Por cierto, con la campaña Cierre Fiscal Contamix tienes 15% de descuento en el pago anual hasta el 31 de diciembre. También nos encuentras en soporte@contamix.example. ¿Hay algo más en lo que te pueda ayudar?"
+    },
+    {
+      "n": 11,
+      "emisor": "cliente",
+      "timestamp": "2026-10-06T12:11:00",
+      "texto": "No, gracias."
+    },
+    {
+      "n": 12,
+      "emisor": "agente",
+      "timestamp": "2026-10-06T12:11:25",
+      "texto": "Gracias a ti por contactar a Contamix, Fernanda. Fue un placer atenderte, te atendió Tomás. ¡Que tengas un excelente día!"
+    }
+  ]
+}

@@ -1,0 +1,342 @@
+clave_lista,tipo_lista,tipo_interaccion,valor,es_regex,activo,notas
+saludo,frase_criterio,ce,hola,no,si,
+saludo,frase_criterio,ce,buenos días,no,si,
+saludo,frase_criterio,ce,buenas tardes,no,si,
+saludo,frase_criterio,ce,buenas noches,no,si,
+saludo,frase_criterio,ce,buen día,no,si,
+saludo,frase_criterio,ce,qué tal,no,si,
+saludo,frase_criterio,ce,saludos,no,si,
+bienvenida,frase_criterio,ce,bienvenido,no,si,
+bienvenida,frase_criterio,ce,bienvenida,no,si,
+bienvenida,frase_criterio,ce,bienvenidos,no,si,
+bienvenida,frase_criterio,ce,te damos la bienvenida,no,si,
+bienvenida,frase_criterio,ce,le damos la bienvenida,no,si,
+bienvenida,frase_criterio,ce,gracias por contactar,no,si,
+bienvenida,frase_criterio,ce,gracias por comunicarte,no,si,
+bienvenida,frase_criterio,ce,gracias por comunicarse,no,si,
+bienvenida,frase_criterio,ce,gracias por escribir,no,si,
+ofrece_ayuda,frase_criterio,ce,en qué te puedo ayudar,no,si,
+ofrece_ayuda,frase_criterio,ce,en qué le puedo ayudar,no,si,
+ofrece_ayuda,frase_criterio,ce,en qué puedo ayudarte,no,si,
+ofrece_ayuda,frase_criterio,ce,en qué puedo ayudarle,no,si,
+ofrece_ayuda,frase_criterio,ce,en qué te puedo apoyar,no,si,
+ofrece_ayuda,frase_criterio,ce,en qué le puedo apoyar,no,si,
+ofrece_ayuda,frase_criterio,ce,cómo te puedo ayudar,no,si,
+ofrece_ayuda,frase_criterio,ce,cómo le puedo ayudar,no,si,
+ofrece_ayuda,frase_criterio,ce,con gusto te ayudo,no,si,
+ofrece_ayuda,frase_criterio,ce,con gusto le ayudo,no,si,
+ofrece_ayuda,frase_criterio,ce,con gusto te apoyo,no,si,
+ofrece_ayuda,frase_criterio,ce,con gusto le apoyo,no,si,
+ofrece_ayuda,frase_criterio,ce,con mucho gusto te ayudo,no,si,
+ofrece_ayuda,frase_criterio,ce,con mucho gusto le ayudo,no,si,
+ofrece_ayuda,frase_criterio,ce,te ayudo con,no,si,
+ofrece_ayuda,frase_criterio,ce,le ayudo con,no,si,
+ofrece_ayuda,frase_criterio,ce,con gusto reviso,no,si,
+ofrece_ayuda,frase_criterio,ce,entiendo que necesitas,no,si,
+ofrece_ayuda,frase_criterio,ce,entiendo que necesita,no,si,
+ofrece_ayuda,frase_criterio,ce,entiendo que requieres,no,si,
+ofrece_ayuda,frase_criterio,ce,entiendo que requiere,no,si,
+aviso_privacidad,frase_criterio,ce,aviso de privacidad,no,si,
+aviso_privacidad,frase_criterio,ce,datos personales serán tratados,no,si,
+aviso_privacidad,frase_criterio,ce,datos personales están protegidos,no,si,
+aviso_privacidad,frase_criterio,ce,protección de datos personales,no,si,
+aviso_privacidad,frase_criterio,ce,tratamiento de tus datos personales,no,si,
+aviso_privacidad,frase_criterio,ce,tratamiento de sus datos personales,no,si,
+pide_nombre_cliente,frase_criterio,ce,con quién tengo el gusto,no,si,
+pide_nombre_cliente,frase_criterio,ce,me compartes tu nombre,no,si,
+pide_nombre_cliente,frase_criterio,ce,me comparte su nombre,no,si,
+pide_nombre_cliente,frase_criterio,ce,me podrías dar tu nombre,no,si,
+pide_nombre_cliente,frase_criterio,ce,me puede dar su nombre,no,si,
+pide_nombre_cliente,frase_criterio,ce,me regalas tu nombre,no,si,
+pide_nombre_cliente,frase_criterio,ce,me regala su nombre,no,si,
+pide_nombre_cliente,frase_criterio,ce,cuál es tu nombre,no,si,
+pide_nombre_cliente,frase_criterio,ce,cuál es su nombre,no,si,
+pide_nombre_cliente,frase_criterio,ce,me indicas tu nombre,no,si,
+pide_nombre_cliente,frase_criterio,ce,me indica su nombre,no,si,
+pide_nombre_cliente,frase_criterio,ce,me proporcionas tu nombre,no,si,
+pide_nombre_cliente,frase_criterio,ce,me proporciona su nombre,no,si,
+pide_espera,frase_criterio,ce,\b(permiteme|permitame|me permites|me permite|dame|deme|me das|me da|me regalas|me regala|me concedes|me concede)( por favor)? (un|unos|un par de) (momento|momentos|minuto|minutos|instante)\b,si,si,Escrita sin acentos y en minúsculas: se aplica sobre el texto normalizado.
+pide_espera,frase_criterio,ce,un momento por favor,no,si,"Solo frases que piden tiempo de forma explícita: una frase genérica como ""lo reviso"" abriría episodios de espera falsos."
+pide_espera,frase_criterio,ce,"un momento, por favor",no,si,"Solo frases que piden tiempo de forma explícita: una frase genérica como ""lo reviso"" abriría episodios de espera falsos."
+pide_espera,frase_criterio,ce,aguárdame un momento,no,si,"Solo frases que piden tiempo de forma explícita: una frase genérica como ""lo reviso"" abriría episodios de espera falsos."
+pide_espera,frase_criterio,ce,aguárdeme un momento,no,si,"Solo frases que piden tiempo de forma explícita: una frase genérica como ""lo reviso"" abriría episodios de espera falsos."
+pide_espera,frase_criterio,ce,espérame un momento,no,si,"Solo frases que piden tiempo de forma explícita: una frase genérica como ""lo reviso"" abriría episodios de espera falsos."
+pide_espera,frase_criterio,ce,espéreme un momento,no,si,"Solo frases que piden tiempo de forma explícita: una frase genérica como ""lo reviso"" abriría episodios de espera falsos."
+pide_espera,frase_criterio,ce,me esperas un momento,no,si,"Solo frases que piden tiempo de forma explícita: una frase genérica como ""lo reviso"" abriría episodios de espera falsos."
+pide_espera,frase_criterio,ce,me espera un momento,no,si,"Solo frases que piden tiempo de forma explícita: una frase genérica como ""lo reviso"" abriría episodios de espera falsos."
+pide_espera,frase_criterio,ce,en un momento te confirmo,no,si,"Solo frases que piden tiempo de forma explícita: una frase genérica como ""lo reviso"" abriría episodios de espera falsos."
+pide_espera,frase_criterio,ce,en un momento le confirmo,no,si,"Solo frases que piden tiempo de forma explícita: una frase genérica como ""lo reviso"" abriría episodios de espera falsos."
+pide_espera,frase_criterio,ce,regreso en un momento,no,si,"Solo frases que piden tiempo de forma explícita: una frase genérica como ""lo reviso"" abriría episodios de espera falsos."
+pide_espera,frase_criterio,ce,permíteme validar,no,si,"Solo frases que piden tiempo de forma explícita: una frase genérica como ""lo reviso"" abriría episodios de espera falsos."
+pide_espera,frase_criterio,ce,permítame validar,no,si,"Solo frases que piden tiempo de forma explícita: una frase genérica como ""lo reviso"" abriría episodios de espera falsos."
+pide_espera,frase_criterio,ce,permíteme verificar,no,si,"Solo frases que piden tiempo de forma explícita: una frase genérica como ""lo reviso"" abriría episodios de espera falsos."
+pide_espera,frase_criterio,ce,permítame verificar,no,si,"Solo frases que piden tiempo de forma explícita: una frase genérica como ""lo reviso"" abriría episodios de espera falsos."
+pide_espera,frase_criterio,ce,permíteme revisar,no,si,"Solo frases que piden tiempo de forma explícita: una frase genérica como ""lo reviso"" abriría episodios de espera falsos."
+pide_espera,frase_criterio,ce,permítame revisar,no,si,"Solo frases que piden tiempo de forma explícita: una frase genérica como ""lo reviso"" abriría episodios de espera falsos."
+pide_espera,frase_criterio,ce,permíteme consultarlo,no,si,"Solo frases que piden tiempo de forma explícita: una frase genérica como ""lo reviso"" abriría episodios de espera falsos."
+pide_espera,frase_criterio,ce,permítame consultarlo,no,si,"Solo frases que piden tiempo de forma explícita: una frase genérica como ""lo reviso"" abriría episodios de espera falsos."
+agradece_espera,frase_criterio,ce,gracias por la espera,no,si,"Disculparse por la espera (""disculpa la espera"") no cuenta como agradecimiento."
+agradece_espera,frase_criterio,ce,gracias por esperar,no,si,"Disculparse por la espera (""disculpa la espera"") no cuenta como agradecimiento."
+agradece_espera,frase_criterio,ce,gracias por tu espera,no,si,"Disculparse por la espera (""disculpa la espera"") no cuenta como agradecimiento."
+agradece_espera,frase_criterio,ce,gracias por su espera,no,si,"Disculparse por la espera (""disculpa la espera"") no cuenta como agradecimiento."
+agradece_espera,frase_criterio,ce,agradezco tu espera,no,si,"Disculparse por la espera (""disculpa la espera"") no cuenta como agradecimiento."
+agradece_espera,frase_criterio,ce,agradezco su espera,no,si,"Disculparse por la espera (""disculpa la espera"") no cuenta como agradecimiento."
+agradece_espera,frase_criterio,ce,agradezco la espera,no,si,"Disculparse por la espera (""disculpa la espera"") no cuenta como agradecimiento."
+agradece_espera,frase_criterio,ce,gracias por tu paciencia,no,si,"Disculparse por la espera (""disculpa la espera"") no cuenta como agradecimiento."
+agradece_espera,frase_criterio,ce,gracias por su paciencia,no,si,"Disculparse por la espera (""disculpa la espera"") no cuenta como agradecimiento."
+agradece_espera,frase_criterio,ce,agradezco tu paciencia,no,si,"Disculparse por la espera (""disculpa la espera"") no cuenta como agradecimiento."
+agradece_espera,frase_criterio,ce,agradezco su paciencia,no,si,"Disculparse por la espera (""disculpa la espera"") no cuenta como agradecimiento."
+agradece_espera,frase_criterio,ce,gracias por aguardar,no,si,"Disculparse por la espera (""disculpa la espera"") no cuenta como agradecimiento."
+continua_espera,frase_criterio,ce,sigo revisando,no,si,
+continua_espera,frase_criterio,ce,sigo validando,no,si,
+continua_espera,frase_criterio,ce,sigo verificando,no,si,
+continua_espera,frase_criterio,ce,continúo revisando,no,si,
+continua_espera,frase_criterio,ce,continúo validando,no,si,
+continua_espera,frase_criterio,ce,aún estoy revisando,no,si,
+continua_espera,frase_criterio,ce,todavía estoy revisando,no,si,
+continua_espera,frase_criterio,ce,sigo trabajando en tu caso,no,si,
+continua_espera,frase_criterio,ce,sigo trabajando en su caso,no,si,
+continua_espera,frase_criterio,ce,unos minutos más,no,si,
+continua_espera,frase_criterio,ce,un momento más,no,si,
+continua_espera,frase_criterio,ce,un poco más de tiempo,no,si,
+continua_espera,frase_criterio,ce,sigo contigo,no,si,
+continua_espera,frase_criterio,ce,sigo con usted,no,si,
+continua_espera,frase_criterio,ce,ya casi termino,no,si,
+continua_espera,frase_criterio,ce,estoy por terminar,no,si,
+palabra_solucion,frase_criterio,ce,solución,no,si,"Palabra esperada con estado_caso = cerrado. No incluye ""resuelto"" para no confundir con frases como ""una vez resuelto te aviso""."
+palabra_solucion,frase_criterio,ce,solucionado,no,si,"Palabra esperada con estado_caso = cerrado. No incluye ""resuelto"" para no confundir con frases como ""una vez resuelto te aviso""."
+palabra_solucion,frase_criterio,ce,solucionada,no,si,"Palabra esperada con estado_caso = cerrado. No incluye ""resuelto"" para no confundir con frases como ""una vez resuelto te aviso""."
+palabra_solucion,frase_criterio,ce,solucionamos,no,si,"Palabra esperada con estado_caso = cerrado. No incluye ""resuelto"" para no confundir con frases como ""una vez resuelto te aviso""."
+palabra_seguimiento,frase_criterio,ce,seguimiento,no,si,"Palabra esperada con estado_caso = abierto o en_seguimiento. Cubre ""dar seguimiento"", ""daremos seguimiento"", etc."
+recordatorio_inactividad,frase_criterio,ce,\bsigue(s)? (ahi|en linea|conectad[oa]|por aqui)\b,si,si,Texto normalizado (sin acentos).
+recordatorio_inactividad,frase_criterio,ce,continúas en línea,no,si,
+recordatorio_inactividad,frase_criterio,ce,continúa en línea,no,si,
+recordatorio_inactividad,frase_criterio,ce,no he recibido respuesta,no,si,
+recordatorio_inactividad,frase_criterio,ce,no he recibido tu respuesta,no,si,
+recordatorio_inactividad,frase_criterio,ce,no he recibido su respuesta,no,si,
+recordatorio_inactividad,frase_criterio,ce,me confirmas si sigues,no,si,
+recordatorio_inactividad,frase_criterio,ce,me confirma si sigue,no,si,
+recordatorio_inactividad,frase_criterio,ce,aún te encuentras en el chat,no,si,
+recordatorio_inactividad,frase_criterio,ce,aún se encuentra en el chat,no,si,
+cierre_inactividad,frase_criterio,ce,al no recibir respuesta,no,si,
+cierre_inactividad,frase_criterio,ce,al no tener respuesta,no,si,
+cierre_inactividad,frase_criterio,ce,por falta de respuesta,no,si,
+cierre_inactividad,frase_criterio,ce,por inactividad,no,si,
+cierre_inactividad,frase_criterio,ce,cerraré el chat,no,si,
+cierre_inactividad,frase_criterio,ce,cerraré este chat,no,si,
+cierre_inactividad,frase_criterio,ce,cierro el chat,no,si,
+cierre_inactividad,frase_criterio,ce,cierro este chat,no,si,
+cierre_inactividad,frase_criterio,ce,cerramos el chat,no,si,
+cierre_inactividad,frase_criterio,ce,procedo a cerrar,no,si,
+cierre_inactividad,frase_criterio,ce,voy a cerrar el chat,no,si,
+cierre_inactividad,frase_criterio,ce,finalizo el chat,no,si,
+cierre_inactividad,frase_criterio,ce,finalizo esta conversación,no,si,
+cierre_inactividad,frase_criterio,ce,se cerrará el chat,no,si,
+ayuda_adicional,frase_criterio,ce,algo más en lo que te pueda ayudar,no,si,
+ayuda_adicional,frase_criterio,ce,algo más en lo que le pueda ayudar,no,si,
+ayuda_adicional,frase_criterio,ce,algo más en que te pueda ayudar,no,si,
+ayuda_adicional,frase_criterio,ce,algo más en que le pueda ayudar,no,si,
+ayuda_adicional,frase_criterio,ce,algo más en lo que te pueda apoyar,no,si,
+ayuda_adicional,frase_criterio,ce,algo más en lo que le pueda apoyar,no,si,
+ayuda_adicional,frase_criterio,ce,hay algo más,no,si,
+ayuda_adicional,frase_criterio,ce,puedo ayudarte con algo más,no,si,
+ayuda_adicional,frase_criterio,ce,puedo ayudarle con algo más,no,si,
+ayuda_adicional,frase_criterio,ce,te puedo ayudar con algo más,no,si,
+ayuda_adicional,frase_criterio,ce,le puedo ayudar con algo más,no,si,
+ayuda_adicional,frase_criterio,ce,te puedo apoyar con algo más,no,si,
+ayuda_adicional,frase_criterio,ce,le puedo apoyar con algo más,no,si,
+ayuda_adicional,frase_criterio,ce,alguna otra duda,no,si,
+ayuda_adicional,frase_criterio,ce,alguna otra consulta,no,si,
+ayuda_adicional,frase_criterio,ce,otra duda en la que,no,si,
+encuesta,frase_criterio,ce,encuesta,no,si,"""encuesta"" cubre ""encuesta de satisfacción"", ""breve encuesta"", etc."
+encuesta,frase_criterio,ce,calificar la atención,no,si,"""encuesta"" cubre ""encuesta de satisfacción"", ""breve encuesta"", etc."
+encuesta,frase_criterio,ce,calificar mi atención,no,si,"""encuesta"" cubre ""encuesta de satisfacción"", ""breve encuesta"", etc."
+encuesta,frase_criterio,ce,califica la atención,no,si,"""encuesta"" cubre ""encuesta de satisfacción"", ""breve encuesta"", etc."
+encuesta,frase_criterio,ce,califica mi atención,no,si,"""encuesta"" cubre ""encuesta de satisfacción"", ""breve encuesta"", etc."
+encuesta,frase_criterio,ce,evaluar la atención,no,si,"""encuesta"" cubre ""encuesta de satisfacción"", ""breve encuesta"", etc."
+encuesta,frase_criterio,ce,evaluar mi atención,no,si,"""encuesta"" cubre ""encuesta de satisfacción"", ""breve encuesta"", etc."
+encuesta,frase_criterio,ce,valorar la atención,no,si,"""encuesta"" cubre ""encuesta de satisfacción"", ""breve encuesta"", etc."
+canales_horarios,frase_criterio,ce,soporte@contamix.example,no,si,
+canales_horarios,frase_criterio,ce,facturacion@contamix.example,no,si,
+canales_horarios,frase_criterio,ce,pagos@contamix.example,no,si,
+canales_horarios,frase_criterio,ce,ayuda.contamix.example,no,si,
+canales_horarios,frase_criterio,ce,centro de ayuda,no,si,
+canales_horarios,frase_criterio,ce,horario de atención,no,si,
+canales_horarios,frase_criterio,ce,lunes a viernes,no,si,
+canales_horarios,frase_criterio,ce,nuestros canales,no,si,
+canales_horarios,frase_criterio,ce,\b55\s?5000\s?(1000|2000)\b,si,si,"Teléfonos oficiales ficticios de config.canales_oficiales_telefonos, con o sin espacios."
+campana_vigente,frase_criterio,ce,cierre fiscal contamix,no,si,Campaña de KB-08.
+campana_vigente,frase_criterio,ce,cierre fiscal sin estrés,no,si,Campaña de KB-08.
+campana_vigente,frase_criterio,ce,campaña de cierre fiscal,no,si,Campaña de KB-08.
+campana_vigente,frase_criterio,ce,promoción de cierre fiscal,no,si,Campaña de KB-08.
+campana_vigente,frase_criterio,ce,promoción vigente,no,si,Campaña de KB-08.
+campana_vigente,frase_criterio,ce,campaña vigente,no,si,Campaña de KB-08.
+campana_vigente,frase_criterio,ce,\b15\s?%\s?de descuento\b,si,si,Descuento de la campaña de KB-08.
+agradecimiento_cierre,frase_criterio,ce,gracias por contactar,no,si,
+agradecimiento_cierre,frase_criterio,ce,gracias por contactarnos,no,si,
+agradecimiento_cierre,frase_criterio,ce,gracias por comunicarte,no,si,
+agradecimiento_cierre,frase_criterio,ce,gracias por comunicarse,no,si,
+agradecimiento_cierre,frase_criterio,ce,gracias por escribirnos,no,si,
+agradecimiento_cierre,frase_criterio,ce,gracias por tu preferencia,no,si,
+agradecimiento_cierre,frase_criterio,ce,gracias por su preferencia,no,si,
+agradecimiento_cierre,frase_criterio,ce,gracias por tu tiempo,no,si,
+agradecimiento_cierre,frase_criterio,ce,gracias por su tiempo,no,si,
+agradecimiento_cierre,frase_criterio,ce,gracias por confiar en,no,si,
+agradecimiento_cierre,frase_criterio,ce,agradezco tu confianza,no,si,
+agradecimiento_cierre,frase_criterio,ce,agradezco su confianza,no,si,
+agradecimiento_cierre,frase_criterio,ce,muchas gracias,no,si,
+agradecimiento_cierre,frase_criterio,ce,gracias a ti,no,si,
+agradecimiento_cierre,frase_criterio,ce,gracias a usted,no,si,
+frase_cortesia,frase_criterio,ce,\bque (tengas|tenga) (un |una )?(buen|buena|excelente|bonito|bonita|lindo|linda|feliz) (dia|tarde|noche|semana|fin de semana)\b,si,si,Texto normalizado. También está en despedida: es cortesía y despedida a la vez.
+frase_cortesia,frase_criterio,ce,fue un gusto atenderte,no,si,
+frase_cortesia,frase_criterio,ce,fue un gusto atenderle,no,si,
+frase_cortesia,frase_criterio,ce,fue un placer atenderte,no,si,
+frase_cortesia,frase_criterio,ce,fue un placer atenderle,no,si,
+frase_cortesia,frase_criterio,ce,un placer ayudarte,no,si,
+frase_cortesia,frase_criterio,ce,un placer ayudarle,no,si,
+frase_cortesia,frase_criterio,ce,cuídate,no,si,
+frase_cortesia,frase_criterio,ce,cuídese,no,si,
+frase_cortesia,frase_criterio,ce,saludos cordiales,no,si,
+frase_cortesia,frase_criterio,ce,excelente día,no,si,
+frase_cortesia,frase_criterio,ce,excelente tarde,no,si,
+despedida,frase_criterio,ce,\bque (tengas|tenga) (un |una )?(buen|buena|excelente|bonito|bonita|lindo|linda|feliz) (dia|tarde|noche|semana|fin de semana)\b,si,si,"Necesaria para el caso 3 de rubrica.md 3.10 (""Gracias por contactar a Contamix, que tengas buen día."")."
+despedida,frase_criterio,ce,hasta luego,no,si,
+despedida,frase_criterio,ce,hasta pronto,no,si,
+despedida,frase_criterio,ce,hasta la próxima,no,si,
+despedida,frase_criterio,ce,me despido,no,si,
+despedida,frase_criterio,ce,nos leemos,no,si,
+despedida,frase_criterio,ce,adiós,no,si,
+pide_datos_identidad,frase_criterio,ce,\b(validar|verificar|confirmar) (tu|su|la) identidad\b,si,si,Texto normalizado.
+pide_datos_identidad,frase_criterio,ce,"\b(validar|verificar|confirmar) (algunos|unos|tus|sus|los) datos\b(?![^.?!,;]*\b(del|de la|de los|de las|de tu|de su|de tus|de sus) (receptor|receptora|receptores|cliente final|clientes finales|cliente|clientes|factura|facturas)\b)",si,si,"Texto normalizado. Excluye datos de terceros en el resto de la cláusula (""del receptor"", ""del cliente final"", ""de la factura"", ""de tu cliente"" y variantes)."
+pide_datos_identidad,frase_criterio,ce,"\bme (puedes |podrias |puede |podria )?(compartir|compartes|comparte|proporcionar|proporcionas|proporciona|indicar|indicas|indica|confirmar|confirmas|confirma|dar|das|da|escribir|escribes|escribe)\b[^.?!]{0,40}\b(rfc|correo|telefono|nombre del titular)\b(?![^.?!,;]*\b(del|de la|de los|de las|de tu|de su|de tus|de sus) (receptor|receptora|receptores|cliente final|clientes finales|cliente|clientes|factura|facturas)\b)",si,si,"Pedir un dato con verbo explícito. Una mención como ""te llegará al correo registrado"" no cuenta como solicitud. Excluye datos de terceros en el resto de la cláusula (""del receptor"", ""del cliente final"", ""de la factura"", ""de tu cliente"" y variantes)."
+declina_validacion,frase_criterio,ce,no puedo compartir información de la cuenta,no,si,
+declina_validacion,frase_criterio,ce,no puedo compartirte información,no,si,
+declina_validacion,frase_criterio,ce,no puedo compartirle información,no,si,
+declina_validacion,frase_criterio,ce,no puedo darte información,no,si,
+declina_validacion,frase_criterio,ce,no puedo darle información,no,si,
+declina_validacion,frase_criterio,ce,no me es posible compartir,no,si,
+declina_validacion,frase_criterio,ce,no me es posible darte información,no,si,
+declina_validacion,frase_criterio,ce,no me es posible darle información,no,si,
+declina_validacion,frase_criterio,ce,los datos no coinciden,no,si,
+declina_validacion,frase_criterio,ce,no coinciden con los registrados,no,si,
+declina_validacion,frase_criterio,ce,no podemos continuar sin validar,no,si,
+declina_validacion,frase_criterio,ce,por seguridad no puedo,no,si,
+declina_validacion,frase_criterio,ce,por tu seguridad no puedo,no,si,
+declina_validacion,frase_criterio,ce,por su seguridad no puedo,no,si,
+declina_validacion,frase_criterio,ce,que el titular de la cuenta se comunique,no,si,
+plazo_seguimiento,frase_criterio,ce,"(?<![\d:.,])(?:(\d{1,3})\s*(?:a|-|o)\s*)?(\d{1,3})(?![\d:.,])\s*(horas?|hrs?|h|dias?|semanas?)\b(?:\s*(habiles))?",si,si,"Grupos: 1 = extremo menor del rango (opcional), 2 = número (o extremo mayor), 3 = unidad, 4 = ""habiles"" (opcional). Texto normalizado. No captura horas del reloj como ""8:00"" o ""20:00"". No reconoce minutos: una duración en minutos no es plazo de seguimiento (rubrica.md 3.11). Solo números con dígitos: los números en palabras se convierten antes con numero_en_palabras."
+numero_en_palabras,frase_criterio,ce,una,no,si,1
+numero_en_palabras,frase_criterio,ce,dos,no,si,2
+numero_en_palabras,frase_criterio,ce,tres,no,si,3
+numero_en_palabras,frase_criterio,ce,cuatro,no,si,4
+numero_en_palabras,frase_criterio,ce,cinco,no,si,5
+numero_en_palabras,frase_criterio,ce,seis,no,si,6
+numero_en_palabras,frase_criterio,ce,siete,no,si,7
+numero_en_palabras,frase_criterio,ce,ocho,no,si,8
+numero_en_palabras,frase_criterio,ce,nueve,no,si,9
+numero_en_palabras,frase_criterio,ce,diez,no,si,10
+numero_en_palabras,frase_criterio,ce,doce,no,si,12
+numero_en_palabras,frase_criterio,ce,quince,no,si,15
+numero_en_palabras,frase_criterio,ce,veinte,no,si,20
+numero_en_palabras,frase_criterio,ce,veinticuatro,no,si,24
+numero_en_palabras,frase_criterio,ce,treinta,no,si,30
+numero_en_palabras,frase_criterio,ce,cuarenta y ocho,no,si,48
+numero_en_palabras,frase_criterio,ce,setenta y dos,no,si,72
+termino_prohibido,termino_prohibido,ce,base de datos,no,si,Tecnicismos.
+termino_prohibido,termino_prohibido,ce,backend,no,si,Tecnicismos.
+termino_prohibido,termino_prohibido,ce,frontend,no,si,Tecnicismos.
+termino_prohibido,termino_prohibido,ce,endpoint,no,si,Tecnicismos.
+termino_prohibido,termino_prohibido,ce,servidor,no,si,Tecnicismos.
+termino_prohibido,termino_prohibido,ce,hotfix,no,si,Tecnicismos.
+termino_prohibido,termino_prohibido,ce,rollback,no,si,Tecnicismos.
+termino_prohibido,termino_prohibido,ce,timeout,no,si,Tecnicismos.
+termino_prohibido,termino_prohibido,ce,webhook,no,si,Tecnicismos.
+termino_prohibido,termino_prohibido,ce,payload,no,si,Tecnicismos.
+termino_prohibido,termino_prohibido,ce,query,no,si,Tecnicismos.
+termino_prohibido,termino_prohibido,ce,caché,no,si,Tecnicismos.
+termino_prohibido,termino_prohibido,ce,deploy,no,si,Tecnicismos.
+termino_prohibido,termino_prohibido,ce,\blogs?\b,si,si,"Con límite de palabra para no coincidir con ""catálogo"" o ""login""."
+termino_prohibido,termino_prohibido,ce,\bbugs?\b,si,si,Tecnicismo.
+termino_prohibido,termino_prohibido,ce,\bcron\b,si,si,"Con límite de palabra para no coincidir con ""sincronización""."
+termino_prohibido,termino_prohibido,ce,\bjobs?\b,si,si,Tecnicismo.
+termino_prohibido,termino_prohibido,ce,\bscripts?\b,si,si,Tecnicismo.
+termino_prohibido,termino_prohibido,ce,\berror (500|502|503|504)\b,si,si,Códigos HTTP internos.
+termino_prohibido,termino_prohibido,ce,orion,no,si,"Sistemas internos ficticios de Contamix (panel de administración, cobranza y motor de timbrado). El cliente no los conoce."
+termino_prohibido,termino_prohibido,ce,cobrix,no,si,"Sistemas internos ficticios de Contamix (panel de administración, cobranza y motor de timbrado). El cliente no los conoce."
+termino_prohibido,termino_prohibido,ce,timbracore,no,si,"Sistemas internos ficticios de Contamix (panel de administración, cobranza y motor de timbrado). El cliente no los conoce."
+frase_negativa,frase_negativa,ce,no se puede,no,si,"No incluye ""no sé"": sin acentos se vuelve ""no se"" y coincidiría con ""no se preocupe""."
+frase_negativa,frase_negativa,ce,no puedo hacer nada,no,si,"No incluye ""no sé"": sin acentos se vuelve ""no se"" y coincidiría con ""no se preocupe""."
+frase_negativa,frase_negativa,ce,no lo sé,no,si,"No incluye ""no sé"": sin acentos se vuelve ""no se"" y coincidiría con ""no se preocupe""."
+frase_negativa,frase_negativa,ce,ni idea,no,si,"No incluye ""no sé"": sin acentos se vuelve ""no se"" y coincidiría con ""no se preocupe""."
+frase_negativa,frase_negativa,ce,desconozco,no,si,"No incluye ""no sé"": sin acentos se vuelve ""no se"" y coincidiría con ""no se preocupe""."
+frase_negativa,frase_negativa,ce,es imposible,no,si,"No incluye ""no sé"": sin acentos se vuelve ""no se"" y coincidiría con ""no se preocupe""."
+frase_negativa,frase_negativa,ce,no es mi área,no,si,"No incluye ""no sé"": sin acentos se vuelve ""no se"" y coincidiría con ""no se preocupe""."
+frase_negativa,frase_negativa,ce,no me corresponde,no,si,"No incluye ""no sé"": sin acentos se vuelve ""no se"" y coincidiría con ""no se preocupe""."
+frase_negativa,frase_negativa,ce,no es mi problema,no,si,"No incluye ""no sé"": sin acentos se vuelve ""no se"" y coincidiría con ""no se preocupe""."
+frase_negativa,frase_negativa,ce,eso no lo hacemos,no,si,"No incluye ""no sé"": sin acentos se vuelve ""no se"" y coincidiría con ""no se preocupe""."
+frase_negativa,frase_negativa,ce,como ya te dije,no,si,"No incluye ""no sé"": sin acentos se vuelve ""no se"" y coincidiría con ""no se preocupe""."
+frase_negativa,frase_negativa,ce,como ya le dije,no,si,"No incluye ""no sé"": sin acentos se vuelve ""no se"" y coincidiría con ""no se preocupe""."
+frase_negativa,frase_negativa,ce,como te comenté antes,no,si,"No incluye ""no sé"": sin acentos se vuelve ""no se"" y coincidiría con ""no se preocupe""."
+frase_negativa,frase_negativa,ce,como le comenté antes,no,si,"No incluye ""no sé"": sin acentos se vuelve ""no se"" y coincidiría con ""no se preocupe""."
+frase_negativa,frase_negativa,ce,ya te lo expliqué,no,si,"No incluye ""no sé"": sin acentos se vuelve ""no se"" y coincidiría con ""no se preocupe""."
+frase_negativa,frase_negativa,ce,ya se lo expliqué,no,si,"No incluye ""no sé"": sin acentos se vuelve ""no se"" y coincidiría con ""no se preocupe""."
+frase_negativa,frase_negativa,ce,no te entiendo,no,si,"No incluye ""no sé"": sin acentos se vuelve ""no se"" y coincidiría con ""no se preocupe""."
+frase_negativa,frase_negativa,ce,no le entiendo,no,si,"No incluye ""no sé"": sin acentos se vuelve ""no se"" y coincidiría con ""no se preocupe""."
+frase_negativa,frase_negativa,ce,es tu culpa,no,si,"No incluye ""no sé"": sin acentos se vuelve ""no se"" y coincidiría con ""no se preocupe""."
+frase_negativa,frase_negativa,ce,es su culpa,no,si,"No incluye ""no sé"": sin acentos se vuelve ""no se"" y coincidiría con ""no se preocupe""."
+frase_negativa,frase_negativa,ce,eso es tu problema,no,si,"No incluye ""no sé"": sin acentos se vuelve ""no se"" y coincidiría con ""no se preocupe""."
+frase_negativa,frase_negativa,ce,eso es su problema,no,si,"No incluye ""no sé"": sin acentos se vuelve ""no se"" y coincidiría con ""no se preocupe""."
+vicio_lenguaje,vicio_lenguaje,ce,o sea,no,si,
+vicio_lenguaje,vicio_lenguaje,ce,osea,no,si,
+vicio_lenguaje,vicio_lenguaje,ce,ahorita,no,si,
+vicio_lenguaje,vicio_lenguaje,ce,okey,no,si,
+vicio_lenguaje,vicio_lenguaje,ce,porfa,no,si,
+vicio_lenguaje,vicio_lenguaje,ce,porfis,no,si,
+vicio_lenguaje,vicio_lenguaje,ce,\b(guey|wey|neta|chido|chida|nop|sip)\b,si,si,"Con límite de palabra para no coincidir con ""planeta"" o ""disipar""."
+vicio_lenguaje,vicio_lenguaje,ce,\bok\b,si,si,Con límite de palabra.
+vicio_lenguaje,vicio_lenguaje,ce,\boki(s)?\b,si,si,Con límite de palabra.
+vicio_lenguaje,vicio_lenguaje,ce,\b(q|xq|pq|tmb|tb|pls|dsp|ntp|bno)\b,si,si,Abreviaturas de chat. Con límite de palabra.
+vicio_lenguaje,vicio_lenguaje,ce,\beste\s*\.\.\.,si,si,"Muletilla ""este...""."
+vicio_lenguaje,vicio_lenguaje,ce,"\bm{3,}\b",si,si,"Muletilla ""mmm""."
+vicio_lenguaje,vicio_lenguaje,ce,"\b(ja){2,}\b|\b(je){2,}\b",si,si,Risas escritas.
+vicio_lenguaje,vicio_lenguaje,ce,\bx favor\b,si,si,"Abreviatura de ""por favor""."
+palabra_altisonante,palabra_altisonante,ce,\bpendej(o|a|os|as|ada|adas)\b,si,si,"Texto normalizado, con límite de palabra."
+palabra_altisonante,palabra_altisonante,ce,\bching(ar|ada|adas|ado|ados|adera|aderas|on|ona|ones)\b,si,si,"Texto normalizado, con límite de palabra."
+palabra_altisonante,palabra_altisonante,ce,\bcabron(a|es|as)?\b,si,si,"Texto normalizado, con límite de palabra."
+palabra_altisonante,palabra_altisonante,ce,\bpinche(s)?\b,si,si,"Texto normalizado, con límite de palabra."
+palabra_altisonante,palabra_altisonante,ce,\bput(o|a|os|as)\b,si,si,"Con límite de palabra para no coincidir con ""cómputo"", ""computadora"" o ""disputa""."
+palabra_altisonante,palabra_altisonante,ce,\bverga(s)?\b,si,si,"Texto normalizado, con límite de palabra."
+palabra_altisonante,palabra_altisonante,ce,\bmierda(s)?\b,si,si,"Texto normalizado, con límite de palabra."
+palabra_altisonante,palabra_altisonante,ce,\bjoder\b,si,si,"Texto normalizado, con límite de palabra."
+palabra_altisonante,palabra_altisonante,ce,\bcarajo\b,si,si,"Texto normalizado, con límite de palabra."
+palabra_altisonante,palabra_altisonante,ce,\bculer(o|a|os|as)\b,si,si,"Texto normalizado, con límite de palabra."
+palabra_altisonante,palabra_altisonante,ce,\bculo\b,si,si,"Texto normalizado, con límite de palabra."
+palabra_altisonante,palabra_altisonante,ce,\bmam(on|ona|ones|ada|adas)\b,si,si,"No coincide con ""mamá""."
+palabra_altisonante,palabra_altisonante,ce,\bidiota(s)?\b,si,si,"Texto normalizado, con límite de palabra."
+palabra_altisonante,palabra_altisonante,ce,\bimbecil(es)?\b,si,si,"Texto normalizado, con límite de palabra."
+palabra_altisonante,palabra_altisonante,ce,\bestupid(o|a|os|as)\b,si,si,"Texto normalizado, con límite de palabra."
+palabra_altisonante,palabra_altisonante,ce,\b(hdp|ptm|nmms|alv)\b,si,si,Abreviaturas altisonantes.
+sigla_permitida,sigla_permitida,ce,RFC,no,si,No cuenta como mayúsculas sostenidas.
+sigla_permitida,sigla_permitida,ce,CFDI,no,si,No cuenta como mayúsculas sostenidas.
+sigla_permitida,sigla_permitida,ce,SAT,no,si,No cuenta como mayúsculas sostenidas.
+sigla_permitida,sigla_permitida,ce,UUID,no,si,No cuenta como mayúsculas sostenidas.
+sigla_permitida,sigla_permitida,ce,IVA,no,si,No cuenta como mayúsculas sostenidas.
+sigla_permitida,sigla_permitida,ce,ISR,no,si,No cuenta como mayúsculas sostenidas.
+sigla_permitida,sigla_permitida,ce,IEPS,no,si,No cuenta como mayúsculas sostenidas.
+sigla_permitida,sigla_permitida,ce,PAC,no,si,No cuenta como mayúsculas sostenidas.
+sigla_permitida,sigla_permitida,ce,XML,no,si,No cuenta como mayúsculas sostenidas.
+sigla_permitida,sigla_permitida,ce,PDF,no,si,No cuenta como mayúsculas sostenidas.
+sigla_permitida,sigla_permitida,ce,REP,no,si,No cuenta como mayúsculas sostenidas.
+sigla_permitida,sigla_permitida,ce,PPD,no,si,No cuenta como mayúsculas sostenidas.
+sigla_permitida,sigla_permitida,ce,PUE,no,si,No cuenta como mayúsculas sostenidas.
+sigla_permitida,sigla_permitida,ce,CSD,no,si,No cuenta como mayúsculas sostenidas.
+sigla_permitida,sigla_permitida,ce,FIEL,no,si,No cuenta como mayúsculas sostenidas.
+sigla_permitida,sigla_permitida,ce,CURP,no,si,No cuenta como mayúsculas sostenidas.
+sigla_permitida,sigla_permitida,ce,CLABE,no,si,No cuenta como mayúsculas sostenidas.
+sigla_permitida,sigla_permitida,ce,SPEI,no,si,No cuenta como mayúsculas sostenidas.
+sigla_permitida,sigla_permitida,ce,IMSS,no,si,No cuenta como mayúsculas sostenidas.
+sigla_permitida,sigla_permitida,ce,INFONAVIT,no,si,No cuenta como mayúsculas sostenidas.
+sigla_permitida,sigla_permitida,ce,MXN,no,si,No cuenta como mayúsculas sostenidas.
+sigla_permitida,sigla_permitida,ce,SKU,no,si,No cuenta como mayúsculas sostenidas.
+sigla_permitida,sigla_permitida,ce,XAXX010101000,no,si,No cuenta como mayúsculas sostenidas.
+sigla_permitida,sigla_permitida,ce,PUBLICO EN GENERAL,no,si,No cuenta como mayúsculas sostenidas.

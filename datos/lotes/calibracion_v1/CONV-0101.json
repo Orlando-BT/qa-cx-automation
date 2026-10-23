@@ -1,0 +1,97 @@
+{
+  "conversation_id": "CONV-0101",
+  "canal": "chat",
+  "tipo_interaccion": "ce",
+  "agente": "Tomás Aguilar",
+  "cuenta_id": "CTA-104",
+  "metadatos_caso": {
+    "tipificacion_agente": "Ajuste de inventario",
+    "numero_caso": "CASO-41809",
+    "estado_caso": "cerrado",
+    "escalado": false,
+    "campos_capturados": {
+      "almacen": "presente",
+      "sku_producto": "presente"
+    }
+  },
+  "mensajes": [
+    {
+      "n": 1,
+      "emisor": "cliente",
+      "timestamp": "2026-10-05T12:10:33",
+      "texto": "Hola, hicimos conteo físico en la taquería y el sistema trae más tortillas de las que hay. ¿Cómo lo corrijo?"
+    },
+    {
+      "n": 2,
+      "emisor": "agente",
+      "timestamp": "2026-10-05T12:11:08",
+      "texto": "¡Hola! Bienvenido a Contamix, te atiende Tomás y con gusto te ayudo. Tus datos personales serán tratados conforme a nuestro aviso de privacidad. ¿Con quién tengo el gusto?"
+    },
+    {
+      "n": 3,
+      "emisor": "cliente",
+      "timestamp": "2026-10-05T12:11:33",
+      "texto": "Héctor Villanueva."
+    },
+    {
+      "n": 4,
+      "emisor": "agente",
+      "timestamp": "2026-10-05T12:12:03",
+      "texto": "Mucho gusto, Héctor. ¿En qué almacén y con qué producto encontraste la diferencia? ¿Tu usuario tiene rol de Administrador o de Almacenista?"
+    },
+    {
+      "n": 5,
+      "emisor": "cliente",
+      "timestamp": "2026-10-05T12:13:03",
+      "texto": "Almacén Principal, producto TOR-001, tortilla de maíz por kilo. Soy administrador."
+    },
+    {
+      "n": 6,
+      "emisor": "agente",
+      "timestamp": "2026-10-05T12:13:33",
+      "texto": "Gracias. Permíteme un momento, por favor, reviso los últimos movimientos de ese producto para descartar otra causa."
+    },
+    {
+      "n": 7,
+      "emisor": "agente",
+      "timestamp": "2026-10-05T12:15:28",
+      "texto": "Sigo revisando, gracias por esperar."
+    },
+    {
+      "n": 8,
+      "emisor": "agente",
+      "timestamp": "2026-10-05T12:17:26",
+      "texto": "Ya casi termino."
+    },
+    {
+      "n": 9,
+      "emisor": "agente",
+      "timestamp": "2026-10-05T12:18:34",
+      "texto": "Gracias por la espera. No encontré movimientos fuera de lo normal, así que la diferencia es de conteo. Haz el ajuste en Inventario > Ajustes > Nuevo ajuste: elige el Almacén Principal y el producto, captura la cantidad que contaste y el motivo conteo físico, y guarda."
+    },
+    {
+      "n": 10,
+      "emisor": "cliente",
+      "timestamp": "2026-10-05T12:20:14",
+      "texto": "Listo, ya quedó."
+    },
+    {
+      "n": 11,
+      "emisor": "agente",
+      "timestamp": "2026-10-05T12:20:44",
+      "texto": "¡Muy bien! Con esta solución tus existencias ya coinciden con el conteo. Tu número de caso es CASO-41809. Aprovecho para comentarte de la campaña Cierre Fiscal Contamix: 15% de descuento en el pago anual hasta el 31 de diciembre. Si necesitas algo más, estamos de lunes a viernes de 8:00 a 20:00. ¿Hay algo más en lo que te pueda ayudar?"
+    },
+    {
+      "n": 12,
+      "emisor": "cliente",
+      "timestamp": "2026-10-05T12:21:24",
+      "texto": "No, gracias."
+    },
+    {
+      "n": 13,
+      "emisor": "agente",
+      "timestamp": "2026-10-05T12:21:49",
+      "texto": "Gracias por contactar a Contamix, Héctor. Te llegará una breve encuesta para calificar la atención. Te atendió Tomás, ¡que tengas buena tarde!"
+    }
+  ]
+}

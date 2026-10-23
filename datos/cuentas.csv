@@ -1,0 +1,17 @@
+cuenta_id,titular,razon_social,rfc,correo,telefono,giro,tamano
+CTA-101,Julieta Gómez Arriaga,Julieta Gómez Arriaga,GOAJ850314K21,julieta.gomez@abarrotesluna.example,5551234501,comercializadora,micro
+CTA-102,Rodrigo Salinas Peña,Distribuidora Salpe SA de CV,DSA150622RT4,rsalinas@salpe.example,5552345602,comercializadora,pequena
+CTA-103,Fernanda Ibarra Cuevas,Despacho Contable Ibarra y Asociados SC,DCI180905HB7,fernanda.ibarra@ibarraasociados.example,5553456703,servicios_profesionales,micro
+CTA-104,Héctor Villanueva Ruiz,Taquería Los Arcos SA de CV,TLA190211QM2,hector.villanueva@taquerialosarcos.example,5554567804,restaurante,pequena
+CTA-105,Mónica Treviño Garza,Muebles Treviño Industrial SA de CV,MTI120417PZ9,monica.trevino@mueblestrevino.example,5555678905,manufactura,mediana
+CTA-106,Ernesto Cárdenas Olvera,Constructora Cárdenas Olvera SA de CV,CCO100830LN5,ecardenas@constructoracardenas.example,5556789006,construccion,mediana
+CTA-107,Brenda Castañeda Ríos,Fletes y Mudanzas Express del Bajío SA de CV,FME170126AA3,brenda.castaneda@fletesbajio.example,5557890107,transporte_logistica,pequena
+CTA-108,Alonso Medina Quiroz,Alonso Medina Quiroz,MEQA790723HS8,alonso.medina@consultoriomedina.example,5558901208,salud,micro
+CTA-109,Valeria Montes Luján,Papelería y Regalos Valmont SA de CV,PRV200310EF6,valeria.montes@valmont.example,5559012309,comercializadora,micro
+CTA-110,Gustavo Ortega Lira,Clínica Dental Sonrisa Plena SC,CDS160718JK1,gustavo.ortega@sonrisaplena.example,5551023410,salud,pequena
+CTA-111,Daniela Fuentes Rosales,Daniela Fuentes Rosales,FURD900205UV3,daniela.fuentes@fuentesconsultoria.example,5552134511,servicios_profesionales,micro
+CTA-112,Ignacio Bravo Téllez,Fonda La Cazuela SA de CV,FCA140903WX8,ignacio.bravo@fondalacazuela.example,5553245612,restaurante,micro
+CTA-113,Patricia Lozano Herrera,Plásticos Lozano del Norte SA de CV,PLN110520TR2,patricia.lozano@plasticoslozano.example,5554356713,manufactura,mediana
+CTA-114,Sergio Navarro Camacho,Sergio Navarro Camacho,NACS820918MD4,sergio.navarro@transportesnavarro.example,5555467814,transporte_logistica,micro
+CTA-115,Leticia Arroyo Domínguez,Farmacia Vida Sana SA de CV,FVS130227GH5,leticia.arroyo@farmaciavidasana.example,5556578915,salud,pequena
+CTA-116,Raúl Esparza Montoya,Materiales y Acabados del Centro SA de CV,MAC090614BC3,raul.esparza@materialescentro.example,5557689016,construccion,pequena

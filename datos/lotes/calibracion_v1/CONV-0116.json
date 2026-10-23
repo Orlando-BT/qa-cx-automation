@@ -1,0 +1,122 @@
+{
+  "conversation_id": "CONV-0116",
+  "canal": "chat",
+  "tipo_interaccion": "ce",
+  "agente": "Diego Herrera",
+  "cuenta_id": "CTA-113",
+  "metadatos_caso": {
+    "tipificacion_agente": "Diferencias de inventario por sincronización",
+    "numero_caso": "CASO-40562",
+    "estado_caso": "en_seguimiento",
+    "escalado": true,
+    "campos_capturados": {
+      "almacen": "presente",
+      "sku_producto": "presente",
+      "fecha_movimiento": "presente"
+    }
+  },
+  "mensajes": [
+    {
+      "n": 1,
+      "emisor": "cliente",
+      "timestamp": "2026-10-14T16:02:40",
+      "texto": "Buenas tardes. Tenemos diferencias en el inventario del almacén Norte desde que conectamos el punto de venta."
+    },
+    {
+      "n": 2,
+      "emisor": "agente",
+      "timestamp": "2026-10-14T16:03:18",
+      "texto": "¡Buenas tardes! Gracias por comunicarte a Contamix, mi nombre es Diego y con gusto te ayudo. Te recuerdo que tus datos personales están protegidos conforme a nuestro aviso de privacidad. ¿Me compartes tu nombre, por favor?"
+    },
+    {
+      "n": 3,
+      "emisor": "cliente",
+      "timestamp": "2026-10-14T16:03:58",
+      "texto": "Patricia Lozano."
+    },
+    {
+      "n": 4,
+      "emisor": "agente",
+      "timestamp": "2026-10-14T16:04:28",
+      "texto": "Gracias, Patricia. Entiendo lo complicado que es no tener existencias confiables, vamos a revisarlo. ¿Qué producto presenta la diferencia y desde qué fecha lo notaste? ¿Ya usaste la opción Recalcular existencias?"
+    },
+    {
+      "n": 5,
+      "emisor": "cliente",
+      "timestamp": "2026-10-14T16:05:48",
+      "texto": "El SKU PL-2040, garrafón de 20 litros. Desde el lunes 12. Sí, ya recalculé dos veces y sigue igual: el sistema dice 140 y en físico hay 95."
+    },
+    {
+      "n": 6,
+      "emisor": "agente",
+      "timestamp": "2026-10-14T16:06:23",
+      "texto": "Gracias por el detalle. Permíteme un momento, por favor, reviso el historial de movimientos del producto."
+    },
+    {
+      "n": 7,
+      "emisor": "agente",
+      "timestamp": "2026-10-14T16:08:13",
+      "texto": "Sigo revisando los movimientos del almacén Norte, dame unos minutos más."
+    },
+    {
+      "n": 8,
+      "emisor": "agente",
+      "timestamp": "2026-10-14T16:10:13",
+      "texto": "Ya casi termino, gracias por tu paciencia."
+    },
+    {
+      "n": 9,
+      "emisor": "agente",
+      "timestamp": "2026-10-14T16:11:23",
+      "texto": "Gracias por la espera, Patricia. Confirmé que las ventas del punto de venta desde el lunes 12 no están descontando existencias del almacén Norte. Como ya recalculaste y la diferencia sigue, esto lo debe revisar nuestro equipo de Soporte Nivel 2."
+    },
+    {
+      "n": 10,
+      "emisor": "cliente",
+      "timestamp": "2026-10-14T16:12:23",
+      "texto": "¿Y mientras qué hago? Tengo que surtir pedidos."
+    },
+    {
+      "n": 11,
+      "emisor": "agente",
+      "timestamp": "2026-10-14T16:13:03",
+      "texto": "Mientras se corrige, puedes hacer un ajuste de inventario por conteo físico en Inventario > Ajustes > Nuevo ajuste, con el motivo conteo físico, para surtir con la cantidad real. Ya escalé tu caso con el almacén, el SKU PL-2040 y la fecha del 12 de octubre; tu número es CASO-40562."
+    },
+    {
+      "n": 12,
+      "emisor": "cliente",
+      "timestamp": "2026-10-14T16:13:58",
+      "texto": "Va, lo hago. ¿Cuándo me dan respuesta?"
+    },
+    {
+      "n": 13,
+      "emisor": "agente",
+      "timestamp": "2026-10-14T16:14:33",
+      "texto": "Soporte Nivel 2 te dará seguimiento por correo de 24 a 48 horas hábiles. Para recapitular: las ventas del punto de venta no están descontando existencias en el almacén Norte, escalamos el caso CASO-40562 y mientras tanto puedes ajustar por conteo físico."
+    },
+    {
+      "n": 14,
+      "emisor": "cliente",
+      "timestamp": "2026-10-14T16:15:23",
+      "texto": "Perfecto, gracias."
+    },
+    {
+      "n": 15,
+      "emisor": "agente",
+      "timestamp": "2026-10-14T16:15:53",
+      "texto": "Aprovecho para comentarte que tenemos la campaña Cierre Fiscal Contamix con 15% de descuento en el pago anual, vigente hasta el 31 de diciembre. Recuerda que nuestro horario de atención es de lunes a viernes de 8:00 a 20:00 y sábados de 9:00 a 14:00. ¿Hay algo más en lo que te pueda ayudar?"
+    },
+    {
+      "n": 16,
+      "emisor": "cliente",
+      "timestamp": "2026-10-14T16:16:33",
+      "texto": "No, gracias."
+    },
+    {
+      "n": 17,
+      "emisor": "agente",
+      "timestamp": "2026-10-14T16:16:58",
+      "texto": "Gracias por tu tiempo, Patricia. Fue un gusto atenderte, soy Diego de Contamix. ¡Que tengas buena tarde!"
+    }
+  ]
+}

@@ -1,0 +1,94 @@
+{
+  "conversation_id": "CONV-0118",
+  "canal": "chat",
+  "tipo_interaccion": "ce",
+  "agente": "Mariana López",
+  "cuenta_id": "CTA-103",
+  "metadatos_caso": {
+    "tipificacion_agente": "Actualización de método de pago",
+    "numero_caso": "CASO-42455",
+    "estado_caso": "cerrado",
+    "escalado": false,
+    "campos_capturados": {}
+  },
+  "mensajes": [
+    {
+      "n": 1,
+      "emisor": "cliente",
+      "timestamp": "2026-10-15T16:20:44",
+      "texto": "Hola, buenas tardes. Me llegó un aviso de que no pasó el pago de mi suscripción. Cambié de tarjeta hace poco."
+    },
+    {
+      "n": 2,
+      "emisor": "agente",
+      "timestamp": "2026-10-15T16:21:19",
+      "texto": "¡Hola, buenas tardes! Bienvenida a Contamix, te atiende Mariana y con gusto te ayudo con tu pago. Tus datos personales serán tratados conforme a nuestro aviso de privacidad."
+    },
+    {
+      "n": 3,
+      "emisor": "agente",
+      "timestamp": "2026-10-15T16:21:34",
+      "texto": "Para revisar tu cuenta necesito validar tu identidad. ¿Me compartes el nombre del titular y el RFC registrado?"
+    },
+    {
+      "n": 4,
+      "emisor": "cliente",
+      "timestamp": "2026-10-15T16:22:39",
+      "texto": "Fernanda Ibarra Cuevas. El RFC es DCI180905HB7."
+    },
+    {
+      "n": 5,
+      "emisor": "agente",
+      "timestamp": "2026-10-15T16:23:19",
+      "texto": "Gracias, Fernanda, tus datos coinciden. Veo que el cobro del 8 de octubre se rechazó porque la tarjeta registrada ya estaba vencida. Tu cuenta está en periodo de gracia, así que todo sigue funcionando normal."
+    },
+    {
+      "n": 6,
+      "emisor": "cliente",
+      "timestamp": "2026-10-15T16:24:14",
+      "texto": "Uf, qué bueno. ¿Cómo pongo la tarjeta nueva?"
+    },
+    {
+      "n": 7,
+      "emisor": "agente",
+      "timestamp": "2026-10-15T16:24:44",
+      "texto": "El Administrador de la cuenta lo hace en Configuración > Mi plan > Método de pago: das clic en Cambiar tarjeta, capturas los datos de la nueva y guardas. Después puedes pagar el cobro pendiente desde Mi plan. Por seguridad, en el chat nunca capturamos datos de tarjetas."
+    },
+    {
+      "n": 8,
+      "emisor": "cliente",
+      "timestamp": "2026-10-15T16:26:24",
+      "texto": "Listo, ya la cambié y ya pagué."
+    },
+    {
+      "n": 9,
+      "emisor": "agente",
+      "timestamp": "2026-10-15T16:26:59",
+      "texto": "¡Excelente, Fernanda! Ya se ve aplicado tu pago. Como el rechazo fue solo por el cambio de tarjeta, te dejo bonificado el mes de noviembre para compensarte la molestia; no tienes que hacer nada, se aplica solo en tu siguiente cobro. Para recapitular: actualizaste tu tarjeta en Mi plan, pagaste el cobro pendiente y tu cuenta queda al corriente. Con esta solución cierro tu caso con el número CASO-42455."
+    },
+    {
+      "n": 10,
+      "emisor": "cliente",
+      "timestamp": "2026-10-15T16:27:39",
+      "texto": "¡Qué amables, muchas gracias!"
+    },
+    {
+      "n": 11,
+      "emisor": "agente",
+      "timestamp": "2026-10-15T16:28:04",
+      "texto": "Con gusto. Te comento que también tenemos la campaña Cierre Fiscal Contamix con 15% de descuento en el pago anual hasta el 31 de diciembre, y que para temas de cobro puedes escribir a pagos@contamix.example. ¿Hay algo más en lo que te pueda ayudar?"
+    },
+    {
+      "n": 12,
+      "emisor": "cliente",
+      "timestamp": "2026-10-15T16:28:34",
+      "texto": "No, es todo."
+    },
+    {
+      "n": 13,
+      "emisor": "agente",
+      "timestamp": "2026-10-15T16:28:59",
+      "texto": "Gracias por tu preferencia, Fernanda. Te llegará una breve encuesta para calificar la atención. Te atendió Mariana de Contamix, ¡que tengas excelente tarde!"
+    }
+  ]
+}

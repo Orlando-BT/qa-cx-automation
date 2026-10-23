@@ -49,9 +49,12 @@
       "peso": 5,
       "resultado": "no_cumple",
       "factor": 0,
-      "clave_fallidos": [],
-      "complementarios_aplicables": 3,
-      "complementarios_fallidos": 0
+      "clave_fallidos": [
+        "apertura.aviso_privacidad",
+        "apertura.toma_a_tiempo"
+      ],
+      "complementarios_aplicables": 6,
+      "complementarios_fallidos": 6
     },
     {
       "id_seccion": "empatia",
@@ -59,7 +62,7 @@
       "resultado": "no_aplica",
       "factor": null,
       "clave_fallidos": [],
-      "complementarios_aplicables": 3,
+      "complementarios_aplicables": 0,
       "complementarios_fallidos": 0
     },
     {
@@ -68,7 +71,7 @@
       "resultado": "no_aplica",
       "factor": null,
       "clave_fallidos": [],
-      "complementarios_aplicables": 3,
+      "complementarios_aplicables": 0,
       "complementarios_fallidos": 0
     },
     {
@@ -77,8 +80,8 @@
       "resultado": "no_cumple",
       "factor": 0,
       "clave_fallidos": [],
-      "complementarios_aplicables": 3,
-      "complementarios_fallidos": 0
+      "complementarios_aplicables": 2,
+      "complementarios_fallidos": 2
     },
     {
       "id_seccion": "comunicacion",
@@ -86,7 +89,7 @@
       "resultado": "no_aplica",
       "factor": null,
       "clave_fallidos": [],
-      "complementarios_aplicables": 3,
+      "complementarios_aplicables": 0,
       "complementarios_fallidos": 0
     },
     {
@@ -94,8 +97,10 @@
       "peso": 12,
       "resultado": "no_cumple",
       "factor": 0,
-      "clave_fallidos": [],
-      "complementarios_aplicables": 3,
+      "clave_fallidos": [
+        "recapitulacion.informa_numero_caso"
+      ],
+      "complementarios_aplicables": 0,
       "complementarios_fallidos": 0
     },
     {
@@ -103,18 +108,24 @@
       "peso": 5,
       "resultado": "no_cumple",
       "factor": 0,
-      "clave_fallidos": [],
-      "complementarios_aplicables": 3,
-      "complementarios_fallidos": 0
+      "clave_fallidos": [
+        "ayuda_adicional.ofrece_ayuda_adicional",
+        "ayuda_adicional.encuesta"
+      ],
+      "complementarios_aplicables": 2,
+      "complementarios_fallidos": 2
     },
     {
       "id_seccion": "cierre",
       "peso": 5,
       "resultado": "no_cumple",
       "factor": 0,
-      "clave_fallidos": [],
+      "clave_fallidos": [
+        "cierre.agradece",
+        "cierre.despedida"
+      ],
       "complementarios_aplicables": 3,
-      "complementarios_fallidos": 0
+      "complementarios_fallidos": 3
     }
   ],
   "criterios": [

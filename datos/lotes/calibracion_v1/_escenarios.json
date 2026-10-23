@@ -1,0 +1,913 @@
+[
+  {
+    "conversation_id": "CONV-0101",
+    "lote": "calibracion_v1",
+    "tipo_interaccion": "ce",
+    "generado_por": "contrato-datos",
+    "calidad_solicitada": "regular",
+    "calidad_esperada": "regular",
+    "tema_esperado": "Inventario",
+    "tipificacion_esperada": "Ajuste de inventario",
+    "errores_criticos_inyectados": "",
+    "criterios_que_deben_fallar": "recapitulacion.recapitula|comunicacion.no_excede_espera",
+    "casos_dificiles": "",
+    "descripcion_escenario": "Ajuste de inventario por conteo físico. Episodio de espera de 301 s (justo arriba del máximo de 300 s), con retomas dentro del límite. No recapitula antes del cierre.",
+    "cuenta_id": "CTA-104",
+    "modelo_generador": "contrato-datos / claude-opus-5-5",
+    "version_prompt_generador": "no_aplica",
+    "tokens_entrada": "no_medido",
+    "tokens_salida": "no_medido",
+    "costo_generacion_usd": "no_medido",
+    "generado_en": "2026-10-22T12:00:00-06:00",
+    "mensajes_criticos_inyectados": {},
+    "nota_esperada": {
+      "nota_base": 75,
+      "nota_final": 75
+    },
+    "secciones_esperadas": {
+      "apertura": "cumple",
+      "empatia": "cumple",
+      "diagnostico": "cumple",
+      "solucion": "cumple",
+      "comunicacion": "no_cumple",
+      "recapitulacion": "no_cumple",
+      "ayuda_adicional": "cumple",
+      "cierre": "cumple"
+    }
+  },
+  {
+    "conversation_id": "CONV-0102",
+    "lote": "calibracion_v1",
+    "tipo_interaccion": "ce",
+    "generado_por": "contrato-datos",
+    "calidad_solicitada": "buena",
+    "calidad_esperada": "buena",
+    "tema_esperado": "Pagos de suscripción",
+    "tipificacion_esperada": "Aclaración de cargo de suscripción",
+    "errores_criticos_inyectados": "",
+    "criterios_que_deben_fallar": "",
+    "casos_dificiles": "",
+    "descripcion_escenario": "Doble cargo de la mensualidad. Valida identidad (nombre + teléfono en el mensaje 4), menciona el teléfono con enmascarado parcial, escala a Cobranza con 48 horas hábiles y el depósito \"según tu banco\".",
+    "cuenta_id": "CTA-114",
+    "modelo_generador": "contrato-datos / claude-opus-5-5",
+    "version_prompt_generador": "no_aplica",
+    "tokens_entrada": "no_medido",
+    "tokens_salida": "no_medido",
+    "costo_generacion_usd": "no_medido",
+    "generado_en": "2026-10-22T12:00:00-06:00",
+    "mensajes_criticos_inyectados": {},
+    "nota_esperada": {
+      "nota_base": 100,
+      "nota_final": 100
+    },
+    "secciones_esperadas": {
+      "apertura": "cumple",
+      "empatia": "cumple",
+      "diagnostico": "cumple",
+      "solucion": "cumple",
+      "comunicacion": "cumple",
+      "recapitulacion": "cumple",
+      "ayuda_adicional": "cumple",
+      "cierre": "cumple"
+    }
+  },
+  {
+    "conversation_id": "CONV-0103",
+    "lote": "calibracion_v1",
+    "tipo_interaccion": "ce",
+    "generado_por": "contrato-datos",
+    "calidad_solicitada": "mala",
+    "calidad_esperada": "mala",
+    "tema_esperado": "Cancelación de CFDI",
+    "tipificacion_esperada": "Cancelación de CFDI",
+    "errores_criticos_inyectados": "critico.tipificacion_incorrecta",
+    "criterios_que_deben_fallar": "solucion.campos_obligatorios|recapitulacion.tipificacion",
+    "casos_dificiles": "tipificacion_incorrecta",
+    "descripcion_escenario": "Cancelación con motivo 03 muy bien atendida, pero el agente la tipifica como \"Error de timbrado de CFDI\" (tipificación válida de otro tema) y los campos capturados no corresponden a esa tipificación.",
+    "cuenta_id": "CTA-110",
+    "modelo_generador": "contrato-datos / claude-opus-5-5",
+    "version_prompt_generador": "no_aplica",
+    "tokens_entrada": "no_medido",
+    "tokens_salida": "no_medido",
+    "costo_generacion_usd": "no_medido",
+    "generado_en": "2026-10-22T12:00:00-06:00",
+    "mensajes_criticos_inyectados": {
+      "critico.tipificacion_incorrecta": []
+    },
+    "nota_esperada": {
+      "nota_base": 70.5,
+      "nota_final": 0
+    },
+    "secciones_esperadas": {
+      "apertura": "cumple",
+      "empatia": "cumple",
+      "diagnostico": "cumple",
+      "solucion": "parcial",
+      "comunicacion": "cumple",
+      "recapitulacion": "no_cumple",
+      "ayuda_adicional": "cumple",
+      "cierre": "cumple"
+    }
+  },
+  {
+    "conversation_id": "CONV-0104",
+    "lote": "calibracion_v1",
+    "tipo_interaccion": "ce",
+    "generado_por": "contrato-datos",
+    "calidad_solicitada": "buena",
+    "calidad_esperada": "buena",
+    "tema_esperado": "Cancelación de CFDI",
+    "tipificacion_esperada": "Cancelación de CFDI",
+    "errores_criticos_inyectados": "",
+    "criterios_que_deben_fallar": "",
+    "casos_dificiles": "",
+    "descripcion_escenario": "Cancelación de CFDI con motivo 01 y factura sustituta. Primera respuesta exactamente en el umbral (60 s).",
+    "cuenta_id": "CTA-101",
+    "modelo_generador": "contrato-datos / claude-opus-5-5",
+    "version_prompt_generador": "no_aplica",
+    "tokens_entrada": "no_medido",
+    "tokens_salida": "no_medido",
+    "costo_generacion_usd": "no_medido",
+    "generado_en": "2026-10-22T12:00:00-06:00",
+    "mensajes_criticos_inyectados": {},
+    "nota_esperada": {
+      "nota_base": 100,
+      "nota_final": 100
+    },
+    "secciones_esperadas": {
+      "apertura": "cumple",
+      "empatia": "cumple",
+      "diagnostico": "cumple",
+      "solucion": "cumple",
+      "comunicacion": "cumple",
+      "recapitulacion": "cumple",
+      "ayuda_adicional": "cumple",
+      "cierre": "cumple"
+    }
+  },
+  {
+    "conversation_id": "CONV-0105",
+    "lote": "calibracion_v1",
+    "tipo_interaccion": "ce",
+    "generado_por": "contrato-datos",
+    "calidad_solicitada": "regular",
+    "calidad_esperada": "regular",
+    "tema_esperado": "Cancelación de CFDI",
+    "tipificacion_esperada": "Seguimiento de cancelación pendiente",
+    "errores_criticos_inyectados": "",
+    "criterios_que_deben_fallar": "empatia.identifica_emocion|empatia.muestra_empatia|comunicacion.pide_espera|ayuda_adicional.ofrece_ayuda_adicional",
+    "casos_dificiles": "",
+    "descripcion_escenario": "Cancelación en proceso por más de 72 horas, escalada correctamente a Nivel 2 con 48 horas hábiles. Ignora la molestia del cliente (mensaje 1), responde el mensaje 3 con 61 s de retraso sin anunciar la espera (justo arriba del umbral de 60 s) y no ofrece ayuda adicional al cierre.",
+    "cuenta_id": "CTA-115",
+    "modelo_generador": "contrato-datos / claude-opus-5-5",
+    "version_prompt_generador": "no_aplica",
+    "tokens_entrada": "no_medido",
+    "tokens_salida": "no_medido",
+    "costo_generacion_usd": "no_medido",
+    "generado_en": "2026-10-22T12:00:00-06:00",
+    "mensajes_criticos_inyectados": {},
+    "nota_esperada": {
+      "nota_base": 78.5,
+      "nota_final": 78.5
+    },
+    "secciones_esperadas": {
+      "apertura": "cumple",
+      "empatia": "no_cumple",
+      "diagnostico": "cumple",
+      "solucion": "cumple",
+      "comunicacion": "parcial",
+      "recapitulacion": "cumple",
+      "ayuda_adicional": "no_cumple",
+      "cierre": "cumple"
+    }
+  },
+  {
+    "conversation_id": "CONV-0106",
+    "lote": "calibracion_v1",
+    "tipo_interaccion": "ce",
+    "generado_por": "contrato-datos",
+    "calidad_solicitada": "mala",
+    "calidad_esperada": "mala",
+    "tema_esperado": "Acceso a la cuenta",
+    "tipificacion_esperada": "Restablecimiento de contraseña",
+    "errores_criticos_inyectados": "critico.abandono|critico.no_genera_caso|critico.no_toma_a_tiempo",
+    "criterios_que_deben_fallar": "apertura.saludo|apertura.bienvenida|apertura.marca|apertura.nombre_agente|apertura.ofrece_ayuda|apertura.aviso_privacidad|apertura.nombre_cliente|apertura.toma_a_tiempo|ayuda_adicional.ofrece_ayuda_adicional|ayuda_adicional.canales_horarios|ayuda_adicional.campana_vigente|cierre.agradece|cierre.nombre_agente|cierre.marca|cierre.frase_cortesia|cierre.despedida",
+    "casos_dificiles": "",
+    "descripcion_escenario": "Conversación sin mensajes del agente: el cliente escribe tres veces (mensajes 1 a 3) y nadie responde. Se evalúa solo con JS (rubrica.md 3.12).",
+    "cuenta_id": "CTA-111",
+    "modelo_generador": "contrato-datos / claude-opus-5-5",
+    "version_prompt_generador": "no_aplica",
+    "tokens_entrada": "no_medido",
+    "tokens_salida": "no_medido",
+    "costo_generacion_usd": "no_medido",
+    "generado_en": "2026-10-22T12:00:00-06:00",
+    "mensajes_criticos_inyectados": {
+      "critico.abandono": [
+        3
+      ],
+      "critico.no_genera_caso": [],
+      "critico.no_toma_a_tiempo": [
+        1
+      ]
+    },
+    "nota_esperada": {
+      "nota_base": 0,
+      "nota_final": 0
+    },
+    "secciones_esperadas": {
+      "apertura": "no_cumple",
+      "empatia": "no_aplica",
+      "diagnostico": "no_aplica",
+      "solucion": "no_aplica",
+      "comunicacion": "no_aplica",
+      "recapitulacion": "no_aplica",
+      "ayuda_adicional": "no_cumple",
+      "cierre": "no_cumple"
+    }
+  },
+  {
+    "conversation_id": "CONV-0107",
+    "lote": "calibracion_v1",
+    "tipo_interaccion": "ce",
+    "generado_por": "contrato-datos",
+    "calidad_solicitada": "buena",
+    "calidad_esperada": "buena",
+    "tema_esperado": "Planes y promociones",
+    "tipificacion_esperada": "Consulta de planes y promociones",
+    "errores_criticos_inyectados": "",
+    "criterios_que_deben_fallar": "",
+    "casos_dificiles": "",
+    "descripcion_escenario": "Consulta de vencimiento del plan y de la campaña vigente. El cliente da su RFC en el primer mensaje y completa la validación con el correo en el mensaje 4. Recordatorio a los 125 s; el cliente responde 200 s después del recordatorio (sin cierre por inactividad).",
+    "cuenta_id": "CTA-105",
+    "modelo_generador": "contrato-datos / claude-opus-5-5",
+    "version_prompt_generador": "no_aplica",
+    "tokens_entrada": "no_medido",
+    "tokens_salida": "no_medido",
+    "costo_generacion_usd": "no_medido",
+    "generado_en": "2026-10-22T12:00:00-06:00",
+    "mensajes_criticos_inyectados": {},
+    "nota_esperada": {
+      "nota_base": 100,
+      "nota_final": 100
+    },
+    "secciones_esperadas": {
+      "apertura": "cumple",
+      "empatia": "cumple",
+      "diagnostico": "cumple",
+      "solucion": "cumple",
+      "comunicacion": "cumple",
+      "recapitulacion": "cumple",
+      "ayuda_adicional": "cumple",
+      "cierre": "cumple"
+    }
+  },
+  {
+    "conversation_id": "CONV-0108",
+    "lote": "calibracion_v1",
+    "tipo_interaccion": "ce",
+    "generado_por": "contrato-datos",
+    "calidad_solicitada": "regular",
+    "calidad_esperada": "regular",
+    "tema_esperado": "Cancelación de CFDI",
+    "tipificacion_esperada": "Cancelación de CFDI",
+    "errores_criticos_inyectados": "",
+    "criterios_que_deben_fallar": "diagnostico.solicitudes_atendidas|solucion.informacion_completa",
+    "casos_dificiles": "amable_no_resuelve",
+    "descripcion_escenario": "Agente muy amable y empático que explica la sustitución, pero no responde la pregunta de si el receptor debe aceptar la cancelación (mensajes 1 y 7): la difiere con un seguimiento por correo. Omite las 72 horas y la aceptación del receptor.",
+    "cuenta_id": "CTA-103",
+    "modelo_generador": "contrato-datos / claude-opus-5-5",
+    "version_prompt_generador": "no_aplica",
+    "tokens_entrada": "no_medido",
+    "tokens_salida": "no_medido",
+    "costo_generacion_usd": "no_medido",
+    "generado_en": "2026-10-22T12:00:00-06:00",
+    "mensajes_criticos_inyectados": {},
+    "nota_esperada": {
+      "nota_base": 67.5,
+      "nota_final": 67.5
+    },
+    "secciones_esperadas": {
+      "apertura": "cumple",
+      "empatia": "cumple",
+      "diagnostico": "no_cumple",
+      "solucion": "parcial",
+      "comunicacion": "cumple",
+      "recapitulacion": "cumple",
+      "ayuda_adicional": "cumple",
+      "cierre": "cumple"
+    }
+  },
+  {
+    "conversation_id": "CONV-0109",
+    "lote": "calibracion_v1",
+    "tipo_interaccion": "ce",
+    "generado_por": "contrato-datos",
+    "calidad_solicitada": "mala",
+    "calidad_esperada": "mala",
+    "tema_esperado": "Emisión de CFDI",
+    "tipificacion_esperada": "Error de timbrado de CFDI",
+    "errores_criticos_inyectados": "critico.comentarios_negativos_marca|critico.mala_actitud|critico.palabras_altisonantes",
+    "criterios_que_deben_fallar": "empatia.identifica_emocion|empatia.muestra_empatia|empatia.cordialidad|empatia.lenguaje_acorde|diagnostico.preguntas_necesarias|diagnostico.solicitudes_atendidas|solucion.informacion_completa|solucion.apego_proceso|solucion.ofrece_alternativas|recapitulacion.recapitula|solucion.escala_cuando_requiere|solucion.campos_obligatorios|solucion.seguimiento_en_plazo|comunicacion.vicios_lenguaje|recapitulacion.uso_solucion_seguimiento|ayuda_adicional.ofrece_ayuda_adicional|ayuda_adicional.canales_horarios|ayuda_adicional.campana_vigente|cierre.nombre_agente|cierre.frase_cortesia",
+    "casos_dificiles": "",
+    "descripcion_escenario": "Error de servicio no disponible por horas. El agente culpa al cliente (mensaje 4), habla mal del timbrado de Contamix (mensaje 4), usa una palabra altisonante (mensaje 6) y responde con desdén (mensaje 8). No escala aunque el error persiste más de 30 minutos.",
+    "cuenta_id": "CTA-113",
+    "modelo_generador": "contrato-datos / claude-opus-5-5",
+    "version_prompt_generador": "no_aplica",
+    "tokens_entrada": "no_medido",
+    "tokens_salida": "no_medido",
+    "costo_generacion_usd": "no_medido",
+    "generado_en": "2026-10-22T12:00:00-06:00",
+    "mensajes_criticos_inyectados": {
+      "critico.comentarios_negativos_marca": [
+        4
+      ],
+      "critico.mala_actitud": [
+        4,
+        8
+      ],
+      "critico.palabras_altisonantes": [
+        6
+      ]
+    },
+    "nota_esperada": {
+      "nota_base": 11.5,
+      "nota_final": 0
+    },
+    "secciones_esperadas": {
+      "apertura": "cumple",
+      "empatia": "no_cumple",
+      "diagnostico": "no_cumple",
+      "solucion": "no_cumple",
+      "comunicacion": "parcial",
+      "recapitulacion": "no_cumple",
+      "ayuda_adicional": "no_cumple",
+      "cierre": "no_cumple"
+    }
+  },
+  {
+    "conversation_id": "CONV-0110",
+    "lote": "calibracion_v1",
+    "tipo_interaccion": "ce",
+    "generado_por": "contrato-datos",
+    "calidad_solicitada": "buena",
+    "calidad_esperada": "buena",
+    "tema_esperado": "Permisos de usuarios",
+    "tipificacion_esperada": "Alta y permisos de usuarios",
+    "errores_criticos_inyectados": "",
+    "criterios_que_deben_fallar": "",
+    "casos_dificiles": "",
+    "descripcion_escenario": "Alta de usuario con rol Facturista y límite de usuarios del plan. El cliente deja de responder: recordatorio a los 125 s y cierre por inactividad 130 s después (inactividad atendida en tiempo).",
+    "cuenta_id": "CTA-110",
+    "modelo_generador": "contrato-datos / claude-opus-5-5",
+    "version_prompt_generador": "no_aplica",
+    "tokens_entrada": "no_medido",
+    "tokens_salida": "no_medido",
+    "costo_generacion_usd": "no_medido",
+    "generado_en": "2026-10-22T12:00:00-06:00",
+    "mensajes_criticos_inyectados": {},
+    "nota_esperada": {
+      "nota_base": 100,
+      "nota_final": 100
+    },
+    "secciones_esperadas": {
+      "apertura": "cumple",
+      "empatia": "cumple",
+      "diagnostico": "cumple",
+      "solucion": "cumple",
+      "comunicacion": "cumple",
+      "recapitulacion": "cumple",
+      "ayuda_adicional": "no_aplica",
+      "cierre": "cumple"
+    }
+  },
+  {
+    "conversation_id": "CONV-0111",
+    "lote": "calibracion_v1",
+    "tipo_interaccion": "ce",
+    "generado_por": "contrato-datos",
+    "calidad_solicitada": "regular",
+    "calidad_esperada": "regular",
+    "tema_esperado": "Permisos de usuarios",
+    "tipificacion_esperada": "Cambio de usuario administrador",
+    "errores_criticos_inyectados": "",
+    "criterios_que_deben_fallar": "apertura.aviso_privacidad|recapitulacion.informa_numero_caso|ayuda_adicional.canales_horarios|ayuda_adicional.campana_vigente|cierre.frase_cortesia",
+    "casos_dificiles": "",
+    "descripcion_escenario": "Cambio de usuario administrador con validación de identidad correcta y escalamiento a Cuentas. Omite el aviso de privacidad, nunca comunica el número de caso, no menciona canales ni campaña y cierra sin frase de cortesía.",
+    "cuenta_id": "CTA-106",
+    "modelo_generador": "contrato-datos / claude-opus-5-5",
+    "version_prompt_generador": "no_aplica",
+    "tokens_entrada": "no_medido",
+    "tokens_salida": "no_medido",
+    "costo_generacion_usd": "no_medido",
+    "generado_en": "2026-10-22T12:00:00-06:00",
+    "mensajes_criticos_inyectados": {},
+    "nota_esperada": {
+      "nota_base": 75.5,
+      "nota_final": 75.5
+    },
+    "secciones_esperadas": {
+      "apertura": "no_cumple",
+      "empatia": "cumple",
+      "diagnostico": "cumple",
+      "solucion": "cumple",
+      "comunicacion": "cumple",
+      "recapitulacion": "no_cumple",
+      "ayuda_adicional": "no_cumple",
+      "cierre": "parcial"
+    }
+  },
+  {
+    "conversation_id": "CONV-0112",
+    "lote": "calibracion_v1",
+    "tipo_interaccion": "ce",
+    "generado_por": "contrato-datos",
+    "calidad_solicitada": "mala",
+    "calidad_esperada": "mala",
+    "tema_esperado": "Acceso a la cuenta",
+    "tipificacion_esperada": "Restablecimiento de contraseña",
+    "errores_criticos_inyectados": "critico.no_toma_a_tiempo",
+    "criterios_que_deben_fallar": "apertura.toma_a_tiempo",
+    "casos_dificiles": "",
+    "descripcion_escenario": "Atención correcta de restablecimiento de contraseña, pero la primera respuesta llega 61 s después del primer mensaje del cliente (justo arriba del umbral de 60 s).",
+    "cuenta_id": "CTA-101",
+    "modelo_generador": "contrato-datos / claude-opus-5-5",
+    "version_prompt_generador": "no_aplica",
+    "tokens_entrada": "no_medido",
+    "tokens_salida": "no_medido",
+    "costo_generacion_usd": "no_medido",
+    "generado_en": "2026-10-22T12:00:00-06:00",
+    "mensajes_criticos_inyectados": {
+      "critico.no_toma_a_tiempo": [
+        1,
+        2
+      ]
+    },
+    "nota_esperada": {
+      "nota_base": 95,
+      "nota_final": 0
+    },
+    "secciones_esperadas": {
+      "apertura": "no_cumple",
+      "empatia": "cumple",
+      "diagnostico": "cumple",
+      "solucion": "cumple",
+      "comunicacion": "cumple",
+      "recapitulacion": "cumple",
+      "ayuda_adicional": "cumple",
+      "cierre": "cumple"
+    }
+  },
+  {
+    "conversation_id": "CONV-0113",
+    "lote": "calibracion_v1",
+    "tipo_interaccion": "ce",
+    "generado_por": "contrato-datos",
+    "calidad_solicitada": "buena",
+    "calidad_esperada": "buena",
+    "tema_esperado": "Complemento de pago",
+    "tipificacion_esperada": "Emisión de complemento de pago",
+    "errores_criticos_inyectados": "",
+    "criterios_que_deben_fallar": "ayuda_adicional.campana_vigente",
+    "casos_dificiles": "",
+    "descripcion_escenario": "Complemento de pago de una factura PPD. Silencio del cliente de exactamente 120 s (umbral, no requiere recordatorio). No menciona la campaña vigente.",
+    "cuenta_id": "CTA-102",
+    "modelo_generador": "contrato-datos / claude-opus-5-5",
+    "version_prompt_generador": "no_aplica",
+    "tokens_entrada": "no_medido",
+    "tokens_salida": "no_medido",
+    "costo_generacion_usd": "no_medido",
+    "generado_en": "2026-10-22T12:00:00-06:00",
+    "mensajes_criticos_inyectados": {},
+    "nota_esperada": {
+      "nota_base": 97.5,
+      "nota_final": 97.5
+    },
+    "secciones_esperadas": {
+      "apertura": "cumple",
+      "empatia": "cumple",
+      "diagnostico": "cumple",
+      "solucion": "cumple",
+      "comunicacion": "cumple",
+      "recapitulacion": "cumple",
+      "ayuda_adicional": "parcial",
+      "cierre": "cumple"
+    }
+  },
+  {
+    "conversation_id": "CONV-0114",
+    "lote": "calibracion_v1",
+    "tipo_interaccion": "ce",
+    "generado_por": "contrato-datos",
+    "calidad_solicitada": "regular",
+    "calidad_esperada": "regular",
+    "tema_esperado": "Acceso a la cuenta",
+    "tipificacion_esperada": "Restablecimiento de contraseña",
+    "errores_criticos_inyectados": "",
+    "criterios_que_deben_fallar": "apertura.bienvenida|apertura.ofrece_ayuda|apertura.nombre_cliente|empatia.identifica_emocion|empatia.muestra_empatia|empatia.cordialidad|comunicacion.signos_apertura|ayuda_adicional.ofrece_ayuda_adicional|ayuda_adicional.encuesta|ayuda_adicional.canales_horarios|ayuda_adicional.campana_vigente|cierre.nombre_agente|cierre.frase_cortesia",
+    "casos_dificiles": "resuelve_tono_seco",
+    "descripcion_escenario": "Resuelve el restablecimiento de contraseña (correo en spam) con tono seco y cortante ante un cliente desesperado (mensajes 2, 6 y 8). Sin bienvenida, sin ofrecimiento de ayuda, sin encuesta ni frase de cortesía.",
+    "cuenta_id": "CTA-108",
+    "modelo_generador": "contrato-datos / claude-opus-5-5",
+    "version_prompt_generador": "no_aplica",
+    "tokens_entrada": "no_medido",
+    "tokens_salida": "no_medido",
+    "costo_generacion_usd": "no_medido",
+    "generado_en": "2026-10-22T12:00:00-06:00",
+    "mensajes_criticos_inyectados": {},
+    "nota_esperada": {
+      "nota_base": 71,
+      "nota_final": 71
+    },
+    "secciones_esperadas": {
+      "apertura": "parcial",
+      "empatia": "no_cumple",
+      "diagnostico": "cumple",
+      "solucion": "cumple",
+      "comunicacion": "parcial",
+      "recapitulacion": "cumple",
+      "ayuda_adicional": "no_cumple",
+      "cierre": "no_cumple"
+    }
+  },
+  {
+    "conversation_id": "CONV-0115",
+    "lote": "calibracion_v1",
+    "tipo_interaccion": "ce",
+    "generado_por": "contrato-datos",
+    "calidad_solicitada": "mala",
+    "calidad_esperada": "mala",
+    "tema_esperado": "Complemento de pago",
+    "tipificacion_esperada": "Emisión de complemento de pago",
+    "errores_criticos_inyectados": "critico.confidencialidad|critico.informacion_incorrecta",
+    "criterios_que_deben_fallar": "solucion.informacion_correcta|solucion.informacion_completa",
+    "casos_dificiles": "",
+    "descripcion_escenario": "Complementos de pago de facturas PPD. El agente dice que hay hasta el 31 de diciembre para emitirlos (mensaje 6; el plazo es el día 5 del mes siguiente al pago). Tras validar la identidad, escribe completo el correo registrado de la cuenta (mensaje 10).",
+    "cuenta_id": "CTA-112",
+    "modelo_generador": "contrato-datos / claude-opus-5-5",
+    "version_prompt_generador": "no_aplica",
+    "tokens_entrada": "no_medido",
+    "tokens_salida": "no_medido",
+    "costo_generacion_usd": "no_medido",
+    "generado_en": "2026-10-22T12:00:00-06:00",
+    "mensajes_criticos_inyectados": {
+      "critico.confidencialidad": [
+        10
+      ],
+      "critico.informacion_incorrecta": [
+        6
+      ]
+    },
+    "nota_esperada": {
+      "nota_base": 65,
+      "nota_final": 0
+    },
+    "secciones_esperadas": {
+      "apertura": "cumple",
+      "empatia": "cumple",
+      "diagnostico": "cumple",
+      "solucion": "no_cumple",
+      "comunicacion": "cumple",
+      "recapitulacion": "cumple",
+      "ayuda_adicional": "cumple",
+      "cierre": "cumple"
+    }
+  },
+  {
+    "conversation_id": "CONV-0116",
+    "lote": "calibracion_v1",
+    "tipo_interaccion": "ce",
+    "generado_por": "contrato-datos",
+    "calidad_solicitada": "buena",
+    "calidad_esperada": "buena",
+    "tema_esperado": "Inventario",
+    "tipificacion_esperada": "Diferencias de inventario por sincronización",
+    "errores_criticos_inyectados": "",
+    "criterios_que_deben_fallar": "",
+    "casos_dificiles": "",
+    "descripcion_escenario": "Diferencia de inventario por sincronización con el punto de venta que persiste tras recalcular; se escala a Nivel 2. Episodio de espera de exactamente 300 s (umbral) con retomas de 110 y 120 s.",
+    "cuenta_id": "CTA-113",
+    "modelo_generador": "contrato-datos / claude-opus-5-5",
+    "version_prompt_generador": "no_aplica",
+    "tokens_entrada": "no_medido",
+    "tokens_salida": "no_medido",
+    "costo_generacion_usd": "no_medido",
+    "generado_en": "2026-10-22T12:00:00-06:00",
+    "mensajes_criticos_inyectados": {},
+    "nota_esperada": {
+      "nota_base": 100,
+      "nota_final": 100
+    },
+    "secciones_esperadas": {
+      "apertura": "cumple",
+      "empatia": "cumple",
+      "diagnostico": "cumple",
+      "solucion": "cumple",
+      "comunicacion": "cumple",
+      "recapitulacion": "cumple",
+      "ayuda_adicional": "cumple",
+      "cierre": "cumple"
+    }
+  },
+  {
+    "conversation_id": "CONV-0117",
+    "lote": "calibracion_v1",
+    "tipo_interaccion": "ce",
+    "generado_por": "contrato-datos",
+    "calidad_solicitada": "regular",
+    "calidad_esperada": "regular",
+    "tema_esperado": "Inventario",
+    "tipificacion_esperada": "Diferencias de inventario por sincronización",
+    "errores_criticos_inyectados": "",
+    "criterios_que_deben_fallar": "solucion.informacion_completa|solucion.apego_proceso|solucion.escala_cuando_requiere|solucion.seguimiento_en_plazo",
+    "casos_dificiles": "",
+    "descripcion_escenario": "Diferencia de inventario tras importar el catálogo que persiste después de recalcular dos veces. En lugar de escalar a Nivel 2, el agente pide recalcular otra vez y que el cliente vuelva a escribir (mensajes 6 y 8). Amable y con cierre completo.",
+    "cuenta_id": "CTA-105",
+    "modelo_generador": "contrato-datos / claude-opus-5-5",
+    "version_prompt_generador": "no_aplica",
+    "tokens_entrada": "no_medido",
+    "tokens_salida": "no_medido",
+    "costo_generacion_usd": "no_medido",
+    "generado_en": "2026-10-22T12:00:00-06:00",
+    "mensajes_criticos_inyectados": {},
+    "nota_esperada": {
+      "nota_base": 65,
+      "nota_final": 65
+    },
+    "secciones_esperadas": {
+      "apertura": "cumple",
+      "empatia": "cumple",
+      "diagnostico": "cumple",
+      "solucion": "no_cumple",
+      "comunicacion": "cumple",
+      "recapitulacion": "cumple",
+      "ayuda_adicional": "cumple",
+      "cierre": "cumple"
+    }
+  },
+  {
+    "conversation_id": "CONV-0118",
+    "lote": "calibracion_v1",
+    "tipo_interaccion": "ce",
+    "generado_por": "contrato-datos",
+    "calidad_solicitada": "mala",
+    "calidad_esperada": "mala",
+    "tema_esperado": "Pagos de suscripción",
+    "tipificacion_esperada": "Actualización de método de pago",
+    "errores_criticos_inyectados": "critico.promesa_no_autorizada",
+    "criterios_que_deben_fallar": "solucion.informacion_correcta|solucion.apego_proceso",
+    "casos_dificiles": "critico_escondido",
+    "descripcion_escenario": "Atención impecable de cambio de tarjeta con validación correcta, pero en medio del mensaje 9 el agente bonifica el mes de noviembre \"por la molestia\", algo que solo puede autorizar Cobranza.",
+    "cuenta_id": "CTA-103",
+    "modelo_generador": "contrato-datos / claude-opus-5-5",
+    "version_prompt_generador": "no_aplica",
+    "tokens_entrada": "no_medido",
+    "tokens_salida": "no_medido",
+    "costo_generacion_usd": "no_medido",
+    "generado_en": "2026-10-22T12:00:00-06:00",
+    "mensajes_criticos_inyectados": {
+      "critico.promesa_no_autorizada": [
+        9
+      ]
+    },
+    "nota_esperada": {
+      "nota_base": 65,
+      "nota_final": 0
+    },
+    "secciones_esperadas": {
+      "apertura": "cumple",
+      "empatia": "cumple",
+      "diagnostico": "cumple",
+      "solucion": "no_cumple",
+      "comunicacion": "cumple",
+      "recapitulacion": "cumple",
+      "ayuda_adicional": "cumple",
+      "cierre": "cumple"
+    }
+  },
+  {
+    "conversation_id": "CONV-0119",
+    "lote": "calibracion_v1",
+    "tipo_interaccion": "ce",
+    "generado_por": "contrato-datos",
+    "calidad_solicitada": "buena",
+    "calidad_esperada": "buena",
+    "tema_esperado": "Acceso a la cuenta",
+    "tipificacion_esperada": "Cambio de correo del titular",
+    "errores_criticos_inyectados": "",
+    "criterios_que_deben_fallar": "",
+    "casos_dificiles": "",
+    "descripcion_escenario": "Cambio de correo del titular: valida identidad (nombre completo + RFC en el mensaje 4), menciona el correo registrado con enmascarado parcial después de validar y escala a Cuentas con plazo de 24 horas hábiles.",
+    "cuenta_id": "CTA-109",
+    "modelo_generador": "contrato-datos / claude-opus-5-5",
+    "version_prompt_generador": "no_aplica",
+    "tokens_entrada": "no_medido",
+    "tokens_salida": "no_medido",
+    "costo_generacion_usd": "no_medido",
+    "generado_en": "2026-10-22T12:00:00-06:00",
+    "mensajes_criticos_inyectados": {},
+    "nota_esperada": {
+      "nota_base": 100,
+      "nota_final": 100
+    },
+    "secciones_esperadas": {
+      "apertura": "cumple",
+      "empatia": "cumple",
+      "diagnostico": "cumple",
+      "solucion": "cumple",
+      "comunicacion": "cumple",
+      "recapitulacion": "cumple",
+      "ayuda_adicional": "cumple",
+      "cierre": "cumple"
+    }
+  },
+  {
+    "conversation_id": "CONV-0120",
+    "lote": "calibracion_v1",
+    "tipo_interaccion": "ce",
+    "generado_por": "contrato-datos",
+    "calidad_solicitada": "regular",
+    "calidad_esperada": "regular",
+    "tema_esperado": "Pagos de suscripción",
+    "tipificacion_esperada": "Actualización de método de pago",
+    "errores_criticos_inyectados": "",
+    "criterios_que_deben_fallar": "apertura.bienvenida|apertura.ofrece_ayuda|apertura.nombre_cliente|comunicacion.ortografia|recapitulacion.cierre_inactividad",
+    "casos_dificiles": "",
+    "descripcion_escenario": "Cambio de tarjeta de la suscripción. Apertura incompleta (sin bienvenida, sin ofrecer ayuda, sin nombre del cliente). Mensaje 6 con dos errores graves (\"haber si\", \"echo\") y uno menor (\"despues\"). El cliente deja de responder: recordatorio a los 125 s y cierre por inactividad 119 s después (justo antes del mínimo de 120 s).",
+    "cuenta_id": "CTA-107",
+    "modelo_generador": "contrato-datos / claude-opus-5-5",
+    "version_prompt_generador": "no_aplica",
+    "tokens_entrada": "no_medido",
+    "tokens_salida": "no_medido",
+    "costo_generacion_usd": "no_medido",
+    "generado_en": "2026-10-22T12:00:00-06:00",
+    "mensajes_criticos_inyectados": {},
+    "nota_esperada": {
+      "nota_base": 77.37,
+      "nota_final": 77.37
+    },
+    "secciones_esperadas": {
+      "apertura": "parcial",
+      "empatia": "cumple",
+      "diagnostico": "cumple",
+      "solucion": "cumple",
+      "comunicacion": "no_cumple",
+      "recapitulacion": "parcial",
+      "ayuda_adicional": "no_aplica",
+      "cierre": "cumple"
+    }
+  },
+  {
+    "conversation_id": "CONV-0121",
+    "lote": "calibracion_v1",
+    "tipo_interaccion": "ce",
+    "generado_por": "contrato-datos",
+    "calidad_solicitada": "mala",
+    "calidad_esperada": "mala",
+    "tema_esperado": "Pagos de suscripción",
+    "tipificacion_esperada": "Aclaración de cargo de suscripción",
+    "errores_criticos_inyectados": "critico.validacion_identidad",
+    "criterios_que_deben_fallar": "apertura.nombre_cliente|identidad.datos_coinciden|identidad.orden_validacion",
+    "casos_dificiles": "validacion_fuera_de_orden",
+    "descripcion_escenario": "Cargo mayor al plan. El agente pide RFC y correo; con solo el RFC (mensaje 4) revela plan, fecha y monto del cargo (mensaje 5) y después termina la validación (mensaje 6). Por lo demás, escala bien a Cobranza. No revela correo, RFC ni teléfono de la cuenta.",
+    "cuenta_id": "CTA-102",
+    "modelo_generador": "contrato-datos / claude-opus-5-5",
+    "version_prompt_generador": "no_aplica",
+    "tokens_entrada": "no_medido",
+    "tokens_salida": "no_medido",
+    "costo_generacion_usd": "no_medido",
+    "generado_en": "2026-10-22T12:00:00-06:00",
+    "mensajes_criticos_inyectados": {
+      "critico.validacion_identidad": []
+    },
+    "nota_esperada": {
+      "nota_base": 97.5,
+      "nota_final": 0
+    },
+    "secciones_esperadas": {
+      "apertura": "parcial",
+      "empatia": "cumple",
+      "diagnostico": "cumple",
+      "solucion": "cumple",
+      "comunicacion": "cumple",
+      "recapitulacion": "cumple",
+      "ayuda_adicional": "cumple",
+      "cierre": "cumple"
+    }
+  },
+  {
+    "conversation_id": "CONV-0122",
+    "lote": "calibracion_v1",
+    "tipo_interaccion": "ce",
+    "generado_por": "contrato-datos",
+    "calidad_solicitada": "buena",
+    "calidad_esperada": "buena",
+    "tema_esperado": "Emisión de CFDI",
+    "tipificacion_esperada": "Error de timbrado de CFDI",
+    "errores_criticos_inyectados": "",
+    "criterios_que_deben_fallar": "",
+    "casos_dificiles": "",
+    "descripcion_escenario": "Rechazo de timbrado porque el nombre del receptor incluía el régimen societario; se resuelve en la conversación. Un error de ortografía menor en el mensaje 6 (\"comparalo\"), por debajo del umbral.",
+    "cuenta_id": "CTA-104",
+    "modelo_generador": "contrato-datos / claude-opus-5-5",
+    "version_prompt_generador": "no_aplica",
+    "tokens_entrada": "no_medido",
+    "tokens_salida": "no_medido",
+    "costo_generacion_usd": "no_medido",
+    "generado_en": "2026-10-22T12:00:00-06:00",
+    "mensajes_criticos_inyectados": {},
+    "nota_esperada": {
+      "nota_base": 100,
+      "nota_final": 100
+    },
+    "secciones_esperadas": {
+      "apertura": "cumple",
+      "empatia": "cumple",
+      "diagnostico": "cumple",
+      "solucion": "cumple",
+      "comunicacion": "cumple",
+      "recapitulacion": "cumple",
+      "ayuda_adicional": "cumple",
+      "cierre": "cumple"
+    }
+  },
+  {
+    "conversation_id": "CONV-0123",
+    "lote": "calibracion_v1",
+    "tipo_interaccion": "ce",
+    "generado_por": "contrato-datos",
+    "calidad_solicitada": "regular",
+    "calidad_esperada": "regular",
+    "tema_esperado": "Emisión de CFDI",
+    "tipificacion_esperada": "Emisión de CFDI",
+    "errores_criticos_inyectados": "",
+    "criterios_que_deben_fallar": "recapitulacion.recapitula|comunicacion.signos_apertura|comunicacion.tecnicismos|comunicacion.vicios_lenguaje|ayuda_adicional.encuesta",
+    "casos_dificiles": "",
+    "descripcion_escenario": "Emisión de CFDI con uso G03. Usa \"ok\" y \"ahorita\", omite signos de apertura (mensajes 4 y 10), menciona la \"base de datos\", no recapitula y no ofrece la encuesta con el caso cerrado.",
+    "cuenta_id": "CTA-116",
+    "modelo_generador": "contrato-datos / claude-opus-5-5",
+    "version_prompt_generador": "no_aplica",
+    "tokens_entrada": "no_medido",
+    "tokens_salida": "no_medido",
+    "costo_generacion_usd": "no_medido",
+    "generado_en": "2026-10-22T12:00:00-06:00",
+    "mensajes_criticos_inyectados": {},
+    "nota_esperada": {
+      "nota_base": 76.5,
+      "nota_final": 76.5
+    },
+    "secciones_esperadas": {
+      "apertura": "cumple",
+      "empatia": "cumple",
+      "diagnostico": "cumple",
+      "solucion": "cumple",
+      "comunicacion": "parcial",
+      "recapitulacion": "no_cumple",
+      "ayuda_adicional": "no_cumple",
+      "cierre": "cumple"
+    }
+  },
+  {
+    "conversation_id": "CONV-0124",
+    "lote": "calibracion_v1",
+    "tipo_interaccion": "ce",
+    "generado_por": "contrato-datos",
+    "calidad_solicitada": "mala",
+    "calidad_esperada": "mala",
+    "tema_esperado": "Inventario",
+    "tipificacion_esperada": "Ajuste de inventario",
+    "errores_criticos_inyectados": "critico.abandono|critico.negacion_servicio|critico.no_genera_caso",
+    "criterios_que_deben_fallar": "apertura.ofrece_ayuda|empatia.muestra_empatia|empatia.asertividad|diagnostico.preguntas_necesarias|diagnostico.solicitudes_atendidas|solucion.informacion_correcta|solucion.informacion_completa|solucion.apego_proceso|solucion.ofrece_alternativas|recapitulacion.recapitula|solucion.campos_obligatorios|ayuda_adicional.ofrece_ayuda_adicional|ayuda_adicional.campana_vigente|cierre.agradece|cierre.frase_cortesia|cierre.despedida",
+    "casos_dificiles": "",
+    "descripcion_escenario": "El cliente pide corregir su inventario; el agente responde que los ajustes \"no se ven en este chat\" y lo manda con su contador (mensaje 4). El cliente vuelve a preguntar (mensaje 5) y ya no recibe respuesta. No se genera caso.",
+    "cuenta_id": "CTA-106",
+    "modelo_generador": "contrato-datos / claude-opus-5-5",
+    "version_prompt_generador": "no_aplica",
+    "tokens_entrada": "no_medido",
+    "tokens_salida": "no_medido",
+    "costo_generacion_usd": "no_medido",
+    "generado_en": "2026-10-22T12:00:00-06:00",
+    "mensajes_criticos_inyectados": {
+      "critico.abandono": [
+        5
+      ],
+      "critico.negacion_servicio": [
+        4
+      ],
+      "critico.no_genera_caso": []
+    },
+    "nota_esperada": {
+      "nota_base": 15.5,
+      "nota_final": 0
+    },
+    "secciones_esperadas": {
+      "apertura": "parcial",
+      "empatia": "no_cumple",
+      "diagnostico": "no_cumple",
+      "solucion": "no_cumple",
+      "comunicacion": "cumple",
+      "recapitulacion": "no_cumple",
+      "ayuda_adicional": "no_cumple",
+      "cierre": "no_cumple"
+    }
+  }
+]

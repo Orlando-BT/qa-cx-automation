@@ -1,0 +1,76 @@
+{
+  "conversation_id": "CONV-0120",
+  "canal": "chat",
+  "tipo_interaccion": "ce",
+  "agente": "Andrés Soto",
+  "cuenta_id": "CTA-107",
+  "metadatos_caso": {
+    "tipificacion_agente": "Actualización de método de pago",
+    "numero_caso": "CASO-41866",
+    "estado_caso": "cerrado",
+    "escalado": false,
+    "campos_capturados": {}
+  },
+  "mensajes": [
+    {
+      "n": 1,
+      "emisor": "cliente",
+      "timestamp": "2026-10-16T09:22:47",
+      "texto": "Buen día, quiero cambiar la tarjeta con la que se paga Contamix porque la anterior ya venció."
+    },
+    {
+      "n": 2,
+      "emisor": "agente",
+      "timestamp": "2026-10-16T09:23:32",
+      "texto": "Buen día, te atiende Andrés de Contamix. Tus datos personales serán tratados conforme a nuestro aviso de privacidad."
+    },
+    {
+      "n": 3,
+      "emisor": "cliente",
+      "timestamp": "2026-10-16T09:24:12",
+      "texto": "¿Cómo le hago?"
+    },
+    {
+      "n": 4,
+      "emisor": "agente",
+      "timestamp": "2026-10-16T09:24:42",
+      "texto": "El cambio lo hace el Administrador de la cuenta en Configuración > Mi plan > Método de pago. Ahí das clic en Cambiar tarjeta, capturas los datos de la nueva y guardas. Por seguridad, en el chat no capturamos datos de tarjetas."
+    },
+    {
+      "n": 5,
+      "emisor": "cliente",
+      "timestamp": "2026-10-16T09:26:12",
+      "texto": "¿Y si ya se me pasó el cobro de este mes?"
+    },
+    {
+      "n": 6,
+      "emisor": "agente",
+      "timestamp": "2026-10-16T09:26:47",
+      "texto": "Tienes 7 días naturales de gracia despues del cobro fallido y mientras tanto tu cuenta sigue funcionando normal. Haber si con la tarjeta nueva el cargo pasa en automático; si no, el pago lo puedes hacer desde Mi plan y queda echo en el momento."
+    },
+    {
+      "n": 7,
+      "emisor": "cliente",
+      "timestamp": "2026-10-16T09:27:47",
+      "texto": "Va, déjame intentarlo."
+    },
+    {
+      "n": 8,
+      "emisor": "agente",
+      "timestamp": "2026-10-16T09:28:17",
+      "texto": "Claro, aquí te espero. Tu caso queda registrado con el número CASO-41866."
+    },
+    {
+      "n": 9,
+      "emisor": "agente",
+      "timestamp": "2026-10-16T09:30:22",
+      "texto": "Brenda, ¿sigues en línea?"
+    },
+    {
+      "n": 10,
+      "emisor": "agente",
+      "timestamp": "2026-10-16T09:32:21",
+      "texto": "Al no recibir respuesta, cierro el chat. Gracias por contactar a Contamix, te atendió Andrés. ¡Que tengas buen día!"
+    }
+  ]
+}

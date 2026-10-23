@@ -1,0 +1,289 @@
+conversation_id,lote,tipo_interaccion,agente,cuenta_id,metadatos_caso_legible,texto_legible,estado_revision,h_seccion__apertura,h_seccion__empatia,h_seccion__diagnostico,h_seccion__solucion,h_seccion__comunicacion,h_seccion__recapitulacion,h_seccion__ayuda_adicional,h_seccion__cierre,h_apertura__aviso_privacidad,h_apertura__toma_a_tiempo,h_empatia__muestra_empatia,h_empatia__cordialidad,h_diagnostico__solicitudes_detectadas,h_diagnostico__solicitudes_atendidas,h_solucion__informacion_correcta,h_solucion__apego_proceso,h_solucion__escala_cuando_requiere,h_comunicacion__ortografia,h_comunicacion__no_excede_espera,h_recapitulacion__recapitula,h_recapitulacion__informa_numero_caso,h_recapitulacion__numero_caso_coincide,h_recapitulacion__tipificacion,h_ayuda_adicional__ofrece_ayuda_adicional,h_ayuda_adicional__encuesta,h_cierre__agradece,h_cierre__despedida,h_identidad__pide_datos,h_identidad__datos_coinciden,h_identidad__orden_validacion,h_critico__no_toma_a_tiempo,h_critico__no_genera_caso,h_critico__abandono,h_critico__palabras_altisonantes,h_critico__validacion_identidad,h_critico__confidencialidad,h_critico__tipificacion_incorrecta,h_critico__informacion_incorrecta,h_critico__promesa_no_autorizada,h_critico__negacion_servicio,h_critico__mala_actitud,h_critico__comentarios_negativos_marca,comentarios_humano,calificado_en
+CONV-0101,calibracion_v1,ce,Tomás Aguilar,CTA-104,"tipificacion_agente: Ajuste de inventario | numero_caso: CASO-41809 | estado_caso: cerrado | escalado: no | campos_capturados: almacen=presente, sku_producto=presente","[1] 12:10:33 cliente: Hola, hicimos conteo físico en la taquería y el sistema trae más tortillas de las que hay. ¿Cómo lo corrijo?
+[2] 12:11:08 agente: ¡Hola! Bienvenido a Contamix, te atiende Tomás y con gusto te ayudo. Tus datos personales serán tratados conforme a nuestro aviso de privacidad. ¿Con quién tengo el gusto?
+[3] 12:11:33 cliente: Héctor Villanueva.
+[4] 12:12:03 agente: Mucho gusto, Héctor. ¿En qué almacén y con qué producto encontraste la diferencia? ¿Tu usuario tiene rol de Administrador o de Almacenista?
+[5] 12:13:03 cliente: Almacén Principal, producto TOR-001, tortilla de maíz por kilo. Soy administrador.
+[6] 12:13:33 agente: Gracias. Permíteme un momento, por favor, reviso los últimos movimientos de ese producto para descartar otra causa.
+[7] 12:15:28 agente: Sigo revisando, gracias por esperar.
+[8] 12:17:26 agente: Ya casi termino.
+[9] 12:18:34 agente: Gracias por la espera. No encontré movimientos fuera de lo normal, así que la diferencia es de conteo. Haz el ajuste en Inventario > Ajustes > Nuevo ajuste: elige el Almacén Principal y el producto, captura la cantidad que contaste y el motivo conteo físico, y guarda.
+[10] 12:20:14 cliente: Listo, ya quedó.
+[11] 12:20:44 agente: ¡Muy bien! Con esta solución tus existencias ya coinciden con el conteo. Tu número de caso es CASO-41809. Aprovecho para comentarte de la campaña Cierre Fiscal Contamix: 15% de descuento en el pago anual hasta el 31 de diciembre. Si necesitas algo más, estamos de lunes a viernes de 8:00 a 20:00. ¿Hay algo más en lo que te pueda ayudar?
+[12] 12:21:24 cliente: No, gracias.
+[13] 12:21:49 agente: Gracias por contactar a Contamix, Héctor. Te llegará una breve encuesta para calificar la atención. Te atendió Tomás, ¡que tengas buena tarde!",pendiente,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+CONV-0102,calibracion_v1,ce,Carolina Reyes,CTA-114,"tipificacion_agente: Aclaración de cargo de suscripción | numero_caso: CASO-41377 | estado_caso: en_seguimiento | escalado: si | campos_capturados: referencia_pago=presente, fecha_cargo=presente, monto_cargo=presente","[1] 15:40:02 cliente: Buenas tardes, me cobraron dos veces la mensualidad este mes y ya me urge que me regresen mi dinero.
+[2] 15:40:31 agente: ¡Buenas tardes! Gracias por contactar a Contamix, mi nombre es Carolina. Lamento mucho el doble cargo, entiendo tu preocupación y con gusto te ayudo a aclararlo. Tus datos personales están protegidos conforme a nuestro aviso de privacidad.
+[3] 15:40:46 agente: Para revisar tu cuenta necesito validar tu identidad. ¿Me compartes el nombre del titular y el teléfono registrado?
+[4] 15:41:36 cliente: Sergio Navarro Camacho, el teléfono es 55 5546 7814.
+[5] 15:42:16 agente: Gracias, Sergio, tus datos coinciden. Veo dos cargos de 699 pesos con fecha del 3 de octubre en la tarjeta registrada en tu cuenta. ¿Me confirmas si los dos ya aparecen aplicados en tu estado de cuenta?
+[6] 15:43:26 cliente: Sí, los dos ya están aplicados. Referencias 88213 y 88214.
+[7] 15:44:01 agente: Gracias. Ya registré tu aclaración con la referencia de pago, la fecha y el monto de los cargos, y la escalé al área de Cobranza, que es la que autoriza los reembolsos. Tu número de caso es CASO-41377.
+[8] 15:44:46 cliente: ¿Y cuándo me devuelven?
+[9] 15:45:26 agente: Cobranza revisa la aclaración y te da respuesta en un máximo de 48 horas hábiles. Si procede el reembolso, el depósito se refleja según los tiempos de tu banco. Te contactaremos al teléfono que termina en ******7814 o a tu correo registrado.
+[10] 15:46:16 cliente: Está bien, gracias por la ayuda.
+[11] 15:46:46 agente: Para recapitular: confirmamos el doble cargo del 3 de octubre, escalamos tu aclaración a Cobranza con el caso CASO-41377 y te darán seguimiento en un máximo de 48 horas hábiles. Te comento también que con la campaña Cierre Fiscal Contamix tienes 15% de descuento si cambias a pago anual antes del 31 de diciembre. Para temas de cobro también puedes escribir a pagos@contamix.example. ¿Hay algo más en lo que te pueda ayudar?
+[12] 15:47:26 cliente: No, es todo.
+[13] 15:47:51 agente: Gracias por contactar a Contamix, Sergio. Te atendió Carolina, fue un gusto atenderte. ¡Que tengas buena tarde!",pendiente,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+CONV-0103,calibracion_v1,ce,Andrés Soto,CTA-110,"tipificacion_agente: Error de timbrado de CFDI | numero_caso: CASO-42317 | estado_caso: cerrado | escalado: no | campos_capturados: uuid_factura=presente, motivo_cancelacion=presente","[1] 10:33:08 cliente: Buenos días. Le facturé a un paciente un tratamiento que al final no se hizo. ¿Cómo cancelo la factura?
+[2] 10:33:48 agente: ¡Buenos días! Bienvenido a Contamix, te atiende Andrés y con gusto te ayudo con la cancelación. Tus datos personales serán tratados conforme a nuestro aviso de privacidad. ¿Con quién tengo el gusto?
+[3] 10:34:18 cliente: Gustavo Ortega.
+[4] 10:34:48 agente: Mucho gusto, Gustavo. ¿De cuánto fue la factura? ¿La vas a sustituir por otra o simplemente no debió emitirse?
+[5] 10:35:48 cliente: Fueron 3,500 pesos. No se va a sustituir, el tratamiento no se hizo.
+[6] 10:36:23 agente: Entonces corresponde el motivo 03, no se llevó a cabo la operación. Entra a Facturación > Facturas emitidas, busca la factura, da clic en Cancelar, elige el motivo 03 y confirma. Como el total es mayor a 1,000 pesos, tu paciente debe aceptar la cancelación en el portal del SAT.
+[7] 10:37:43 cliente: Ya la mandé. ¿Y si mi paciente no la acepta?
+[8] 10:38:18 agente: Tiene 72 horas para aceptarla o rechazarla; si no responde, la cancelación se considera aceptada. Si la rechaza, la factura sigue vigente y tendrías que ponerte de acuerdo con tu paciente, porque desde Contamix no es posible forzar la cancelación.
+[9] 10:38:58 cliente: Entendido, gracias.
+[10] 10:39:28 agente: Para recapitular: cancelaste la factura del tratamiento con el motivo 03 y solo falta la aceptación de tu paciente, que tiene 72 horas para responder. Con esta solución cierro tu caso con el número CASO-42317. Te comento que con la campaña Cierre Fiscal Contamix tienes 15% de descuento en el pago anual hasta el 31 de diciembre. ¿Hay algo más en lo que te pueda ayudar?
+[11] 10:40:03 cliente: No, es todo.
+[12] 10:40:28 agente: Gracias por contactar a Contamix, Gustavo. Recuerda que también nos encuentras en soporte@contamix.example. Al cerrar el chat te llegará una breve encuesta para calificar la atención. Te atendió Andrés, ¡que tengas buen día!",pendiente,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+CONV-0104,calibracion_v1,ce,Mariana López,CTA-101,"tipificacion_agente: Cancelación de CFDI | numero_caso: CASO-40117 | estado_caso: cerrado | escalado: no | campos_capturados: uuid_factura=presente, motivo_cancelacion=presente","[1] 09:14:07 cliente: Hola, buenos días. Necesito cancelar una factura que hice ayer con un error en el precio.
+[2] 09:15:07 agente: ¡Hola, buenos días! Bienvenida a Contamix, te atiende Mariana. Tus datos personales serán tratados conforme a nuestro aviso de privacidad. ¿Con quién tengo el gusto?
+[3] 09:15:42 cliente: Soy Julieta Gómez, de Abarrotes Luna.
+[4] 09:16:07 agente: Mucho gusto, Julieta. Con gusto te ayudo con la cancelación. Para orientarte bien, ¿la factura ya se pagó? ¿Vas a emitir una nueva factura con el precio correcto?
+[5] 09:17:17 cliente: No la han pagado. Sí, quiero hacer una nueva con el precio bien.
+[6] 09:18:02 agente: Perfecto. En ese caso corresponde el motivo 01, comprobante emitido con errores con relación. Primero timbra la factura nueva con el precio correcto desde Facturación > Nueva factura y guarda su folio.
+[7] 09:19:32 cliente: Listo, ya timbré la nueva, es la A-1532.
+[8] 09:20:02 agente: Muy bien. Ahora ve a Facturación > Facturas emitidas, busca la factura con el error, da clic en Cancelar, elige el motivo 01 y selecciona la factura A-1532 como sustituta. Después confirma.
+[9] 09:21:42 cliente: Me sale ""En proceso de cancelación"". ¿Eso está bien?
+[10] 09:22:22 agente: Sí, es correcto. Como el total es mayor a 1,000 pesos, tu cliente debe aceptar la cancelación en el portal del SAT. Tiene 72 horas para responder y, si no responde, la cancelación se considera aceptada. Te recomiendo avisarle para que la acepte pronto.
+[11] 09:23:12 cliente: Ah, perfecto, le aviso.
+[12] 09:23:47 agente: Para recapitular: cancelaste la factura con el error con el motivo 01 y quedó relacionada con la nueva A-1532; solo falta que tu cliente acepte la cancelación. Con esta solución tu caso queda cerrado con el número CASO-40117.
+[13] 09:24:27 cliente: Gracias.
+[14] 09:24:57 agente: Te comparto que este trimestre tenemos la campaña Cierre Fiscal Contamix: 15% de descuento en el pago anual de cualquier plan si contratas o renuevas antes del 31 de diciembre. También nos encuentras en soporte@contamix.example o al 55 5000 1000, de lunes a viernes de 8:00 a 20:00. ¿Hay algo más en lo que te pueda ayudar?
+[15] 09:25:42 cliente: No, es todo.
+[16] 09:26:07 agente: Gracias por contactar a Contamix, Julieta. Al cerrar el chat te llegará una breve encuesta para calificar la atención. Fue un gusto atenderte, te atendió Mariana. ¡Que tengas excelente día!",pendiente,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+CONV-0105,calibracion_v1,ce,Paola Jiménez,CTA-115,"tipificacion_agente: Seguimiento de cancelación pendiente | numero_caso: CASO-41960 | estado_caso: en_seguimiento | escalado: si | campos_capturados: uuid_factura=presente, fecha_solicitud_cancelacion=presente","[1] 17:05:50 cliente: Buenas tardes. Llevo 5 días con una factura ""En proceso de cancelación"" y mi cliente dice que ya la aceptó. Estoy muy molesta, ya me la está pidiendo el contador y no sé qué hacer.
+[2] 17:06:30 agente: ¡Buenas tardes! Bienvenida a Contamix, te atiende Paola, con gusto te ayudo. Tus datos personales serán tratados conforme a nuestro aviso de privacidad. ¿Con quién tengo el gusto?
+[3] 17:07:00 cliente: Leticia Arroyo, de Farmacia Vida Sana.
+[4] 17:08:01 agente: Leticia, ¿me compartes el folio de la factura y la fecha en que solicitaste la cancelación?
+[5] 17:08:51 cliente: Folio B-2210, la cancelé el 9 de octubre.
+[6] 17:09:26 agente: Cuando una cancelación sigue en proceso más de 72 horas, la revisa nuestro equipo de Soporte Nivel 2. Ya registré tu caso con el folio y la fecha, y lo escalé con el número CASO-41960.
+[7] 17:10:11 cliente: ¿Y cuánto se van a tardar? Necesito la factura cancelada ya.
+[8] 17:10:41 agente: Soporte Nivel 2 te dará seguimiento por correo en un máximo de 48 horas hábiles.
+[9] 17:11:21 cliente: Bueno.
+[10] 17:11:51 agente: Para recapitular: tu factura B-2210 sigue en proceso de cancelación desde el 9 de octubre, escalamos el caso CASO-41960 a Soporte Nivel 2 y te darán seguimiento en un máximo de 48 horas hábiles. Te comparto que con la campaña Cierre Fiscal Contamix tienes 15% de descuento en el pago anual hasta el 31 de diciembre.
+[11] 17:12:31 cliente: Ajá.
+[12] 17:12:56 agente: Si lo necesitas, nuestro horario de atención es de lunes a viernes de 8:00 a 20:00 y sábados de 9:00 a 14:00.
+[13] 17:13:06 agente: Gracias por contactar a Contamix, Leticia. Te atendió Paola, ¡que tengas buena tarde!",pendiente,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+CONV-0106,calibracion_v1,ce,Andrés Soto,CTA-111,tipificacion_agente: Sin tipificar | numero_caso: sin caso | estado_caso: sin_caso | escalado: no | campos_capturados: ,"[1] 08:41:10 cliente: Hola, buenas. Necesito ayuda urgente, no puedo entrar a mi cuenta y tengo que facturar hoy.
+[2] 08:44:10 cliente: ¿Hay alguien? Ya intenté restablecer la contraseña y no me llega el correo.
+[3] 08:48:10 cliente: Sigo esperando, por favor.",pendiente,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+CONV-0107,calibracion_v1,ce,Paola Jiménez,CTA-105,tipificacion_agente: Consulta de planes y promociones | numero_caso: CASO-41602 | estado_caso: cerrado | escalado: no | campos_capturados: ,"[1] 10:48:21 cliente: Hola, buenos días. Mi RFC es MTI120417PZ9. Quiero saber si me conviene renovar anual con la promoción y cuándo vence mi plan.
+[2] 10:49:01 agente: ¡Hola, buenos días! Te damos la bienvenida a Contamix, te atiende Paola. Con gusto te ayudo con la información de tu plan. Tus datos personales serán tratados conforme a nuestro aviso de privacidad.
+[3] 10:49:16 agente: Para consultar tu cuenta necesito validar tu identidad. Ya tengo el RFC; ¿me compartes también el correo registrado o el nombre del titular?
+[4] 10:50:26 cliente: Es monica.trevino@mueblestrevino.example, soy Mónica Treviño.
+[5] 10:51:01 agente: Gracias, Mónica, tus datos coinciden. Tu cuenta tiene el plan Empresarial con pago mensual y la siguiente renovación es el 15 de noviembre.
+[6] 10:52:01 cliente: ¿Y cuánto me ahorro si me paso a anual?
+[7] 10:52:36 agente: Con la campaña Cierre Fiscal Contamix tienes 15% de descuento en el pago anual de cualquier plan si contratas o renuevas antes del 31 de diciembre. En el plan Empresarial, el pago anual normal sería de 15,588 pesos más IVA y con el descuento queda en 13,249.80 pesos más IVA. La campaña no aplica a pagos mensuales ni es retroactiva.
+[8] 10:54:41 agente: Mónica, ¿sigues en línea? Quedo atenta por si quieres que te explique cómo hacer el cambio a pago anual.
+[9] 10:58:01 cliente: Perdón, me llamaron. Sí, ¿cómo lo hago?
+[10] 10:58:31 agente: No te preocupes. Lo puede hacer el Administrador de la cuenta desde Configuración > Mi plan, eligiendo el pago anual; el 15% se aplica siempre que lo hagas antes del 31 de diciembre.
+[11] 10:59:31 cliente: Perfecto, lo hago con el administrador.
+[12] 11:00:01 agente: Para recapitular: tu plan Empresarial se renueva el 15 de noviembre y, si cambias a pago anual antes del 31 de diciembre, obtienes el 15% de descuento de la campaña. Con esta solución a tu consulta cierro el caso con el número CASO-41602. Si tienes otra duda, nuestro horario de atención es de lunes a viernes de 8:00 a 20:00. ¿Hay algo más en lo que te pueda ayudar?
+[13] 11:00:41 cliente: No, gracias.
+[14] 11:01:06 agente: Gracias por tu preferencia, Mónica. Te llegará una breve encuesta para calificar la atención. Te atendió Paola de Contamix, ¡que tengas excelente día!",pendiente,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+CONV-0108,calibracion_v1,ce,Tomás Aguilar,CTA-103,"tipificacion_agente: Cancelación de CFDI | numero_caso: CASO-41688 | estado_caso: en_seguimiento | escalado: no | campos_capturados: uuid_factura=presente, motivo_cancelacion=presente","[1] 12:03:55 cliente: Hola, buen día. Emití una factura con el RFC del cliente equivocado. ¿Cómo la cancelo y la vuelvo a hacer? ¿Y mi cliente tiene que aceptar algo?
+[2] 12:04:35 agente: ¡Hola, muy buen día! Bienvenida a Contamix, te atiende Tomás. Qué pena que te haya pasado, no te preocupes, es algo muy común y con gusto te ayudo. Tus datos personales serán tratados conforme a nuestro aviso de privacidad. ¿Con quién tengo el gusto?
+[3] 12:05:05 cliente: Fernanda Ibarra.
+[4] 12:05:35 agente: Mucho gusto, Fernanda. La cancelación se hace en Facturación > Facturas emitidas, con el botón Cancelar, donde eliges el motivo.
+[5] 12:06:35 cliente: ¿Pero qué motivo pongo? ¿Y cómo la vuelvo a hacer con el RFC bien? No quiero que se me duplique.
+[6] 12:07:15 agente: Entiendo perfectamente tu preocupación, Fernanda, es muy válido que no quieras duplicarla. Primero emite la nueva factura con el RFC correcto desde Facturación > Nueva factura. Después cancela la anterior con el motivo 01, comprobante emitido con errores con relación, y selecciona la nueva como sustituta.
+[7] 12:08:25 cliente: Va... ¿y lo de si mi cliente tiene que aceptar la cancelación?
+[8] 12:09:00 agente: Excelente pregunta. Déjame consultarlo con mi equipo para darte la información exacta y te escribimos por correo para darte seguimiento en un máximo de 24 horas hábiles. Agradezco mucho tu comprensión.
+[9] 12:09:50 cliente: Bueno, gracias.
+[10] 12:10:20 agente: Para recapitular: te compartí cómo emitir la nueva factura y cancelar la anterior con el motivo 01, y quedamos de darte seguimiento por correo sobre la aceptación de tu cliente con el caso CASO-41688. Por cierto, con la campaña Cierre Fiscal Contamix tienes 15% de descuento en el pago anual hasta el 31 de diciembre. También nos encuentras en soporte@contamix.example. ¿Hay algo más en lo que te pueda ayudar?
+[11] 12:11:00 cliente: No, gracias.
+[12] 12:11:25 agente: Gracias a ti por contactar a Contamix, Fernanda. Fue un placer atenderte, te atendió Tomás. ¡Que tengas un excelente día!",pendiente,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+CONV-0109,calibracion_v1,ce,Tomás Aguilar,CTA-113,"tipificacion_agente: Error de timbrado de CFDI | numero_caso: CASO-42502 | estado_caso: abierto | escalado: no | campos_capturados: rfc_receptor=ausente, mensaje_rechazo=presente","[1] 13:12:30 cliente: Buenas tardes. Llevo toda la mañana intentando timbrar una factura y me sale error de servicio no disponible. Ya me urge.
+[2] 13:13:15 agente: Buenas tardes, bienvenida a Contamix, te atiende Tomás. Tus datos personales serán tratados conforme a nuestro aviso de privacidad. ¿En qué te puedo ayudar?
+[3] 13:13:45 cliente: Ya lo escribí arriba, no puedo timbrar. Soy Patricia Lozano, de Plásticos Lozano.
+[4] 13:14:25 agente: A ver, Patricia, si hubieras leído el mensaje completo verías que es del servicio, no tuyo. La neta el timbrado de Contamix es bien lento, siempre se cae a esta hora.
+[5] 13:15:25 cliente: ¿Y entonces qué hago? Tengo que entregar la factura hoy.
+[6] 13:16:05 agente: Pues esperar. Ese pinche error sale cada rato, intenta otra vez más tarde.
+[7] 13:16:55 cliente: Pues qué mal servicio.
+[8] 13:17:30 agente: Es lo que hay. Te dejo el caso CASO-42502 por si quieres volver a escribir.
+[9] 13:18:10 cliente: Bueno.
+[10] 13:18:35 agente: Gracias por contactar a Contamix. Hasta luego.",pendiente,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+CONV-0110,calibracion_v1,ce,Paola Jiménez,CTA-110,"tipificacion_agente: Alta y permisos de usuarios | numero_caso: CASO-40873 | estado_caso: cerrado | escalado: no | campos_capturados: usuario_afectado=presente, rol_asignado=presente","[1] 11:20:15 cliente: Hola, quiero dar de alta a mi nueva asistente para que pueda facturar.
+[2] 11:20:57 agente: ¡Hola! Bienvenido a Contamix, te atiende Paola. Con gusto te ayudo a darla de alta. Antes, te comento que tus datos personales serán tratados conforme a nuestro aviso de privacidad. ¿Con quién tengo el gusto?
+[3] 11:21:27 cliente: Gustavo Ortega, de la clínica Sonrisa Plena.
+[4] 11:21:55 agente: Mucho gusto, Gustavo. ¿Tu usuario es Administrador de la cuenta? Solo un Administrador puede dar de alta usuarios. ¿Tu asistente solo va a facturar o también necesita ver reportes?
+[5] 11:23:00 cliente: Sí, soy el administrador. Solo va a facturar.
+[6] 11:23:30 agente: Perfecto, entonces el rol indicado es Facturista. Entra a Configuración > Usuarios > Nuevo usuario, captura su nombre y correo, elige el rol Facturista y guarda. Le llegará una invitación a su correo para crear su contraseña.
+[7] 11:25:05 cliente: Ya lo hice, pero me dice que llegué al límite de usuarios.
+[8] 11:25:40 agente: Eso pasa cuando el plan llega a su límite de usuarios: el plan Básico incluye 2, el Pyme 5 y el Empresarial 15. Tienes dos opciones: desactivar en Configuración > Usuarios a alguien que ya no use la cuenta, o cambiar a un plan con más usuarios; el cambio a un plan mayor se aplica de inmediato con cobro proporcional.
+[9] 11:27:00 cliente: Desactivé a un exempleado y ya pude darla de alta.
+[10] 11:27:30 agente: ¡Excelente! Para recapitular: diste de alta a tu asistente con el rol Facturista después de desactivar a un usuario que ya no se usaba. Con esta solución queda registrado tu caso con el número CASO-40873. Por cierto, tenemos la campaña Cierre Fiscal Contamix con 15% de descuento en el pago anual hasta el 31 de diciembre.
+[11] 11:29:35 agente: Gustavo, ¿sigues ahí? Quedo atenta por si tienes alguna otra duda.
+[12] 11:31:45 agente: Al no recibir respuesta, cierro el chat. Gracias por contactar a Contamix, te atendió Paola. ¡Que tengas excelente día!",pendiente,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+CONV-0111,calibracion_v1,ce,Carolina Reyes,CTA-106,"tipificacion_agente: Cambio de usuario administrador | numero_caso: CASO-41790 | estado_caso: en_seguimiento | escalado: si | campos_capturados: usuario_actual_admin=presente, usuario_nuevo_admin=presente","[1] 17:30:05 cliente: Buenas tardes. Nuestro contador, que era el administrador de la cuenta, ya no trabaja con nosotros y necesito que el administrador sea yo.
+[2] 17:30:35 agente: ¡Buenas tardes! Bienvenido a Contamix, te atiende Carolina y con gusto te ayudo con el cambio de administrador.
+[3] 17:30:50 agente: Como es un cambio sensible, primero necesito validar tu identidad. ¿Me compartes el nombre del titular de la cuenta y el correo o teléfono registrados?
+[4] 17:32:10 cliente: Soy Ernesto Cárdenas Olvera, el correo es ecardenas@constructoracardenas.example.
+[5] 17:32:45 agente: Gracias, Ernesto, tus datos coinciden con los del titular. ¿Me indicas el usuario del administrador actual y el usuario que quedará como nuevo administrador?
+[6] 17:33:55 cliente: El actual es el usuario de Joaquín, el contador. El nuevo sería mi usuario.
+[7] 17:34:30 agente: Perfecto. El cambio de administrador lo realiza nuestra área de Cuentas, así que ya registré tu solicitud con ambos usuarios y la escalé. Mientras tanto, tu usuario actual sigue funcionando normal.
+[8] 17:35:15 cliente: ¿Y en cuánto tiempo queda?
+[9] 17:35:45 agente: El área de Cuentas hace el cambio en un máximo de 24 horas hábiles y te dará seguimiento por correo cuando quede listo.
+[10] 17:36:25 cliente: Perfecto, gracias.
+[11] 17:36:55 agente: Para recapitular: validamos tu identidad como titular, registramos el cambio de administrador del usuario del contador a tu usuario y el área de Cuentas le dará seguimiento en un máximo de 24 horas hábiles. ¿Hay algo más en lo que te pueda ayudar?
+[12] 17:37:30 cliente: No, es todo.
+[13] 17:37:55 agente: Gracias por contactar a Contamix, Ernesto. Te atendió Carolina. Hasta luego.",pendiente,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+CONV-0112,calibracion_v1,ce,Carolina Reyes,CTA-101,tipificacion_agente: Restablecimiento de contraseña | numero_caso: CASO-42104 | estado_caso: cerrado | escalado: no | campos_capturados: usuario_afectado=presente,"[1] 15:27:52 cliente: Buenas tardes, no me llega el correo para restablecer mi contraseña.
+[2] 15:28:53 agente: ¡Buenas tardes! Bienvenida a Contamix, te atiende Carolina y con gusto te ayudo. Tus datos personales serán tratados conforme a nuestro aviso de privacidad. ¿Con quién tengo el gusto?
+[3] 15:29:23 cliente: Julieta Gómez.
+[4] 15:29:53 agente: Mucho gusto, Julieta. ¿Ya revisaste la carpeta de spam o correo no deseado? Recuerda que el enlace se envía al correo con el que está dado de alta tu usuario.
+[5] 15:31:03 cliente: No había revisado spam... sí, ahí está.
+[6] 15:31:33 agente: ¡Qué bueno! Da clic en el enlace y crea tu nueva contraseña; ten en cuenta que vence en 30 minutos, así que te recomiendo hacerlo de una vez.
+[7] 15:33:03 cliente: Listo, ya entré.
+[8] 15:33:33 agente: Excelente. Para recapitular: el correo de restablecimiento estaba en spam, ya creaste tu nueva contraseña y entraste a tu cuenta. Con esta solución cierro tu caso con el número CASO-42104. Te comparto que con la campaña Cierre Fiscal Contamix tienes 15% de descuento en el pago anual hasta el 31 de diciembre.
+[9] 15:34:03 cliente: Gracias.
+[10] 15:34:28 agente: Si te vuelve a pasar, en nuestro centro de ayuda ayuda.contamix.example tienes la guía. ¿Hay algo más en lo que te pueda ayudar?
+[11] 15:34:58 cliente: No, es todo.
+[12] 15:35:18 agente: Gracias por contactar a Contamix, Julieta. Te llegará una breve encuesta para calificar la atención. Te atendió Carolina, ¡que tengas excelente tarde!",pendiente,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+CONV-0113,calibracion_v1,ce,Tomás Aguilar,CTA-102,"tipificacion_agente: Emisión de complemento de pago | numero_caso: CASO-41455 | estado_caso: cerrado | escalado: no | campos_capturados: uuid_factura=presente, fecha_pago=presente, monto_pago=presente","[1] 13:31:44 cliente: Hola, buenas. Un cliente me pagó la mitad de una factura y no sé cómo registrar ese pago.
+[2] 13:32:29 agente: ¡Hola, buenas tardes! Bienvenido a Contamix, te atiende Tomás. Tus datos personales serán tratados conforme a nuestro aviso de privacidad. ¿Con quién tengo el gusto?
+[3] 13:33:09 cliente: Rodrigo Salinas.
+[4] 13:33:34 agente: Mucho gusto, Rodrigo, con gusto te ayudo. ¿La factura se emitió con método de pago PPD o PUE? Lo puedes ver en el detalle de la factura.
+[5] 13:35:34 cliente: Ya la encontré, dice PPD.
+[6] 13:36:04 agente: Perfecto. Como es PPD, necesitas emitir un complemento de pago por ese abono. Entra a Facturación > Complementos de pago > Nuevo, elige a tu cliente y la factura, y captura la fecha en que recibiste el pago, la forma de pago y el monto pagado. Contamix calcula el saldo pendiente automáticamente. Al final da clic en Timbrar.
+[7] 13:37:54 cliente: Listo, ya lo timbré. ¿Hay alguna fecha límite para hacerlo?
+[8] 13:38:29 agente: Sí, el complemento se debe emitir a más tardar el día 5 del mes siguiente a aquel en que recibiste el pago. Cuando te paguen la otra mitad, harás otro complemento igual, con la parcialidad número 2.
+[9] 13:39:09 cliente: Excelente, muchas gracias.
+[10] 13:39:39 agente: Para recapitular: registraste el pago parcial de tu factura PPD con un complemento de pago y ya quedó timbrado. Con esta solución tu caso queda cerrado con el número CASO-41455. Si necesitas una guía, en nuestro centro de ayuda ayuda.contamix.example encuentras el paso a paso. ¿Hay algo más en lo que te pueda ayudar?
+[11] 13:40:14 cliente: No, eso es todo.
+[12] 13:40:39 agente: Gracias por comunicarte a Contamix, Rodrigo. En unos momentos te llegará una breve encuesta para calificar la atención. Te atendió Tomás, fue un gusto atenderte. ¡Que tengas excelente tarde!",pendiente,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+CONV-0114,calibracion_v1,ce,Diego Herrera,CTA-108,tipificacion_agente: Restablecimiento de contraseña | numero_caso: CASO-41720 | estado_caso: cerrado | escalado: no | campos_capturados: usuario_afectado=presente,"[1] 16:55:12 cliente: Buenas tardes, no puedo entrar a Contamix, ya me bloqueé y tengo pacientes que facturar hoy. Estoy desesperado.
+[2] 16:55:52 agente: Buenas tardes. Contamix, le atiende Diego. Sus datos se tratan conforme al aviso de privacidad. Usuario?
+[3] 16:56:37 cliente: Es alonso.medina@consultoriomedina.example
+[4] 16:57:12 agente: En la pantalla de inicio de sesión dé clic en ¿Olvidaste tu contraseña? y escriba ese correo. Le llega un enlace que vence en 30 minutos.
+[5] 16:58:32 cliente: Ya lo hice tres veces y no me llega nada. Me urge.
+[6] 16:59:02 agente: Revise spam.
+[7] 17:00:02 cliente: Ah, ahí estaba. Ya entré.
+[8] 17:00:27 agente: Resumen: no le llegaba el correo de restablecimiento porque estaba en spam; ya entró. Quedó con solución, caso CASO-41720. Algo más?
+[9] 17:00:57 cliente: No.
+[10] 17:01:17 agente: Gracias por contactar a Contamix. Hasta luego.",pendiente,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+CONV-0115,calibracion_v1,ce,Carolina Reyes,CTA-112,"tipificacion_agente: Emisión de complemento de pago | numero_caso: CASO-42688 | estado_caso: cerrado | escalado: no | campos_capturados: uuid_factura=presente, fecha_pago=presente, monto_pago=presente","[1] 14:50:03 cliente: Buenas tardes. Tengo varios pagos de clientes de septiembre y no he hecho los complementos. ¿Hasta cuándo tengo para hacerlos?
+[2] 14:50:41 agente: ¡Buenas tardes! Bienvenido a Contamix, te atiende Carolina y con gusto te ayudo. Tus datos personales serán tratados conforme a nuestro aviso de privacidad. ¿Con quién tengo el gusto?
+[3] 14:51:11 cliente: Ignacio Bravo, de Fonda La Cazuela.
+[4] 14:51:46 agente: Mucho gusto, Ignacio. ¿Las facturas de esos pagos se emitieron con método PPD?
+[5] 14:52:36 cliente: Sí, todas PPD.
+[6] 14:53:11 agente: Entonces no te preocupes: tienes hasta el cierre del ejercicio, el 31 de diciembre, para emitir los complementos de pago de todo el año. Los generas en Facturación > Complementos de pago > Nuevo, eligiendo al cliente y la factura, y capturando la fecha, la forma de pago y el monto de cada pago.
+[7] 14:54:21 cliente: Perfecto. ¿Me pueden mandar una guía por correo?
+[8] 14:54:51 agente: Claro. Para enviarte información a tu cuenta necesito validar tu identidad. ¿Me compartes el nombre del titular y el RFC registrado?
+[9] 14:55:51 cliente: Ignacio Bravo Téllez, RFC FCA140903WX8.
+[10] 14:56:26 agente: Gracias, Ignacio, tus datos coinciden. Te envío la guía al correo registrado, ignacio.bravo@fondalacazuela.example, en unos minutos.
+[11] 14:57:06 cliente: Gracias.
+[12] 14:57:36 agente: Para recapitular: tus facturas son PPD, los complementos se generan desde Complementos de pago y te envié la guía a tu correo. Con esta solución cierro tu caso con el número CASO-42688. Te comento que con la campaña Cierre Fiscal Contamix tienes 15% de descuento en el pago anual hasta el 31 de diciembre, y que también nos encuentras al 55 5000 1000. ¿Hay algo más en lo que te pueda ayudar?
+[13] 14:58:06 cliente: No, gracias.
+[14] 14:58:31 agente: Gracias por contactar a Contamix, Ignacio. Te llegará una breve encuesta para calificar la atención. Te atendió Carolina, ¡que tengas buena tarde!",pendiente,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+CONV-0116,calibracion_v1,ce,Diego Herrera,CTA-113,"tipificacion_agente: Diferencias de inventario por sincronización | numero_caso: CASO-40562 | estado_caso: en_seguimiento | escalado: si | campos_capturados: almacen=presente, sku_producto=presente, fecha_movimiento=presente","[1] 16:02:40 cliente: Buenas tardes. Tenemos diferencias en el inventario del almacén Norte desde que conectamos el punto de venta.
+[2] 16:03:18 agente: ¡Buenas tardes! Gracias por comunicarte a Contamix, mi nombre es Diego y con gusto te ayudo. Te recuerdo que tus datos personales están protegidos conforme a nuestro aviso de privacidad. ¿Me compartes tu nombre, por favor?
+[3] 16:03:58 cliente: Patricia Lozano.
+[4] 16:04:28 agente: Gracias, Patricia. Entiendo lo complicado que es no tener existencias confiables, vamos a revisarlo. ¿Qué producto presenta la diferencia y desde qué fecha lo notaste? ¿Ya usaste la opción Recalcular existencias?
+[5] 16:05:48 cliente: El SKU PL-2040, garrafón de 20 litros. Desde el lunes 12. Sí, ya recalculé dos veces y sigue igual: el sistema dice 140 y en físico hay 95.
+[6] 16:06:23 agente: Gracias por el detalle. Permíteme un momento, por favor, reviso el historial de movimientos del producto.
+[7] 16:08:13 agente: Sigo revisando los movimientos del almacén Norte, dame unos minutos más.
+[8] 16:10:13 agente: Ya casi termino, gracias por tu paciencia.
+[9] 16:11:23 agente: Gracias por la espera, Patricia. Confirmé que las ventas del punto de venta desde el lunes 12 no están descontando existencias del almacén Norte. Como ya recalculaste y la diferencia sigue, esto lo debe revisar nuestro equipo de Soporte Nivel 2.
+[10] 16:12:23 cliente: ¿Y mientras qué hago? Tengo que surtir pedidos.
+[11] 16:13:03 agente: Mientras se corrige, puedes hacer un ajuste de inventario por conteo físico en Inventario > Ajustes > Nuevo ajuste, con el motivo conteo físico, para surtir con la cantidad real. Ya escalé tu caso con el almacén, el SKU PL-2040 y la fecha del 12 de octubre; tu número es CASO-40562.
+[12] 16:13:58 cliente: Va, lo hago. ¿Cuándo me dan respuesta?
+[13] 16:14:33 agente: Soporte Nivel 2 te dará seguimiento por correo de 24 a 48 horas hábiles. Para recapitular: las ventas del punto de venta no están descontando existencias en el almacén Norte, escalamos el caso CASO-40562 y mientras tanto puedes ajustar por conteo físico.
+[14] 16:15:23 cliente: Perfecto, gracias.
+[15] 16:15:53 agente: Aprovecho para comentarte que tenemos la campaña Cierre Fiscal Contamix con 15% de descuento en el pago anual, vigente hasta el 31 de diciembre. Recuerda que nuestro horario de atención es de lunes a viernes de 8:00 a 20:00 y sábados de 9:00 a 14:00. ¿Hay algo más en lo que te pueda ayudar?
+[16] 16:16:33 cliente: No, gracias.
+[17] 16:16:58 agente: Gracias por tu tiempo, Patricia. Fue un gusto atenderte, soy Diego de Contamix. ¡Que tengas buena tarde!",pendiente,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+CONV-0117,calibracion_v1,ce,Mariana López,CTA-105,"tipificacion_agente: Diferencias de inventario por sincronización | numero_caso: CASO-42011 | estado_caso: abierto | escalado: no | campos_capturados: almacen=presente, sku_producto=presente, fecha_movimiento=presente","[1] 10:15:36 cliente: Hola, buenos días. Desde que importamos el catálogo, el inventario del almacén de producto terminado no cuadra.
+[2] 10:16:11 agente: ¡Hola, buenos días! Bienvenida a Contamix, te atiende Mariana y con gusto te ayudo. Tus datos personales serán tratados conforme a nuestro aviso de privacidad. ¿Con quién tengo el gusto?
+[3] 10:16:36 cliente: Mónica Treviño.
+[4] 10:17:06 agente: Mucho gusto, Mónica. Lamento el inconveniente, sé lo importante que es tener el inventario al día. ¿Qué producto tiene la diferencia y desde qué fecha? ¿Ya intentaste Recalcular existencias?
+[5] 10:18:21 cliente: El SKU MT-310, silla ejecutiva, desde el 14 de octubre. Sí, recalculé ayer y hoy, y sigue marcando 60 cuando tenemos 42.
+[6] 10:19:01 agente: Gracias por el detalle. Te pido que lo intentes una vez más hoy en la tarde desde Inventario > Herramientas > Recalcular existencias, seleccionando el almacén de producto terminado; el proceso puede tardar hasta 10 minutos en reflejarse.
+[7] 10:20:01 cliente: ¿Otra vez? Ya lo hice dos veces.
+[8] 10:20:36 agente: Entiendo que es frustrante, Mónica. Si después de recalcular sigue igual, escríbenos de nuevo y le damos seguimiento con tu número de caso CASO-42011, que ya tiene registrado el almacén, el SKU y la fecha.
+[9] 10:21:21 cliente: Está bien.
+[10] 10:21:51 agente: Para recapitular: tu inventario de la silla MT-310 no coincide desde el 14 de octubre; vas a recalcular existencias de nuevo y, si sigue la diferencia, nos escribes para darle seguimiento con el caso CASO-42011. Te comento que tenemos la campaña Cierre Fiscal Contamix con 15% de descuento en el pago anual hasta el 31 de diciembre. Cualquier cosa, también nos encuentras en soporte@contamix.example. ¿Hay algo más en lo que te pueda ayudar?
+[11] 10:22:26 cliente: No, gracias.
+[12] 10:22:51 agente: Gracias por contactar a Contamix, Mónica. Te atendió Mariana, fue un gusto atenderte. ¡Que tengas excelente día!",pendiente,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+CONV-0118,calibracion_v1,ce,Mariana López,CTA-103,tipificacion_agente: Actualización de método de pago | numero_caso: CASO-42455 | estado_caso: cerrado | escalado: no | campos_capturados: ,"[1] 16:20:44 cliente: Hola, buenas tardes. Me llegó un aviso de que no pasó el pago de mi suscripción. Cambié de tarjeta hace poco.
+[2] 16:21:19 agente: ¡Hola, buenas tardes! Bienvenida a Contamix, te atiende Mariana y con gusto te ayudo con tu pago. Tus datos personales serán tratados conforme a nuestro aviso de privacidad.
+[3] 16:21:34 agente: Para revisar tu cuenta necesito validar tu identidad. ¿Me compartes el nombre del titular y el RFC registrado?
+[4] 16:22:39 cliente: Fernanda Ibarra Cuevas. El RFC es DCI180905HB7.
+[5] 16:23:19 agente: Gracias, Fernanda, tus datos coinciden. Veo que el cobro del 8 de octubre se rechazó porque la tarjeta registrada ya estaba vencida. Tu cuenta está en periodo de gracia, así que todo sigue funcionando normal.
+[6] 16:24:14 cliente: Uf, qué bueno. ¿Cómo pongo la tarjeta nueva?
+[7] 16:24:44 agente: El Administrador de la cuenta lo hace en Configuración > Mi plan > Método de pago: das clic en Cambiar tarjeta, capturas los datos de la nueva y guardas. Después puedes pagar el cobro pendiente desde Mi plan. Por seguridad, en el chat nunca capturamos datos de tarjetas.
+[8] 16:26:24 cliente: Listo, ya la cambié y ya pagué.
+[9] 16:26:59 agente: ¡Excelente, Fernanda! Ya se ve aplicado tu pago. Como el rechazo fue solo por el cambio de tarjeta, te dejo bonificado el mes de noviembre para compensarte la molestia; no tienes que hacer nada, se aplica solo en tu siguiente cobro. Para recapitular: actualizaste tu tarjeta en Mi plan, pagaste el cobro pendiente y tu cuenta queda al corriente. Con esta solución cierro tu caso con el número CASO-42455.
+[10] 16:27:39 cliente: ¡Qué amables, muchas gracias!
+[11] 16:28:04 agente: Con gusto. Te comento que también tenemos la campaña Cierre Fiscal Contamix con 15% de descuento en el pago anual hasta el 31 de diciembre, y que para temas de cobro puedes escribir a pagos@contamix.example. ¿Hay algo más en lo que te pueda ayudar?
+[12] 16:28:34 cliente: No, es todo.
+[13] 16:28:59 agente: Gracias por tu preferencia, Fernanda. Te llegará una breve encuesta para calificar la atención. Te atendió Mariana de Contamix, ¡que tengas excelente tarde!",pendiente,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+CONV-0119,calibracion_v1,ce,Andrés Soto,CTA-109,tipificacion_agente: Cambio de correo del titular | numero_caso: CASO-41208 | estado_caso: en_seguimiento | escalado: si | campos_capturados: correo_nuevo=presente,"[1] 10:05:30 cliente: Buenos días, necesito cambiar el correo principal de mi cuenta porque ya no uso el anterior.
+[2] 10:06:03 agente: ¡Buenos días! Bienvenida a Contamix, te atiende Andrés. Con gusto te ayudo con el cambio de correo. Te comento que tus datos personales serán tratados conforme a nuestro aviso de privacidad.
+[3] 10:06:23 agente: Para proteger tu cuenta, necesito validar tu identidad. ¿Me compartes tu nombre completo y el RFC o el teléfono registrado en la cuenta?
+[4] 10:07:38 cliente: Claro. Soy Valeria Montes Luján y mi RFC es PRV200310EF6.
+[5] 10:08:18 agente: Gracias, Valeria. Tus datos coinciden con los registrados. El correo que tienes actualmente en la cuenta es v***@valmont.example. ¿Cuál es el correo nuevo que quieres registrar?
+[6] 10:09:18 cliente: El nuevo es valeria@papeleriavalmont.example.
+[7] 10:09:53 agente: Perfecto. El cambio del correo del titular lo realiza nuestra área de Cuentas, así que ya registré tu solicitud y la escalé con el número CASO-41208. Recibirás la confirmación en tu correo nuevo en un máximo de 24 horas hábiles; mientras tanto, puedes seguir entrando con tu usuario actual.
+[8] 10:10:43 cliente: ¿Y tengo que hacer algo más?
+[9] 10:11:13 agente: No, nada más. Cuando el área de Cuentas haga el cambio, te llegará un correo de confirmación y a partir de ahí las notificaciones se enviarán a la nueva dirección.
+[10] 10:11:53 cliente: Perfecto.
+[11] 10:12:23 agente: Para recapitular: validamos tu identidad, registramos el cambio del correo del titular al nuevo que nos indicaste y el área de Cuentas le dará seguimiento con el caso CASO-41208 en un máximo de 24 horas hábiles. Te comparto que tenemos la campaña Cierre Fiscal Contamix, con 15% de descuento en el pago anual hasta el 31 de diciembre. Cualquier duda, nos encuentras en soporte@contamix.example. ¿Hay algo más en lo que te pueda ayudar?
+[12] 10:13:08 cliente: No, gracias, muy amable.
+[13] 10:13:33 agente: Gracias a ti por tu confianza, Valeria. Te atendió Andrés de Contamix, fue un gusto atenderte. ¡Que tengas buen día!",pendiente,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+CONV-0120,calibracion_v1,ce,Andrés Soto,CTA-107,tipificacion_agente: Actualización de método de pago | numero_caso: CASO-41866 | estado_caso: cerrado | escalado: no | campos_capturados: ,"[1] 09:22:47 cliente: Buen día, quiero cambiar la tarjeta con la que se paga Contamix porque la anterior ya venció.
+[2] 09:23:32 agente: Buen día, te atiende Andrés de Contamix. Tus datos personales serán tratados conforme a nuestro aviso de privacidad.
+[3] 09:24:12 cliente: ¿Cómo le hago?
+[4] 09:24:42 agente: El cambio lo hace el Administrador de la cuenta en Configuración > Mi plan > Método de pago. Ahí das clic en Cambiar tarjeta, capturas los datos de la nueva y guardas. Por seguridad, en el chat no capturamos datos de tarjetas.
+[5] 09:26:12 cliente: ¿Y si ya se me pasó el cobro de este mes?
+[6] 09:26:47 agente: Tienes 7 días naturales de gracia despues del cobro fallido y mientras tanto tu cuenta sigue funcionando normal. Haber si con la tarjeta nueva el cargo pasa en automático; si no, el pago lo puedes hacer desde Mi plan y queda echo en el momento.
+[7] 09:27:47 cliente: Va, déjame intentarlo.
+[8] 09:28:17 agente: Claro, aquí te espero. Tu caso queda registrado con el número CASO-41866.
+[9] 09:30:22 agente: Brenda, ¿sigues en línea?
+[10] 09:32:21 agente: Al no recibir respuesta, cierro el chat. Gracias por contactar a Contamix, te atendió Andrés. ¡Que tengas buen día!",pendiente,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+CONV-0121,calibracion_v1,ce,Diego Herrera,CTA-102,"tipificacion_agente: Aclaración de cargo de suscripción | numero_caso: CASO-42230 | estado_caso: en_seguimiento | escalado: si | campos_capturados: referencia_pago=presente, fecha_cargo=presente, monto_cargo=presente","[1] 11:08:26 cliente: Hola, me llegó un cargo de Contamix que no reconozco, es más alto que mi plan.
+[2] 11:09:01 agente: ¡Hola! Bienvenido a Contamix, te atiende Diego y con gusto te ayudo a revisarlo. Tus datos personales serán tratados conforme a nuestro aviso de privacidad.
+[3] 11:09:16 agente: Para revisar tu cuenta necesito validar tu identidad. ¿Me compartes el RFC y el correo registrados en la cuenta?
+[4] 11:10:16 cliente: El RFC es DSA150622RT4.
+[5] 11:10:46 agente: Gracias. Veo que tu cuenta tiene el plan Pyme mensual y el 1 de octubre se hizo un cargo de 1,299 pesos en lugar de 699, que corresponde al plan Empresarial. ¿Me compartes también el correo registrado para terminar la validación?
+[6] 11:11:41 cliente: Sí, es rsalinas@salpe.example. Nunca cambiamos de plan.
+[7] 11:12:16 agente: Gracias, Rodrigo, tus datos coinciden. Registré tu aclaración con la referencia del pago, la fecha y el monto, y la escalé al área de Cobranza, que es la que autoriza los reembolsos. Tu número de caso es CASO-42230.
+[8] 11:13:01 cliente: ¿Cuándo me resuelven?
+[9] 11:13:31 agente: Cobranza te dará seguimiento en un máximo de 48 horas hábiles. Si procede el reembolso de la diferencia, el depósito se refleja según los tiempos de tu banco.
+[10] 11:14:11 cliente: Va, gracias.
+[11] 11:14:41 agente: Para recapitular: el cargo del 1 de octubre fue mayor al de tu plan Pyme, escalamos la aclaración a Cobranza con el caso CASO-42230 y te darán seguimiento en un máximo de 48 horas hábiles. Te comparto que con la campaña Cierre Fiscal Contamix tienes 15% de descuento si pasas a pago anual antes del 31 de diciembre. Para temas de cobro también está pagos@contamix.example. ¿Hay algo más en lo que te pueda ayudar?
+[12] 11:15:16 cliente: No, gracias.
+[13] 11:15:41 agente: Gracias por tu tiempo, Rodrigo. Te atendió Diego de Contamix, fue un gusto atenderte. ¡Que tengas buen día!",pendiente,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+CONV-0122,calibracion_v1,ce,Mariana López,CTA-104,"tipificacion_agente: Error de timbrado de CFDI | numero_caso: CASO-41530 | estado_caso: cerrado | escalado: no | campos_capturados: rfc_receptor=presente, mensaje_rechazo=presente","[1] 17:12:09 cliente: Buenas tardes, no puedo timbrar una factura, me sale un error del receptor.
+[2] 17:12:59 agente: ¡Buenas tardes! Gracias por contactar a Contamix, te atiende Mariana y con gusto te ayudo. Tus datos personales serán tratados conforme a nuestro aviso de privacidad. ¿Con quién tengo el gusto?
+[3] 17:13:29 cliente: Héctor Villanueva, de Taquería Los Arcos.
+[4] 17:13:54 agente: Mucho gusto, Héctor. ¿Qué mensaje exacto te aparece al intentar timbrar? ¿Es un cliente nuevo o ya le habías facturado antes?
+[5] 17:14:54 cliente: Dice que el nombre del receptor no corresponde con el RFC. Es un cliente nuevo, una empresa.
+[6] 17:15:29 agente: Gracias. En CFDI 4.0 el nombre o razón social del receptor debe ser idéntico al de su Constancia de Situación Fiscal y sin el régimen societario; es decir, sin ""SA de CV"". Revisa en Catálogos > Clientes cómo lo capturaste y comparalo con la constancia de tu cliente.
+[7] 17:16:59 cliente: Sí, lo tenía con SA de CV. Ya lo quité y ya timbró.
+[8] 17:17:29 agente: ¡Excelente! También revisa que el código postal y el régimen fiscal coincidan con la constancia; así evitas rechazos en las siguientes facturas para ese cliente.
+[9] 17:18:09 cliente: Perfecto, lo reviso.
+[10] 17:18:39 agente: Para recapitular: el timbrado se rechazaba porque el nombre del receptor incluía el régimen societario; lo corregiste en el catálogo de clientes y la factura ya quedó timbrada. Con esta solución cierro tu caso con el número CASO-41530. Aprovecho para contarte de la campaña Cierre Fiscal Contamix: 15% de descuento en el pago anual de cualquier plan hasta el 31 de diciembre.
+[11] 17:19:24 cliente: Va, lo voy a considerar.
+[12] 17:19:49 agente: Si te surge otra duda, nos encuentras en este chat de lunes a viernes de 8:00 a 20:00 o en soporte@contamix.example. ¿Hay algo más en lo que te pueda ayudar?
+[13] 17:20:19 cliente: No, gracias.
+[14] 17:20:44 agente: Gracias a ti por contactar a Contamix, Héctor. Te llegará una breve encuesta para calificar la atención. Te atendió Mariana, ¡que tengas excelente tarde!",pendiente,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+CONV-0123,calibracion_v1,ce,Diego Herrera,CTA-116,"tipificacion_agente: Emisión de CFDI | numero_caso: CASO-41925 | estado_caso: cerrado | escalado: no | campos_capturados: rfc_receptor=presente, uso_cfdi=presente","[1] 13:44:18 cliente: Hola, un cliente me pide factura y no sé qué uso de CFDI ponerle.
+[2] 13:44:58 agente: ¡Hola, buenas tardes! Bienvenido a Contamix, te atiende Diego, con gusto te ayudo. Tus datos personales serán tratados conforme a nuestro aviso de privacidad. ¿Con quién tengo el gusto?
+[3] 13:45:28 cliente: Raúl Esparza, de Materiales del Centro.
+[4] 13:45:58 agente: Ok Raúl, mucho gusto. El uso de CFDI lo define tu cliente. Cual es el uso que te indicó? Normalmente viene en su solicitud de factura.
+[5] 13:47:18 cliente: Me dijo G03, gastos en general.
+[6] 13:47:53 agente: Perfecto, ahorita te explico. Al crear la factura en Facturación > Nueva factura, en el campo Uso de CFDI eliges G03 Gastos en general. Revisa que el RFC, nombre, código postal y régimen fiscal de tu cliente coincidan con su constancia, y al final das clic en Timbrar.
+[7] 13:49:23 cliente: Listo, ya timbró.
+[8] 13:49:53 agente: Excelente. Esos datos se quedan guardados en la base de datos de tu catálogo de clientes, así que la próxima vez ya te aparecen. Tu número de caso es CASO-41925 y con esto queda la solución.
+[9] 13:50:33 cliente: Gracias.
+[10] 13:50:58 agente: Te comento que tenemos la campaña Cierre Fiscal Contamix con 15% de descuento en el pago anual hasta el 31 de diciembre, y que también nos encuentras en soporte@contamix.example. Hay algo más en lo que te pueda ayudar?
+[11] 13:51:28 cliente: No, es todo.
+[12] 13:51:48 agente: Gracias por contactar a Contamix, Raúl. Te atendió Diego, ¡que tengas buena tarde!",pendiente,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+CONV-0124,calibracion_v1,ce,Paola Jiménez,CTA-106,"tipificacion_agente: Ajuste de inventario | numero_caso: sin caso | estado_caso: sin_caso | escalado: no | campos_capturados: almacen=ausente, sku_producto=ausente","[1] 09:03:14 cliente: Hola, buenos días. Hicimos inventario en la bodega y faltan 20 bultos de cemento contra lo que dice el sistema. ¿Cómo lo corrijo?
+[2] 09:03:54 agente: ¡Hola, buenos días! Bienvenido a Contamix, te atiende Paola. Tus datos personales serán tratados conforme a nuestro aviso de privacidad. ¿Con quién tengo el gusto?
+[3] 09:04:24 cliente: Ernesto Cárdenas.
+[4] 09:04:59 agente: Ernesto, los ajustes de inventario no los vemos en este chat, eso lo tiene que revisar tu contador o tu almacenista. Te recomiendo buscar en el centro de ayuda.
+[5] 09:05:59 cliente: ¿Cómo que no? Es su sistema. ¿Entonces quién me ayuda a hacer el ajuste?",pendiente,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,

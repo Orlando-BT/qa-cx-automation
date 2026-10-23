@@ -1,0 +1,15 @@
+tema,tipificacion_valida,tipo_interaccion,requiere_escalamiento,campos_obligatorios,id_articulo,activo
+Emisión de CFDI,Emisión de CFDI,ce,no,rfc_receptor|uso_cfdi,KB-01,si
+Emisión de CFDI,Error de timbrado de CFDI,ce,segun_caso,rfc_receptor|mensaje_rechazo,KB-01,si
+Cancelación de CFDI,Cancelación de CFDI,ce,no,uuid_factura|motivo_cancelacion,KB-02,si
+Cancelación de CFDI,Seguimiento de cancelación pendiente,ce,segun_caso,uuid_factura|fecha_solicitud_cancelacion,KB-02,si
+Complemento de pago,Emisión de complemento de pago,ce,no,uuid_factura|fecha_pago|monto_pago,KB-03,si
+Inventario,Ajuste de inventario,ce,no,almacen|sku_producto,KB-04,si
+Inventario,Diferencias de inventario por sincronización,ce,si,almacen|sku_producto|fecha_movimiento,KB-04,si
+Permisos de usuarios,Alta y permisos de usuarios,ce,no,usuario_afectado|rol_asignado,KB-05,si
+Permisos de usuarios,Cambio de usuario administrador,ce,si,usuario_actual_admin|usuario_nuevo_admin,KB-05,si
+Pagos de suscripción,Aclaración de cargo de suscripción,ce,si,referencia_pago|fecha_cargo|monto_cargo,KB-06,si
+Pagos de suscripción,Actualización de método de pago,ce,no,,KB-06,si
+Acceso a la cuenta,Restablecimiento de contraseña,ce,no,usuario_afectado,KB-07,si
+Acceso a la cuenta,Cambio de correo del titular,ce,si,correo_nuevo,KB-07,si
+Planes y promociones,Consulta de planes y promociones,ce,no,,KB-08,si

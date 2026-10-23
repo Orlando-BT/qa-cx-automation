@@ -66,7 +66,7 @@ Ver claves y valores en `config.md`. La llave de la hoja es (`clave`, `tipo_inte
 | 4 | `valor` | texto | Frase, término o expresión regular. Se compara sin acentos y sin distinguir mayúsculas. | carga inicial; manual: dueño |
 | 5 | `es_regex` | booleano | `si` si `valor` es expresión regular de JavaScript (sin delimitadores `/`). | carga inicial; manual: dueño |
 | 6 | `activo` | booleano | Solo se usan filas con `si`. | carga inicial; manual: dueño |
-| 7 | `notas` | texto | Comentario opcional. | carga inicial; manual: dueño |
+| 7 | `notas` | texto | Comentario opcional. Única excepción a que `notas` sea solo comentario: en `clave_lista = numero_en_palabras` es un dato que lee `reglas-js` (el número en cifra). Al cargar esa lista JS valida que `notas` sea un entero no vacío y que no haya palabras ni cifras duplicadas; si falla, error explícito (ver glosario, convención de `numero_en_palabras`). | carga inicial; manual: dueño |
 
 ## `catalogo_temas`
 

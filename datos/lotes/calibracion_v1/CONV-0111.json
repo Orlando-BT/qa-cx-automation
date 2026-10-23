@@ -1,0 +1,97 @@
+{
+  "conversation_id": "CONV-0111",
+  "canal": "chat",
+  "tipo_interaccion": "ce",
+  "agente": "Carolina Reyes",
+  "cuenta_id": "CTA-106",
+  "metadatos_caso": {
+    "tipificacion_agente": "Cambio de usuario administrador",
+    "numero_caso": "CASO-41790",
+    "estado_caso": "en_seguimiento",
+    "escalado": true,
+    "campos_capturados": {
+      "usuario_actual_admin": "presente",
+      "usuario_nuevo_admin": "presente"
+    }
+  },
+  "mensajes": [
+    {
+      "n": 1,
+      "emisor": "cliente",
+      "timestamp": "2026-10-07T17:30:05",
+      "texto": "Buenas tardes. Nuestro contador, que era el administrador de la cuenta, ya no trabaja con nosotros y necesito que el administrador sea yo."
+    },
+    {
+      "n": 2,
+      "emisor": "agente",
+      "timestamp": "2026-10-07T17:30:35",
+      "texto": "¡Buenas tardes! Bienvenido a Contamix, te atiende Carolina y con gusto te ayudo con el cambio de administrador."
+    },
+    {
+      "n": 3,
+      "emisor": "agente",
+      "timestamp": "2026-10-07T17:30:50",
+      "texto": "Como es un cambio sensible, primero necesito validar tu identidad. ¿Me compartes el nombre del titular de la cuenta y el correo o teléfono registrados?"
+    },
+    {
+      "n": 4,
+      "emisor": "cliente",
+      "timestamp": "2026-10-07T17:32:10",
+      "texto": "Soy Ernesto Cárdenas Olvera, el correo es ecardenas@constructoracardenas.example."
+    },
+    {
+      "n": 5,
+      "emisor": "agente",
+      "timestamp": "2026-10-07T17:32:45",
+      "texto": "Gracias, Ernesto, tus datos coinciden con los del titular. ¿Me indicas el usuario del administrador actual y el usuario que quedará como nuevo administrador?"
+    },
+    {
+      "n": 6,
+      "emisor": "cliente",
+      "timestamp": "2026-10-07T17:33:55",
+      "texto": "El actual es el usuario de Joaquín, el contador. El nuevo sería mi usuario."
+    },
+    {
+      "n": 7,
+      "emisor": "agente",
+      "timestamp": "2026-10-07T17:34:30",
+      "texto": "Perfecto. El cambio de administrador lo realiza nuestra área de Cuentas, así que ya registré tu solicitud con ambos usuarios y la escalé. Mientras tanto, tu usuario actual sigue funcionando normal."
+    },
+    {
+      "n": 8,
+      "emisor": "cliente",
+      "timestamp": "2026-10-07T17:35:15",
+      "texto": "¿Y en cuánto tiempo queda?"
+    },
+    {
+      "n": 9,
+      "emisor": "agente",
+      "timestamp": "2026-10-07T17:35:45",
+      "texto": "El área de Cuentas hace el cambio en un máximo de 24 horas hábiles y te dará seguimiento por correo cuando quede listo."
+    },
+    {
+      "n": 10,
+      "emisor": "cliente",
+      "timestamp": "2026-10-07T17:36:25",
+      "texto": "Perfecto, gracias."
+    },
+    {
+      "n": 11,
+      "emisor": "agente",
+      "timestamp": "2026-10-07T17:36:55",
+      "texto": "Para recapitular: validamos tu identidad como titular, registramos el cambio de administrador del usuario del contador a tu usuario y el área de Cuentas le dará seguimiento en un máximo de 24 horas hábiles. ¿Hay algo más en lo que te pueda ayudar?"
+    },
+    {
+      "n": 12,
+      "emisor": "cliente",
+      "timestamp": "2026-10-07T17:37:30",
+      "texto": "No, es todo."
+    },
+    {
+      "n": 13,
+      "emisor": "agente",
+      "timestamp": "2026-10-07T17:37:55",
+      "texto": "Gracias por contactar a Contamix, Ernesto. Te atendió Carolina. Hasta luego."
+    }
+  ]
+}

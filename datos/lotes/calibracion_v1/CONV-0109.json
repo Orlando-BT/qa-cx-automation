@@ -1,0 +1,79 @@
+{
+  "conversation_id": "CONV-0109",
+  "canal": "chat",
+  "tipo_interaccion": "ce",
+  "agente": "Tomás Aguilar",
+  "cuenta_id": "CTA-113",
+  "metadatos_caso": {
+    "tipificacion_agente": "Error de timbrado de CFDI",
+    "numero_caso": "CASO-42502",
+    "estado_caso": "abierto",
+    "escalado": false,
+    "campos_capturados": {
+      "rfc_receptor": "ausente",
+      "mensaje_rechazo": "presente"
+    }
+  },
+  "mensajes": [
+    {
+      "n": 1,
+      "emisor": "cliente",
+      "timestamp": "2026-10-07T13:12:30",
+      "texto": "Buenas tardes. Llevo toda la mañana intentando timbrar una factura y me sale error de servicio no disponible. Ya me urge."
+    },
+    {
+      "n": 2,
+      "emisor": "agente",
+      "timestamp": "2026-10-07T13:13:15",
+      "texto": "Buenas tardes, bienvenida a Contamix, te atiende Tomás. Tus datos personales serán tratados conforme a nuestro aviso de privacidad. ¿En qué te puedo ayudar?"
+    },
+    {
+      "n": 3,
+      "emisor": "cliente",
+      "timestamp": "2026-10-07T13:13:45",
+      "texto": "Ya lo escribí arriba, no puedo timbrar. Soy Patricia Lozano, de Plásticos Lozano."
+    },
+    {
+      "n": 4,
+      "emisor": "agente",
+      "timestamp": "2026-10-07T13:14:25",
+      "texto": "A ver, Patricia, si hubieras leído el mensaje completo verías que es del servicio, no tuyo. La neta el timbrado de Contamix es bien lento, siempre se cae a esta hora."
+    },
+    {
+      "n": 5,
+      "emisor": "cliente",
+      "timestamp": "2026-10-07T13:15:25",
+      "texto": "¿Y entonces qué hago? Tengo que entregar la factura hoy."
+    },
+    {
+      "n": 6,
+      "emisor": "agente",
+      "timestamp": "2026-10-07T13:16:05",
+      "texto": "Pues esperar. Ese pinche error sale cada rato, intenta otra vez más tarde."
+    },
+    {
+      "n": 7,
+      "emisor": "cliente",
+      "timestamp": "2026-10-07T13:16:55",
+      "texto": "Pues qué mal servicio."
+    },
+    {
+      "n": 8,
+      "emisor": "agente",
+      "timestamp": "2026-10-07T13:17:30",
+      "texto": "Es lo que hay. Te dejo el caso CASO-42502 por si quieres volver a escribir."
+    },
+    {
+      "n": 9,
+      "emisor": "cliente",
+      "timestamp": "2026-10-07T13:18:10",
+      "texto": "Bueno."
+    },
+    {
+      "n": 10,
+      "emisor": "agente",
+      "timestamp": "2026-10-07T13:18:35",
+      "texto": "Gracias por contactar a Contamix. Hasta luego."
+    }
+  ]
+}

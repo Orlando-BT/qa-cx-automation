@@ -1,0 +1,115 @@
+{
+  "conversation_id": "CONV-0104",
+  "canal": "chat",
+  "tipo_interaccion": "ce",
+  "agente": "Mariana López",
+  "cuenta_id": "CTA-101",
+  "metadatos_caso": {
+    "tipificacion_agente": "Cancelación de CFDI",
+    "numero_caso": "CASO-40117",
+    "estado_caso": "cerrado",
+    "escalado": false,
+    "campos_capturados": {
+      "uuid_factura": "presente",
+      "motivo_cancelacion": "presente"
+    }
+  },
+  "mensajes": [
+    {
+      "n": 1,
+      "emisor": "cliente",
+      "timestamp": "2026-10-05T09:14:07",
+      "texto": "Hola, buenos días. Necesito cancelar una factura que hice ayer con un error en el precio."
+    },
+    {
+      "n": 2,
+      "emisor": "agente",
+      "timestamp": "2026-10-05T09:15:07",
+      "texto": "¡Hola, buenos días! Bienvenida a Contamix, te atiende Mariana. Tus datos personales serán tratados conforme a nuestro aviso de privacidad. ¿Con quién tengo el gusto?"
+    },
+    {
+      "n": 3,
+      "emisor": "cliente",
+      "timestamp": "2026-10-05T09:15:42",
+      "texto": "Soy Julieta Gómez, de Abarrotes Luna."
+    },
+    {
+      "n": 4,
+      "emisor": "agente",
+      "timestamp": "2026-10-05T09:16:07",
+      "texto": "Mucho gusto, Julieta. Con gusto te ayudo con la cancelación. Para orientarte bien, ¿la factura ya se pagó? ¿Vas a emitir una nueva factura con el precio correcto?"
+    },
+    {
+      "n": 5,
+      "emisor": "cliente",
+      "timestamp": "2026-10-05T09:17:17",
+      "texto": "No la han pagado. Sí, quiero hacer una nueva con el precio bien."
+    },
+    {
+      "n": 6,
+      "emisor": "agente",
+      "timestamp": "2026-10-05T09:18:02",
+      "texto": "Perfecto. En ese caso corresponde el motivo 01, comprobante emitido con errores con relación. Primero timbra la factura nueva con el precio correcto desde Facturación > Nueva factura y guarda su folio."
+    },
+    {
+      "n": 7,
+      "emisor": "cliente",
+      "timestamp": "2026-10-05T09:19:32",
+      "texto": "Listo, ya timbré la nueva, es la A-1532."
+    },
+    {
+      "n": 8,
+      "emisor": "agente",
+      "timestamp": "2026-10-05T09:20:02",
+      "texto": "Muy bien. Ahora ve a Facturación > Facturas emitidas, busca la factura con el error, da clic en Cancelar, elige el motivo 01 y selecciona la factura A-1532 como sustituta. Después confirma."
+    },
+    {
+      "n": 9,
+      "emisor": "cliente",
+      "timestamp": "2026-10-05T09:21:42",
+      "texto": "Me sale \"En proceso de cancelación\". ¿Eso está bien?"
+    },
+    {
+      "n": 10,
+      "emisor": "agente",
+      "timestamp": "2026-10-05T09:22:22",
+      "texto": "Sí, es correcto. Como el total es mayor a 1,000 pesos, tu cliente debe aceptar la cancelación en el portal del SAT. Tiene 72 horas para responder y, si no responde, la cancelación se considera aceptada. Te recomiendo avisarle para que la acepte pronto."
+    },
+    {
+      "n": 11,
+      "emisor": "cliente",
+      "timestamp": "2026-10-05T09:23:12",
+      "texto": "Ah, perfecto, le aviso."
+    },
+    {
+      "n": 12,
+      "emisor": "agente",
+      "timestamp": "2026-10-05T09:23:47",
+      "texto": "Para recapitular: cancelaste la factura con el error con el motivo 01 y quedó relacionada con la nueva A-1532; solo falta que tu cliente acepte la cancelación. Con esta solución tu caso queda cerrado con el número CASO-40117."
+    },
+    {
+      "n": 13,
+      "emisor": "cliente",
+      "timestamp": "2026-10-05T09:24:27",
+      "texto": "Gracias."
+    },
+    {
+      "n": 14,
+      "emisor": "agente",
+      "timestamp": "2026-10-05T09:24:57",
+      "texto": "Te comparto que este trimestre tenemos la campaña Cierre Fiscal Contamix: 15% de descuento en el pago anual de cualquier plan si contratas o renuevas antes del 31 de diciembre. También nos encuentras en soporte@contamix.example o al 55 5000 1000, de lunes a viernes de 8:00 a 20:00. ¿Hay algo más en lo que te pueda ayudar?"
+    },
+    {
+      "n": 15,
+      "emisor": "cliente",
+      "timestamp": "2026-10-05T09:25:42",
+      "texto": "No, es todo."
+    },
+    {
+      "n": 16,
+      "emisor": "agente",
+      "timestamp": "2026-10-05T09:26:07",
+      "texto": "Gracias por contactar a Contamix, Julieta. Al cerrar el chat te llegará una breve encuesta para calificar la atención. Fue un gusto atenderte, te atendió Mariana. ¡Que tengas excelente día!"
+    }
+  ]
+}

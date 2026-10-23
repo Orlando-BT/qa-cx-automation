@@ -1,0 +1,96 @@
+{
+  "conversation_id": "CONV-0119",
+  "canal": "chat",
+  "tipo_interaccion": "ce",
+  "agente": "Andrés Soto",
+  "cuenta_id": "CTA-109",
+  "metadatos_caso": {
+    "tipificacion_agente": "Cambio de correo del titular",
+    "numero_caso": "CASO-41208",
+    "estado_caso": "en_seguimiento",
+    "escalado": true,
+    "campos_capturados": {
+      "correo_nuevo": "presente"
+    }
+  },
+  "mensajes": [
+    {
+      "n": 1,
+      "emisor": "cliente",
+      "timestamp": "2026-10-16T10:05:30",
+      "texto": "Buenos días, necesito cambiar el correo principal de mi cuenta porque ya no uso el anterior."
+    },
+    {
+      "n": 2,
+      "emisor": "agente",
+      "timestamp": "2026-10-16T10:06:03",
+      "texto": "¡Buenos días! Bienvenida a Contamix, te atiende Andrés. Con gusto te ayudo con el cambio de correo. Te comento que tus datos personales serán tratados conforme a nuestro aviso de privacidad."
+    },
+    {
+      "n": 3,
+      "emisor": "agente",
+      "timestamp": "2026-10-16T10:06:23",
+      "texto": "Para proteger tu cuenta, necesito validar tu identidad. ¿Me compartes tu nombre completo y el RFC o el teléfono registrado en la cuenta?"
+    },
+    {
+      "n": 4,
+      "emisor": "cliente",
+      "timestamp": "2026-10-16T10:07:38",
+      "texto": "Claro. Soy Valeria Montes Luján y mi RFC es PRV200310EF6."
+    },
+    {
+      "n": 5,
+      "emisor": "agente",
+      "timestamp": "2026-10-16T10:08:18",
+      "texto": "Gracias, Valeria. Tus datos coinciden con los registrados. El correo que tienes actualmente en la cuenta es v***@valmont.example. ¿Cuál es el correo nuevo que quieres registrar?"
+    },
+    {
+      "n": 6,
+      "emisor": "cliente",
+      "timestamp": "2026-10-16T10:09:18",
+      "texto": "El nuevo es valeria@papeleriavalmont.example."
+    },
+    {
+      "n": 7,
+      "emisor": "agente",
+      "timestamp": "2026-10-16T10:09:53",
+      "texto": "Perfecto. El cambio del correo del titular lo realiza nuestra área de Cuentas, así que ya registré tu solicitud y la escalé con el número CASO-41208. Recibirás la confirmación en tu correo nuevo en un máximo de 24 horas hábiles; mientras tanto, puedes seguir entrando con tu usuario actual."
+    },
+    {
+      "n": 8,
+      "emisor": "cliente",
+      "timestamp": "2026-10-16T10:10:43",
+      "texto": "¿Y tengo que hacer algo más?"
+    },
+    {
+      "n": 9,
+      "emisor": "agente",
+      "timestamp": "2026-10-16T10:11:13",
+      "texto": "No, nada más. Cuando el área de Cuentas haga el cambio, te llegará un correo de confirmación y a partir de ahí las notificaciones se enviarán a la nueva dirección."
+    },
+    {
+      "n": 10,
+      "emisor": "cliente",
+      "timestamp": "2026-10-16T10:11:53",
+      "texto": "Perfecto."
+    },
+    {
+      "n": 11,
+      "emisor": "agente",
+      "timestamp": "2026-10-16T10:12:23",
+      "texto": "Para recapitular: validamos tu identidad, registramos el cambio del correo del titular al nuevo que nos indicaste y el área de Cuentas le dará seguimiento con el caso CASO-41208 en un máximo de 24 horas hábiles. Te comparto que tenemos la campaña Cierre Fiscal Contamix, con 15% de descuento en el pago anual hasta el 31 de diciembre. Cualquier duda, nos encuentras en soporte@contamix.example. ¿Hay algo más en lo que te pueda ayudar?"
+    },
+    {
+      "n": 12,
+      "emisor": "cliente",
+      "timestamp": "2026-10-16T10:13:08",
+      "texto": "No, gracias, muy amable."
+    },
+    {
+      "n": 13,
+      "emisor": "agente",
+      "timestamp": "2026-10-16T10:13:33",
+      "texto": "Gracias a ti por tu confianza, Valeria. Te atendió Andrés de Contamix, fue un gusto atenderte. ¡Que tengas buen día!"
+    }
+  ]
+}

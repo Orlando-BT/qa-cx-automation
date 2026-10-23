@@ -1,0 +1,49 @@
+{
+  "conversation_id": "CONV-0124",
+  "canal": "chat",
+  "tipo_interaccion": "ce",
+  "agente": "Paola Jiménez",
+  "cuenta_id": "CTA-106",
+  "metadatos_caso": {
+    "tipificacion_agente": "Ajuste de inventario",
+    "numero_caso": null,
+    "estado_caso": "sin_caso",
+    "escalado": false,
+    "campos_capturados": {
+      "almacen": "ausente",
+      "sku_producto": "ausente"
+    }
+  },
+  "mensajes": [
+    {
+      "n": 1,
+      "emisor": "cliente",
+      "timestamp": "2026-10-21T09:03:14",
+      "texto": "Hola, buenos días. Hicimos inventario en la bodega y faltan 20 bultos de cemento contra lo que dice el sistema. ¿Cómo lo corrijo?"
+    },
+    {
+      "n": 2,
+      "emisor": "agente",
+      "timestamp": "2026-10-21T09:03:54",
+      "texto": "¡Hola, buenos días! Bienvenido a Contamix, te atiende Paola. Tus datos personales serán tratados conforme a nuestro aviso de privacidad. ¿Con quién tengo el gusto?"
+    },
+    {
+      "n": 3,
+      "emisor": "cliente",
+      "timestamp": "2026-10-21T09:04:24",
+      "texto": "Ernesto Cárdenas."
+    },
+    {
+      "n": 4,
+      "emisor": "agente",
+      "timestamp": "2026-10-21T09:04:59",
+      "texto": "Ernesto, los ajustes de inventario no los vemos en este chat, eso lo tiene que revisar tu contador o tu almacenista. Te recomiendo buscar en el centro de ayuda."
+    },
+    {
+      "n": 5,
+      "emisor": "cliente",
+      "timestamp": "2026-10-21T09:05:59",
+      "texto": "¿Cómo que no? Es su sistema. ¿Entonces quién me ayuda a hacer el ajuste?"
+    }
+  ]
+}

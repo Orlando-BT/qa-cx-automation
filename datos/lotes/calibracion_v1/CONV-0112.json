@@ -1,0 +1,90 @@
+{
+  "conversation_id": "CONV-0112",
+  "canal": "chat",
+  "tipo_interaccion": "ce",
+  "agente": "Carolina Reyes",
+  "cuenta_id": "CTA-101",
+  "metadatos_caso": {
+    "tipificacion_agente": "Restablecimiento de contraseña",
+    "numero_caso": "CASO-42104",
+    "estado_caso": "cerrado",
+    "escalado": false,
+    "campos_capturados": {
+      "usuario_afectado": "presente"
+    }
+  },
+  "mensajes": [
+    {
+      "n": 1,
+      "emisor": "cliente",
+      "timestamp": "2026-10-08T15:27:52",
+      "texto": "Buenas tardes, no me llega el correo para restablecer mi contraseña."
+    },
+    {
+      "n": 2,
+      "emisor": "agente",
+      "timestamp": "2026-10-08T15:28:53",
+      "texto": "¡Buenas tardes! Bienvenida a Contamix, te atiende Carolina y con gusto te ayudo. Tus datos personales serán tratados conforme a nuestro aviso de privacidad. ¿Con quién tengo el gusto?"
+    },
+    {
+      "n": 3,
+      "emisor": "cliente",
+      "timestamp": "2026-10-08T15:29:23",
+      "texto": "Julieta Gómez."
+    },
+    {
+      "n": 4,
+      "emisor": "agente",
+      "timestamp": "2026-10-08T15:29:53",
+      "texto": "Mucho gusto, Julieta. ¿Ya revisaste la carpeta de spam o correo no deseado? Recuerda que el enlace se envía al correo con el que está dado de alta tu usuario."
+    },
+    {
+      "n": 5,
+      "emisor": "cliente",
+      "timestamp": "2026-10-08T15:31:03",
+      "texto": "No había revisado spam... sí, ahí está."
+    },
+    {
+      "n": 6,
+      "emisor": "agente",
+      "timestamp": "2026-10-08T15:31:33",
+      "texto": "¡Qué bueno! Da clic en el enlace y crea tu nueva contraseña; ten en cuenta que vence en 30 minutos, así que te recomiendo hacerlo de una vez."
+    },
+    {
+      "n": 7,
+      "emisor": "cliente",
+      "timestamp": "2026-10-08T15:33:03",
+      "texto": "Listo, ya entré."
+    },
+    {
+      "n": 8,
+      "emisor": "agente",
+      "timestamp": "2026-10-08T15:33:33",
+      "texto": "Excelente. Para recapitular: el correo de restablecimiento estaba en spam, ya creaste tu nueva contraseña y entraste a tu cuenta. Con esta solución cierro tu caso con el número CASO-42104. Te comparto que con la campaña Cierre Fiscal Contamix tienes 15% de descuento en el pago anual hasta el 31 de diciembre."
+    },
+    {
+      "n": 9,
+      "emisor": "cliente",
+      "timestamp": "2026-10-08T15:34:03",
+      "texto": "Gracias."
+    },
+    {
+      "n": 10,
+      "emisor": "agente",
+      "timestamp": "2026-10-08T15:34:28",
+      "texto": "Si te vuelve a pasar, en nuestro centro de ayuda ayuda.contamix.example tienes la guía. ¿Hay algo más en lo que te pueda ayudar?"
+    },
+    {
+      "n": 11,
+      "emisor": "cliente",
+      "timestamp": "2026-10-08T15:34:58",
+      "texto": "No, es todo."
+    },
+    {
+      "n": 12,
+      "emisor": "agente",
+      "timestamp": "2026-10-08T15:35:18",
+      "texto": "Gracias por contactar a Contamix, Julieta. Te llegará una breve encuesta para calificar la atención. Te atendió Carolina, ¡que tengas excelente tarde!"
+    }
+  ]
+}

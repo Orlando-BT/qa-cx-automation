@@ -4,125 +4,126 @@
     "mensajes": [
       1
     ],
-    "justificacion": "El cliente pide cancelar una factura."
+    "justificacion": "El cliente pide cancelar una factura emitida con el RFC del receptor mal escrito."
   },
   "emocion_cliente": {
     "emocion": "preocupacion",
     "mensajes": [
       1
     ],
-    "justificacion": "Ejemplo ilustrativo."
+    "justificacion": "El cliente dice que le preocupa que el SAT lo multe."
   },
   "criterios": {
     "empatia": {
       "identifica_emocion": {
         "resultado": "cumple",
         "mensajes": [
-          2
+          4
         ],
-        "justificacion": "Ejemplo ilustrativo."
+        "justificacion": "El agente reconoce la preocupación del cliente (\"Entiendo tu preocupación\")."
       },
       "muestra_empatia": {
         "resultado": "cumple",
         "mensajes": [
-          2
+          4
         ],
-        "justificacion": "Ejemplo ilustrativo."
+        "justificacion": "Valida la situación: \"es normal con un error así\"."
       },
       "cordialidad": {
         "resultado": "cumple",
         "mensajes": [
-          2
+          2,
+          4
         ],
-        "justificacion": "Ejemplo ilustrativo."
+        "justificacion": "Trato amable y respetuoso en toda la conversación."
       },
       "lenguaje_acorde": {
-        "resultado": "cumple",
+        "resultado": "no_cumple",
         "mensajes": [
-          2
+          6
         ],
-        "justificacion": "Ejemplo ilustrativo."
+        "justificacion": "Usa \"Va, sale.\" con un cliente que escribe de forma formal."
       },
       "asertividad": {
         "resultado": "no_aplica",
         "mensajes": [],
-        "justificacion": "Ejemplo ilustrativo."
+        "justificacion": "No hubo nada que negar o limitar."
       }
     },
     "diagnostico": {
       "preguntas_necesarias": {
         "resultado": "cumple",
         "mensajes": [
-          2
+          4
         ],
-        "justificacion": "Ejemplo ilustrativo."
+        "justificacion": "Pregunta si el total supera 1,000 pesos, dato que decide si el receptor debe aceptar."
       },
       "solicitudes_detectadas": {
         "resultado": "cumple",
         "mensajes": [
           2
         ],
-        "justificacion": "Ejemplo ilustrativo."
+        "justificacion": "El agente reconoce la cancelación solicitada (\"te ayudo con tu cancelación\")."
       },
       "solicitudes_atendidas": {
         "resultado": "cumple",
         "mensajes": [
-          2
+          6
         ],
-        "justificacion": "Ejemplo ilustrativo."
+        "justificacion": "Explica cómo cancelar la factura."
       }
     },
     "solucion": {
       "informacion_correcta": {
         "resultado": "cumple",
         "mensajes": [
-          2
+          6
         ],
-        "justificacion": "Ejemplo ilustrativo."
+        "justificacion": "Los pasos y el motivo 01 coinciden con KB-02."
       },
       "informacion_completa": {
-        "resultado": "cumple",
+        "resultado": "no_cumple",
         "mensajes": [
-          2
+          6
         ],
-        "justificacion": "Ejemplo ilustrativo."
+        "justificacion": "Omite el plazo de 72 horas del receptor para aceptar o rechazar (KB-02)."
       },
       "apego_proceso": {
         "resultado": "cumple",
         "mensajes": [
-          2
+          6
         ],
-        "justificacion": "Ejemplo ilustrativo."
+        "justificacion": "Respeta el orden: primero la sustituta, luego la cancelación con el motivo 01."
       },
       "ofrece_alternativas": {
         "resultado": "no_aplica",
         "mensajes": [],
-        "justificacion": "Ejemplo ilustrativo."
+        "justificacion": "La solución principal se pudo dar."
       }
     },
     "comunicacion": {
       "redaccion": {
         "resultado": "cumple",
         "mensajes": [
-          2
+          6
         ],
-        "justificacion": "Ejemplo ilustrativo."
+        "justificacion": "Redacción clara y ordenada."
       },
       "congruencia": {
         "resultado": "cumple",
         "mensajes": [
-          2
+          6
         ],
-        "justificacion": "Ejemplo ilustrativo."
+        "justificacion": "Los mensajes son coherentes con lo que pregunta el cliente."
       }
     },
     "recapitulacion": {
       "recapitula": {
         "resultado": "cumple",
         "mensajes": [
-          2
+          8
         ],
-        "justificacion": "Ejemplo ilustrativo."
+        "justificacion": "Resume la cancelación con el motivo 01 y el siguiente paso del receptor."
       }
     }
   },
@@ -130,46 +131,48 @@
     "situacion_escalamiento": {
       "situacion_requiere_escalamiento": false,
       "mensajes": [],
-      "justificacion": "Ejemplo ilustrativo."
+      "justificacion": "Un rechazo o una cancelación normal no se escalan (KB-02)."
     },
     "uso_solucion_seguimiento": {
       "problema_resuelto_en_conversacion": true,
-      "uso_correcto": null,
-      "mensajes": [],
-      "justificacion": "Ejemplo ilustrativo."
+      "uso_correcto": true,
+      "mensajes": [
+        8
+      ],
+      "justificacion": "El caso queda cerrado y el agente habla de solución."
     }
   },
   "errores_ortografia": [
     {
-      "mensaje_n": 2,
-      "texto_error": "aver",
-      "correccion": "a ver",
-      "gravedad": "grave"
+      "mensaje_n": 6,
+      "texto_error": "cancelacion",
+      "correccion": "cancelación",
+      "gravedad": "menor"
     }
   ],
   "primer_mensaje_info_cuenta": {
-    "mensaje_n": 2,
-    "justificacion": "Ejemplo ilustrativo."
+    "mensaje_n": null,
+    "justificacion": "El agente no revela información de la cuenta del cliente."
   },
   "solicitudes_cliente": [
     {
-      "descripcion": "Cancelar una factura",
+      "descripcion": "Cancelar una factura emitida con el RFC del receptor mal escrito",
       "mensaje_n": 1,
       "detectada_por_agente": true,
       "atendida": true,
       "mensajes_atencion": [
-        2
+        6
       ],
-      "justificacion": "Ejemplo ilustrativo."
+      "justificacion": "El agente explica el proceso de cancelación."
     }
   ],
   "articulos_base_usados": [
     {
       "id_articulo": "KB-02",
       "mensajes": [
-        2
+        6
       ],
-      "justificacion": "Ejemplo ilustrativo."
+      "justificacion": "Pasos de cancelación y motivo 01."
     }
   ],
   "criticos_posibles": {
@@ -179,9 +182,11 @@
       "justificacion": "Sin evidencia en los mensajes del agente."
     },
     "promesa_no_autorizada": {
-      "detectado": false,
-      "mensajes": [],
-      "justificacion": "Sin evidencia en los mensajes del agente."
+      "detectado": true,
+      "mensajes": [
+        6
+      ],
+      "justificacion": "Promete un descuento del 20% en la próxima mensualidad que la base de conocimiento no autoriza."
     },
     "negacion_servicio": {
       "detectado": false,

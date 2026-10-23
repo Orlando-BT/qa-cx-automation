@@ -5,11 +5,11 @@
   "lote": "demo",
   "canal": "chat",
   "tipo_interaccion": "ce",
-  "agente": "Nombre del agente",
+  "agente": "Laura Méndez",
   "cuenta_id": "CTA-104",
   "version_reglas": "reglas_ce_v1",
   "version_prompt": "evaluador_ce_v1",
-  "modelo_evaluador": "por_verificar",
+  "modelo_evaluador": "gpt-6-luna",
   "tema_detectado": "Cancelación de CFDI",
   "emocion_cliente": "preocupacion",
   "nota_base": 63.68,
@@ -21,15 +21,15 @@
   "sin_mensajes_agente": false,
   "errores_criticos": [
     {
-      "id_critico": "critico.mala_actitud",
+      "id_critico": "critico.promesa_no_autorizada",
       "origen": "LLM",
       "evidencia": {
         "mensajes": [
-          2
+          6
         ],
-        "dato": "Ejemplo ilustrativo."
+        "dato": "descuento del 20% en la próxima mensualidad"
       },
-      "justificacion": "Ejemplo ilustrativo."
+      "justificacion": "Promete un descuento del 20% que la base de conocimiento no autoriza."
     }
   ],
   "secciones": [
@@ -39,7 +39,7 @@
       "resultado": "cumple",
       "factor": 1,
       "clave_fallidos": [],
-      "complementarios_aplicables": 3,
+      "complementarios_aplicables": 6,
       "complementarios_fallidos": 0
     },
     {
@@ -57,7 +57,7 @@
       "resultado": "cumple",
       "factor": 1,
       "clave_fallidos": [],
-      "complementarios_aplicables": 3,
+      "complementarios_aplicables": 1,
       "complementarios_fallidos": 0
     },
     {
@@ -75,7 +75,7 @@
       "resultado": "cumple",
       "factor": 1,
       "clave_fallidos": [],
-      "complementarios_aplicables": 3,
+      "complementarios_aplicables": 6,
       "complementarios_fallidos": 0
     },
     {
@@ -83,8 +83,10 @@
       "peso": 12,
       "resultado": "no_cumple",
       "factor": 0,
-      "clave_fallidos": [],
-      "complementarios_aplicables": 3,
+      "clave_fallidos": [
+        "recapitulacion.numero_caso_coincide"
+      ],
+      "complementarios_aplicables": 2,
       "complementarios_fallidos": 0
     },
     {
@@ -93,7 +95,7 @@
       "resultado": "no_aplica",
       "factor": null,
       "clave_fallidos": [],
-      "complementarios_aplicables": 3,
+      "complementarios_aplicables": 0,
       "complementarios_fallidos": 0
     },
     {
@@ -118,9 +120,771 @@
         "mensajes": [
           2
         ],
-        "dato": "frase detectada"
+        "dato": "hola; buenos dias"
       },
-      "justificacion": "Ejemplo ilustrativo."
+      "justificacion": "El primer mensaje del agente coincide con la lista saludo."
+    },
+    {
+      "id_criterio": "apertura.bienvenida",
+      "tipo_criterio": "subelemento",
+      "seccion": "apertura",
+      "origen": "JS",
+      "clasificacion": "complementario",
+      "resultado": "cumple",
+      "evidencia": {
+        "mensajes": [
+          2
+        ],
+        "dato": "gracias por contactar"
+      },
+      "justificacion": "Coincide con la lista bienvenida."
+    },
+    {
+      "id_criterio": "apertura.marca",
+      "tipo_criterio": "subelemento",
+      "seccion": "apertura",
+      "origen": "JS",
+      "clasificacion": "complementario",
+      "resultado": "cumple",
+      "evidencia": {
+        "mensajes": [
+          2
+        ],
+        "dato": "Contamix"
+      },
+      "justificacion": "El mensaje contiene config.marca."
+    },
+    {
+      "id_criterio": "apertura.nombre_agente",
+      "tipo_criterio": "subelemento",
+      "seccion": "apertura",
+      "origen": "JS",
+      "clasificacion": "complementario",
+      "resultado": "cumple",
+      "evidencia": {
+        "mensajes": [
+          2
+        ],
+        "dato": "Laura"
+      },
+      "justificacion": "Contiene el nombre de pila del agente."
+    },
+    {
+      "id_criterio": "apertura.ofrece_ayuda",
+      "tipo_criterio": "subelemento",
+      "seccion": "apertura",
+      "origen": "JS",
+      "clasificacion": "complementario",
+      "resultado": "cumple",
+      "evidencia": {
+        "mensajes": [
+          2
+        ],
+        "dato": "con gusto te ayudo"
+      },
+      "justificacion": "Coincide con la lista ofrece_ayuda."
+    },
+    {
+      "id_criterio": "apertura.aviso_privacidad",
+      "tipo_criterio": "subelemento",
+      "seccion": "apertura",
+      "origen": "JS",
+      "clasificacion": "clave",
+      "resultado": "cumple",
+      "evidencia": {
+        "mensajes": [
+          2
+        ],
+        "dato": "aviso de privacidad"
+      },
+      "justificacion": "Coincide con la lista aviso_privacidad antes de cualquier dato."
+    },
+    {
+      "id_criterio": "apertura.nombre_cliente",
+      "tipo_criterio": "subelemento",
+      "seccion": "apertura",
+      "origen": "JS",
+      "clasificacion": "complementario",
+      "resultado": "cumple",
+      "evidencia": {
+        "mensajes": [
+          2
+        ],
+        "dato": "con quien tengo el gusto"
+      },
+      "justificacion": "Coincide con la lista pide_nombre_cliente."
+    },
+    {
+      "id_criterio": "apertura.toma_a_tiempo",
+      "tipo_criterio": "subelemento",
+      "seccion": "apertura",
+      "origen": "JS",
+      "clasificacion": "clave",
+      "resultado": "cumple",
+      "evidencia": {
+        "mensajes": [
+          1,
+          2
+        ],
+        "dato": "54 s <= 60 s"
+      },
+      "justificacion": "Primera respuesta dentro de config.chat_primera_respuesta_seg."
+    },
+    {
+      "id_criterio": "empatia.identifica_emocion",
+      "tipo_criterio": "subelemento",
+      "seccion": "empatia",
+      "origen": "LLM",
+      "clasificacion": "complementario",
+      "resultado": "cumple",
+      "evidencia": {
+        "mensajes": [
+          4
+        ],
+        "dato": "preocupacion"
+      },
+      "justificacion": "El agente reconoce la preocupación del cliente."
+    },
+    {
+      "id_criterio": "empatia.muestra_empatia",
+      "tipo_criterio": "subelemento",
+      "seccion": "empatia",
+      "origen": "LLM",
+      "clasificacion": "clave",
+      "resultado": "cumple",
+      "evidencia": {
+        "mensajes": [
+          4
+        ],
+        "dato": "es normal con un error así"
+      },
+      "justificacion": "Valida la situación del cliente."
+    },
+    {
+      "id_criterio": "empatia.cordialidad",
+      "tipo_criterio": "subelemento",
+      "seccion": "empatia",
+      "origen": "LLM",
+      "clasificacion": "clave",
+      "resultado": "cumple",
+      "evidencia": {
+        "mensajes": [
+          2,
+          4
+        ],
+        "dato": "trato amable"
+      },
+      "justificacion": "Trato amable y respetuoso en toda la conversación."
+    },
+    {
+      "id_criterio": "empatia.lenguaje_acorde",
+      "tipo_criterio": "subelemento",
+      "seccion": "empatia",
+      "origen": "LLM",
+      "clasificacion": "complementario",
+      "resultado": "no_cumple",
+      "evidencia": {
+        "mensajes": [
+          6
+        ],
+        "dato": "Va, sale."
+      },
+      "justificacion": "Usa \"Va, sale.\" con un cliente que escribe de forma formal."
+    },
+    {
+      "id_criterio": "empatia.asertividad",
+      "tipo_criterio": "subelemento",
+      "seccion": "empatia",
+      "origen": "LLM",
+      "clasificacion": "complementario",
+      "resultado": "no_aplica",
+      "evidencia": {
+        "mensajes": [],
+        "dato": "sin nada que negar"
+      },
+      "justificacion": "No hubo nada que negar o limitar."
+    },
+    {
+      "id_criterio": "empatia.mayusculas_sostenidas",
+      "tipo_criterio": "subelemento",
+      "seccion": "empatia",
+      "origen": "JS",
+      "clasificacion": "complementario",
+      "resultado": "cumple",
+      "evidencia": {
+        "mensajes": [],
+        "dato": "sin mayúsculas sostenidas"
+      },
+      "justificacion": "Ningún mensaje del agente tiene 3 palabras seguidas en mayúsculas (UUID y SAT son siglas permitidas)."
+    },
+    {
+      "id_criterio": "diagnostico.preguntas_necesarias",
+      "tipo_criterio": "subelemento",
+      "seccion": "diagnostico",
+      "origen": "LLM",
+      "clasificacion": "complementario",
+      "resultado": "cumple",
+      "evidencia": {
+        "mensajes": [
+          4
+        ],
+        "dato": "total mayor a 1,000 pesos"
+      },
+      "justificacion": "Pregunta el dato que decide si el receptor debe aceptar."
+    },
+    {
+      "id_criterio": "diagnostico.solicitudes_detectadas",
+      "tipo_criterio": "subelemento",
+      "seccion": "diagnostico",
+      "origen": "LLM",
+      "clasificacion": "clave",
+      "resultado": "cumple",
+      "evidencia": {
+        "mensajes": [
+          2
+        ],
+        "dato": "solicitud 1 detectada"
+      },
+      "justificacion": "Todas las solicitudes del cliente fueron detectadas."
+    },
+    {
+      "id_criterio": "diagnostico.solicitudes_atendidas",
+      "tipo_criterio": "subelemento",
+      "seccion": "diagnostico",
+      "origen": "LLM",
+      "clasificacion": "clave",
+      "resultado": "cumple",
+      "evidencia": {
+        "mensajes": [
+          6
+        ],
+        "dato": "solicitud 1 atendida"
+      },
+      "justificacion": "Todas las solicitudes del cliente fueron atendidas."
+    },
+    {
+      "id_criterio": "diagnostico.numero_preguntas",
+      "tipo_criterio": "subelemento",
+      "seccion": "diagnostico",
+      "origen": "JS",
+      "clasificacion": "informativo",
+      "resultado": "cumple",
+      "evidencia": {
+        "mensajes": [
+          2,
+          4
+        ],
+        "dato": "2 preguntas antes del mensaje 6"
+      },
+      "justificacion": "Informativo: el agente hace 2 preguntas antes de atender la solicitud."
+    },
+    {
+      "id_criterio": "solucion.informacion_correcta",
+      "tipo_criterio": "subelemento",
+      "seccion": "solucion",
+      "origen": "LLM",
+      "clasificacion": "clave",
+      "resultado": "cumple",
+      "evidencia": {
+        "mensajes": [
+          6
+        ],
+        "dato": "KB-02"
+      },
+      "justificacion": "Pasos y motivo 01 coinciden con KB-02."
+    },
+    {
+      "id_criterio": "solucion.informacion_completa",
+      "tipo_criterio": "subelemento",
+      "seccion": "solucion",
+      "origen": "LLM",
+      "clasificacion": "complementario",
+      "resultado": "no_cumple",
+      "evidencia": {
+        "mensajes": [
+          6
+        ],
+        "dato": "falta plazo de 72 horas"
+      },
+      "justificacion": "Omite el plazo de 72 horas del receptor (KB-02)."
+    },
+    {
+      "id_criterio": "solucion.apego_proceso",
+      "tipo_criterio": "subelemento",
+      "seccion": "solucion",
+      "origen": "LLM",
+      "clasificacion": "clave",
+      "resultado": "cumple",
+      "evidencia": {
+        "mensajes": [
+          6
+        ],
+        "dato": "KB-02"
+      },
+      "justificacion": "Respeta el orden: sustituta primero, luego cancelación con motivo 01."
+    },
+    {
+      "id_criterio": "solucion.ofrece_alternativas",
+      "tipo_criterio": "subelemento",
+      "seccion": "solucion",
+      "origen": "LLM",
+      "clasificacion": "complementario",
+      "resultado": "no_aplica",
+      "evidencia": {
+        "mensajes": [],
+        "dato": "solución principal dada"
+      },
+      "justificacion": "La solución principal se pudo dar."
+    },
+    {
+      "id_criterio": "solucion.escala_cuando_requiere",
+      "tipo_criterio": "subelemento",
+      "seccion": "solucion",
+      "origen": "HIBRIDO",
+      "clasificacion": "clave",
+      "resultado": "no_aplica",
+      "evidencia": {
+        "mensajes": [],
+        "dato": "requiere = false"
+      },
+      "justificacion": "El catálogo dice que Cancelación de CFDI no requiere escalamiento."
+    },
+    {
+      "id_criterio": "solucion.no_escala_innecesario",
+      "tipo_criterio": "subelemento",
+      "seccion": "solucion",
+      "origen": "HIBRIDO",
+      "clasificacion": "complementario",
+      "resultado": "cumple",
+      "evidencia": {
+        "mensajes": [],
+        "dato": "escalado = false"
+      },
+      "justificacion": "No escaló; requiere = false (catálogo)."
+    },
+    {
+      "id_criterio": "solucion.campos_obligatorios",
+      "tipo_criterio": "subelemento",
+      "seccion": "solucion",
+      "origen": "JS",
+      "clasificacion": "complementario",
+      "resultado": "cumple",
+      "evidencia": {
+        "mensajes": [],
+        "dato": "uuid_factura, motivo_cancelacion presentes"
+      },
+      "justificacion": "Los campos obligatorios de la tipificación están presentes."
+    },
+    {
+      "id_criterio": "solucion.seguimiento_en_plazo",
+      "tipo_criterio": "subelemento",
+      "seccion": "solucion",
+      "origen": "JS",
+      "clasificacion": "complementario",
+      "resultado": "no_aplica",
+      "evidencia": {
+        "mensajes": [],
+        "dato": "estado_caso = cerrado"
+      },
+      "justificacion": "El caso está cerrado."
+    },
+    {
+      "id_criterio": "comunicacion.ortografia",
+      "tipo_criterio": "subelemento",
+      "seccion": "comunicacion",
+      "origen": "HIBRIDO",
+      "clasificacion": "clave",
+      "resultado": "cumple",
+      "evidencia": {
+        "mensajes": [
+          6
+        ],
+        "dato": "1 error menor (umbral 3)"
+      },
+      "justificacion": "Un error menor (\"cancelacion\") y ninguno grave; no alcanza los umbrales."
+    },
+    {
+      "id_criterio": "comunicacion.signos_apertura",
+      "tipo_criterio": "subelemento",
+      "seccion": "comunicacion",
+      "origen": "JS",
+      "clasificacion": "complementario",
+      "resultado": "cumple",
+      "evidencia": {
+        "mensajes": [
+          2,
+          4,
+          9
+        ],
+        "dato": "0 omisiones"
+      },
+      "justificacion": "Todas las preguntas llevan ¿."
+    },
+    {
+      "id_criterio": "comunicacion.tecnicismos",
+      "tipo_criterio": "subelemento",
+      "seccion": "comunicacion",
+      "origen": "JS",
+      "clasificacion": "complementario",
+      "resultado": "cumple",
+      "evidencia": {
+        "mensajes": [],
+        "dato": "sin términos prohibidos"
+      },
+      "justificacion": "Ningún mensaje del agente contiene termino_prohibido."
+    },
+    {
+      "id_criterio": "comunicacion.frases_negativas",
+      "tipo_criterio": "subelemento",
+      "seccion": "comunicacion",
+      "origen": "JS",
+      "clasificacion": "complementario",
+      "resultado": "cumple",
+      "evidencia": {
+        "mensajes": [],
+        "dato": "sin frases negativas"
+      },
+      "justificacion": "Ningún mensaje del agente contiene frase_negativa."
+    },
+    {
+      "id_criterio": "comunicacion.vicios_lenguaje",
+      "tipo_criterio": "subelemento",
+      "seccion": "comunicacion",
+      "origen": "JS",
+      "clasificacion": "complementario",
+      "resultado": "cumple",
+      "evidencia": {
+        "mensajes": [],
+        "dato": "sin vicios de lenguaje"
+      },
+      "justificacion": "Ningún mensaje del agente contiene vicio_lenguaje."
+    },
+    {
+      "id_criterio": "comunicacion.redaccion",
+      "tipo_criterio": "subelemento",
+      "seccion": "comunicacion",
+      "origen": "LLM",
+      "clasificacion": "complementario",
+      "resultado": "cumple",
+      "evidencia": {
+        "mensajes": [
+          6
+        ],
+        "dato": "redacción clara"
+      },
+      "justificacion": "Redacción clara y ordenada."
+    },
+    {
+      "id_criterio": "comunicacion.congruencia",
+      "tipo_criterio": "subelemento",
+      "seccion": "comunicacion",
+      "origen": "LLM",
+      "clasificacion": "complementario",
+      "resultado": "cumple",
+      "evidencia": {
+        "mensajes": [
+          6
+        ],
+        "dato": "congruente"
+      },
+      "justificacion": "Los mensajes son coherentes con lo que pregunta el cliente."
+    },
+    {
+      "id_criterio": "comunicacion.pide_espera",
+      "tipo_criterio": "subelemento",
+      "seccion": "comunicacion",
+      "origen": "JS",
+      "clasificacion": "complementario",
+      "resultado": "no_aplica",
+      "evidencia": {
+        "mensajes": [],
+        "dato": "sin esperas ni retrasos"
+      },
+      "justificacion": "No hay episodios de espera ni retrasos de respuesta."
+    },
+    {
+      "id_criterio": "comunicacion.agradece_espera",
+      "tipo_criterio": "subelemento",
+      "seccion": "comunicacion",
+      "origen": "JS",
+      "clasificacion": "complementario",
+      "resultado": "no_aplica",
+      "evidencia": {
+        "mensajes": [],
+        "dato": "sin esperas"
+      },
+      "justificacion": "No hay episodios de espera."
+    },
+    {
+      "id_criterio": "comunicacion.retoma_a_tiempo",
+      "tipo_criterio": "subelemento",
+      "seccion": "comunicacion",
+      "origen": "JS",
+      "clasificacion": "complementario",
+      "resultado": "no_aplica",
+      "evidencia": {
+        "mensajes": [],
+        "dato": "sin esperas"
+      },
+      "justificacion": "No hay episodios de espera."
+    },
+    {
+      "id_criterio": "comunicacion.no_excede_espera",
+      "tipo_criterio": "subelemento",
+      "seccion": "comunicacion",
+      "origen": "JS",
+      "clasificacion": "clave",
+      "resultado": "no_aplica",
+      "evidencia": {
+        "mensajes": [],
+        "dato": "sin esperas"
+      },
+      "justificacion": "No hay episodios de espera."
+    },
+    {
+      "id_criterio": "recapitulacion.recapitula",
+      "tipo_criterio": "subelemento",
+      "seccion": "recapitulacion",
+      "origen": "LLM",
+      "clasificacion": "clave",
+      "resultado": "no_aplica",
+      "evidencia": {
+        "mensajes": [
+          8
+        ],
+        "dato": "termina_por_inactividad = true"
+      },
+      "justificacion": "Lo impone JS por inactividad del cliente; el LLM dijo cumple y se ignora (rubrica.md 3.6)."
+    },
+    {
+      "id_criterio": "recapitulacion.uso_solucion_seguimiento",
+      "tipo_criterio": "subelemento",
+      "seccion": "recapitulacion",
+      "origen": "HIBRIDO",
+      "clasificacion": "complementario",
+      "resultado": "no_aplica",
+      "evidencia": {
+        "mensajes": [],
+        "dato": "termina_por_inactividad = true"
+      },
+      "justificacion": "La conversación termina por inactividad del cliente (recordatorio en [9], cierre en [10])."
+    },
+    {
+      "id_criterio": "recapitulacion.informa_numero_caso",
+      "tipo_criterio": "subelemento",
+      "seccion": "recapitulacion",
+      "origen": "JS",
+      "clasificacion": "clave",
+      "resultado": "cumple",
+      "evidencia": {
+        "mensajes": [
+          8
+        ],
+        "dato": "CASO-58231"
+      },
+      "justificacion": "El agente comunica un número con patrón CASO-[0-9]{5}."
+    },
+    {
+      "id_criterio": "recapitulacion.numero_caso_coincide",
+      "tipo_criterio": "subelemento",
+      "seccion": "recapitulacion",
+      "origen": "JS",
+      "clasificacion": "clave",
+      "resultado": "no_cumple",
+      "evidencia": {
+        "mensajes": [
+          8
+        ],
+        "dato": "CASO-58231 comunicado; CASO-58213 en metadatos_caso"
+      },
+      "justificacion": "El número que dice el agente no coincide con metadatos_caso.numero_caso (dígitos transpuestos)."
+    },
+    {
+      "id_criterio": "recapitulacion.tipificacion",
+      "tipo_criterio": "subelemento",
+      "seccion": "recapitulacion",
+      "origen": "HIBRIDO",
+      "clasificacion": "clave",
+      "resultado": "cumple",
+      "evidencia": {
+        "mensajes": [
+          1
+        ],
+        "dato": "Cancelación de CFDI"
+      },
+      "justificacion": "tema del LLM y tipificacion_agente coinciden en catalogo_temas."
+    },
+    {
+      "id_criterio": "recapitulacion.recordatorio_inactividad",
+      "tipo_criterio": "subelemento",
+      "seccion": "recapitulacion",
+      "origen": "JS",
+      "clasificacion": "complementario",
+      "resultado": "cumple",
+      "evidencia": {
+        "mensajes": [
+          8,
+          9
+        ],
+        "dato": "125 s > 120 s con recordatorio"
+      },
+      "justificacion": "El silencio de 125 s se atendió con recordatorio."
+    },
+    {
+      "id_criterio": "recapitulacion.cierre_inactividad",
+      "tipo_criterio": "subelemento",
+      "seccion": "recapitulacion",
+      "origen": "JS",
+      "clasificacion": "complementario",
+      "resultado": "cumple",
+      "evidencia": {
+        "mensajes": [
+          9,
+          10
+        ],
+        "dato": "130 s >= 120 s"
+      },
+      "justificacion": "Cierre por inactividad 130 s después del recordatorio."
+    },
+    {
+      "id_criterio": "ayuda_adicional.ofrece_ayuda_adicional",
+      "tipo_criterio": "subelemento",
+      "seccion": "ayuda_adicional",
+      "origen": "JS",
+      "clasificacion": "clave",
+      "resultado": "no_aplica",
+      "evidencia": {
+        "mensajes": [],
+        "dato": "termina_por_inactividad = true"
+      },
+      "justificacion": "La conversación termina por inactividad del cliente (recordatorio en [9], cierre en [10])."
+    },
+    {
+      "id_criterio": "ayuda_adicional.encuesta",
+      "tipo_criterio": "subelemento",
+      "seccion": "ayuda_adicional",
+      "origen": "JS",
+      "clasificacion": "clave",
+      "resultado": "no_aplica",
+      "evidencia": {
+        "mensajes": [],
+        "dato": "termina_por_inactividad = true"
+      },
+      "justificacion": "La conversación termina por inactividad del cliente (recordatorio en [9], cierre en [10])."
+    },
+    {
+      "id_criterio": "ayuda_adicional.canales_horarios",
+      "tipo_criterio": "subelemento",
+      "seccion": "ayuda_adicional",
+      "origen": "JS",
+      "clasificacion": "complementario",
+      "resultado": "no_aplica",
+      "evidencia": {
+        "mensajes": [],
+        "dato": "termina_por_inactividad = true"
+      },
+      "justificacion": "La conversación termina por inactividad del cliente (recordatorio en [9], cierre en [10])."
+    },
+    {
+      "id_criterio": "ayuda_adicional.campana_vigente",
+      "tipo_criterio": "subelemento",
+      "seccion": "ayuda_adicional",
+      "origen": "JS",
+      "clasificacion": "complementario",
+      "resultado": "no_aplica",
+      "evidencia": {
+        "mensajes": [],
+        "dato": "termina_por_inactividad = true"
+      },
+      "justificacion": "La conversación termina por inactividad del cliente (recordatorio en [9], cierre en [10])."
+    },
+    {
+      "id_criterio": "ayuda_adicional.encuesta_caso_cerrado",
+      "tipo_criterio": "subelemento",
+      "seccion": "ayuda_adicional",
+      "origen": "JS",
+      "clasificacion": "complementario",
+      "resultado": "no_aplica",
+      "evidencia": {
+        "mensajes": [],
+        "dato": "termina_por_inactividad = true"
+      },
+      "justificacion": "La conversación termina por inactividad del cliente (recordatorio en [9], cierre en [10])."
+    },
+    {
+      "id_criterio": "cierre.agradece",
+      "tipo_criterio": "subelemento",
+      "seccion": "cierre",
+      "origen": "JS",
+      "clasificacion": "clave",
+      "resultado": "cumple",
+      "evidencia": {
+        "mensajes": [
+          10
+        ],
+        "dato": "gracias por contactar"
+      },
+      "justificacion": "Coincide con agradecimiento_cierre."
+    },
+    {
+      "id_criterio": "cierre.nombre_agente",
+      "tipo_criterio": "subelemento",
+      "seccion": "cierre",
+      "origen": "JS",
+      "clasificacion": "complementario",
+      "resultado": "cumple",
+      "evidencia": {
+        "mensajes": [
+          10
+        ],
+        "dato": "Laura"
+      },
+      "justificacion": "Contiene el nombre de pila del agente."
+    },
+    {
+      "id_criterio": "cierre.marca",
+      "tipo_criterio": "subelemento",
+      "seccion": "cierre",
+      "origen": "JS",
+      "clasificacion": "complementario",
+      "resultado": "cumple",
+      "evidencia": {
+        "mensajes": [
+          10
+        ],
+        "dato": "Contamix"
+      },
+      "justificacion": "Contiene config.marca."
+    },
+    {
+      "id_criterio": "cierre.frase_cortesia",
+      "tipo_criterio": "subelemento",
+      "seccion": "cierre",
+      "origen": "JS",
+      "clasificacion": "complementario",
+      "resultado": "cumple",
+      "evidencia": {
+        "mensajes": [
+          10
+        ],
+        "dato": "que tengas buen dia"
+      },
+      "justificacion": "Coincide con frase_cortesia."
+    },
+    {
+      "id_criterio": "cierre.despedida",
+      "tipo_criterio": "subelemento",
+      "seccion": "cierre",
+      "origen": "JS",
+      "clasificacion": "clave",
+      "resultado": "cumple",
+      "evidencia": {
+        "mensajes": [
+          10
+        ],
+        "dato": "al no recibir respuesta"
+      },
+      "justificacion": "Coincide con despedida o cierre_inactividad."
     },
     {
       "id_criterio": "identidad.pide_datos",
@@ -133,10 +897,140 @@
         "mensajes": [],
         "dato": "bloque de identidad no aplica"
       },
-      "justificacion": "Ejemplo ilustrativo."
+      "justificacion": "El agente no pide datos ni revela información de la cuenta (info_n = null)."
     },
     {
-      "id_criterio": "critico.mala_actitud",
+      "id_criterio": "identidad.datos_coinciden",
+      "tipo_criterio": "identidad",
+      "seccion": "identidad",
+      "origen": "JS",
+      "clasificacion": null,
+      "resultado": "no_aplica",
+      "evidencia": {
+        "mensajes": [],
+        "dato": "bloque de identidad no aplica"
+      },
+      "justificacion": "El agente no pide datos ni revela información de la cuenta (info_n = null)."
+    },
+    {
+      "id_criterio": "identidad.orden_validacion",
+      "tipo_criterio": "identidad",
+      "seccion": "identidad",
+      "origen": "HIBRIDO",
+      "clasificacion": null,
+      "resultado": "no_aplica",
+      "evidencia": {
+        "mensajes": [],
+        "dato": "bloque de identidad no aplica"
+      },
+      "justificacion": "El agente no pide datos ni revela información de la cuenta (info_n = null)."
+    },
+    {
+      "id_criterio": "critico.no_toma_a_tiempo",
+      "tipo_criterio": "critico",
+      "seccion": "critico",
+      "origen": "JS",
+      "clasificacion": null,
+      "resultado": "no_detectado",
+      "evidencia": {
+        "mensajes": [],
+        "dato": "sin evidencia"
+      },
+      "justificacion": "No se detecta."
+    },
+    {
+      "id_criterio": "critico.no_genera_caso",
+      "tipo_criterio": "critico",
+      "seccion": "critico",
+      "origen": "JS",
+      "clasificacion": null,
+      "resultado": "no_detectado",
+      "evidencia": {
+        "mensajes": [],
+        "dato": "sin evidencia"
+      },
+      "justificacion": "No se detecta."
+    },
+    {
+      "id_criterio": "critico.abandono",
+      "tipo_criterio": "critico",
+      "seccion": "critico",
+      "origen": "JS",
+      "clasificacion": null,
+      "resultado": "no_detectado",
+      "evidencia": {
+        "mensajes": [],
+        "dato": "sin evidencia"
+      },
+      "justificacion": "No se detecta."
+    },
+    {
+      "id_criterio": "critico.palabras_altisonantes",
+      "tipo_criterio": "critico",
+      "seccion": "critico",
+      "origen": "JS",
+      "clasificacion": null,
+      "resultado": "no_detectado",
+      "evidencia": {
+        "mensajes": [],
+        "dato": "sin evidencia"
+      },
+      "justificacion": "No se detecta."
+    },
+    {
+      "id_criterio": "critico.validacion_identidad",
+      "tipo_criterio": "critico",
+      "seccion": "critico",
+      "origen": "HIBRIDO",
+      "clasificacion": null,
+      "resultado": "no_detectado",
+      "evidencia": {
+        "mensajes": [],
+        "dato": "sin evidencia"
+      },
+      "justificacion": "No se detecta."
+    },
+    {
+      "id_criterio": "critico.confidencialidad",
+      "tipo_criterio": "critico",
+      "seccion": "critico",
+      "origen": "HIBRIDO",
+      "clasificacion": null,
+      "resultado": "no_detectado",
+      "evidencia": {
+        "mensajes": [],
+        "dato": "sin evidencia"
+      },
+      "justificacion": "No se detecta."
+    },
+    {
+      "id_criterio": "critico.tipificacion_incorrecta",
+      "tipo_criterio": "critico",
+      "seccion": "critico",
+      "origen": "HIBRIDO",
+      "clasificacion": null,
+      "resultado": "no_detectado",
+      "evidencia": {
+        "mensajes": [],
+        "dato": "sin evidencia"
+      },
+      "justificacion": "No se detecta."
+    },
+    {
+      "id_criterio": "critico.informacion_incorrecta",
+      "tipo_criterio": "critico",
+      "seccion": "critico",
+      "origen": "LLM",
+      "clasificacion": null,
+      "resultado": "no_detectado",
+      "evidencia": {
+        "mensajes": [],
+        "dato": "sin evidencia"
+      },
+      "justificacion": "No se detecta."
+    },
+    {
+      "id_criterio": "critico.promesa_no_autorizada",
       "tipo_criterio": "critico",
       "seccion": "critico",
       "origen": "LLM",
@@ -144,18 +1038,57 @@
       "resultado": "detectado",
       "evidencia": {
         "mensajes": [
-          2
+          6
         ],
-        "dato": "Ejemplo ilustrativo."
+        "dato": "descuento del 20% en la próxima mensualidad"
       },
-      "justificacion": "Ejemplo ilustrativo."
+      "justificacion": "Promete un descuento del 20% que la base de conocimiento no autoriza."
+    },
+    {
+      "id_criterio": "critico.negacion_servicio",
+      "tipo_criterio": "critico",
+      "seccion": "critico",
+      "origen": "LLM",
+      "clasificacion": null,
+      "resultado": "no_detectado",
+      "evidencia": {
+        "mensajes": [],
+        "dato": "sin evidencia"
+      },
+      "justificacion": "No se detecta."
+    },
+    {
+      "id_criterio": "critico.mala_actitud",
+      "tipo_criterio": "critico",
+      "seccion": "critico",
+      "origen": "LLM",
+      "clasificacion": null,
+      "resultado": "no_detectado",
+      "evidencia": {
+        "mensajes": [],
+        "dato": "sin evidencia"
+      },
+      "justificacion": "No se detecta."
+    },
+    {
+      "id_criterio": "critico.comentarios_negativos_marca",
+      "tipo_criterio": "critico",
+      "seccion": "critico",
+      "origen": "LLM",
+      "clasificacion": null,
+      "resultado": "no_detectado",
+      "evidencia": {
+        "mensajes": [],
+        "dato": "sin evidencia"
+      },
+      "justificacion": "No se detecta."
     }
   ],
   "consumo": {
     "tokens_entrada": 5000,
     "tokens_salida": 900,
     "intentos_llm": 1,
-    "costo_usd": null
+    "costo_usd": 0.00095
   },
   "marcas_tiempo": {
     "recibido_en": "2026-10-21T10:05:00-06:00",
