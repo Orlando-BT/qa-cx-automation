@@ -1,0 +1,176 @@
+{
+  "id_evaluacion": "EVAL-CONV-0002-reglas_ce_v1-evaluador_ce_v1",
+  "llave_dedup": "CONV-0002|reglas_ce_v1|evaluador_ce_v1",
+  "conversation_id": "CONV-0002",
+  "lote": "demo",
+  "canal": "chat",
+  "tipo_interaccion": "ce",
+  "agente": "Nombre del agente",
+  "cuenta_id": "CTA-104",
+  "version_reglas": "reglas_ce_v1",
+  "version_prompt": "evaluador_ce_v1",
+  "modelo_evaluador": null,
+  "tema_detectado": null,
+  "emocion_cliente": null,
+  "nota_base": 0,
+  "nota_final": 0,
+  "meta_calidad": 80,
+  "cumple_meta": false,
+  "calidad": "mala",
+  "tiene_error_critico": true,
+  "sin_mensajes_agente": true,
+  "errores_criticos": [
+    {
+      "id_critico": "critico.no_toma_a_tiempo",
+      "origen": "JS",
+      "evidencia": {
+        "mensajes": [
+          1
+        ],
+        "dato": "sin mensajes del agente"
+      },
+      "justificacion": "No hay ningún mensaje del agente."
+    },
+    {
+      "id_critico": "critico.abandono",
+      "origen": "JS",
+      "evidencia": {
+        "mensajes": [
+          1
+        ],
+        "dato": "último mensaje del cliente sin respuesta"
+      },
+      "justificacion": "No hay respuesta del agente."
+    }
+  ],
+  "secciones": [
+    {
+      "id_seccion": "apertura",
+      "peso": 5,
+      "resultado": "no_cumple",
+      "factor": 0,
+      "clave_fallidos": [],
+      "complementarios_aplicables": 3,
+      "complementarios_fallidos": 0
+    },
+    {
+      "id_seccion": "empatia",
+      "peso": 10,
+      "resultado": "no_aplica",
+      "factor": null,
+      "clave_fallidos": [],
+      "complementarios_aplicables": 3,
+      "complementarios_fallidos": 0
+    },
+    {
+      "id_seccion": "diagnostico",
+      "peso": 15,
+      "resultado": "no_aplica",
+      "factor": null,
+      "clave_fallidos": [],
+      "complementarios_aplicables": 3,
+      "complementarios_fallidos": 0
+    },
+    {
+      "id_seccion": "solucion",
+      "peso": 35,
+      "resultado": "no_cumple",
+      "factor": 0,
+      "clave_fallidos": [],
+      "complementarios_aplicables": 3,
+      "complementarios_fallidos": 0
+    },
+    {
+      "id_seccion": "comunicacion",
+      "peso": 13,
+      "resultado": "no_aplica",
+      "factor": null,
+      "clave_fallidos": [],
+      "complementarios_aplicables": 3,
+      "complementarios_fallidos": 0
+    },
+    {
+      "id_seccion": "recapitulacion",
+      "peso": 12,
+      "resultado": "no_cumple",
+      "factor": 0,
+      "clave_fallidos": [],
+      "complementarios_aplicables": 3,
+      "complementarios_fallidos": 0
+    },
+    {
+      "id_seccion": "ayuda_adicional",
+      "peso": 5,
+      "resultado": "no_cumple",
+      "factor": 0,
+      "clave_fallidos": [],
+      "complementarios_aplicables": 3,
+      "complementarios_fallidos": 0
+    },
+    {
+      "id_seccion": "cierre",
+      "peso": 5,
+      "resultado": "no_cumple",
+      "factor": 0,
+      "clave_fallidos": [],
+      "complementarios_aplicables": 3,
+      "complementarios_fallidos": 0
+    }
+  ],
+  "criterios": [
+    {
+      "id_criterio": "apertura.toma_a_tiempo",
+      "tipo_criterio": "subelemento",
+      "seccion": "apertura",
+      "origen": "JS",
+      "clasificacion": "clave",
+      "resultado": "no_cumple",
+      "evidencia": {
+        "mensajes": [
+          1
+        ],
+        "dato": "sin mensajes del agente"
+      },
+      "justificacion": "No hay ningún mensaje del agente."
+    },
+    {
+      "id_criterio": "empatia.cordialidad",
+      "tipo_criterio": "subelemento",
+      "seccion": "empatia",
+      "origen": "LLM",
+      "clasificacion": "clave",
+      "resultado": "no_aplica",
+      "evidencia": {
+        "mensajes": [],
+        "dato": "sin mensajes del agente"
+      },
+      "justificacion": "sin mensajes del agente: no se llamó al LLM"
+    },
+    {
+      "id_criterio": "critico.no_toma_a_tiempo",
+      "tipo_criterio": "critico",
+      "seccion": "critico",
+      "origen": "JS",
+      "clasificacion": null,
+      "resultado": "detectado",
+      "evidencia": {
+        "mensajes": [
+          1
+        ],
+        "dato": "sin mensajes del agente"
+      },
+      "justificacion": "No hay ningún mensaje del agente."
+    }
+  ],
+  "consumo": {
+    "tokens_entrada": 0,
+    "tokens_salida": 0,
+    "intentos_llm": 0,
+    "costo_usd": 0
+  },
+  "marcas_tiempo": {
+    "recibido_en": "2026-10-21T10:05:00-06:00",
+    "iniciado_en": "2026-10-21T10:05:01-06:00",
+    "evaluado_en": "2026-10-21T10:05:20-06:00"
+  }
+}

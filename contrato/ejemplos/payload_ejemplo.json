@@ -1,0 +1,31 @@
+{
+  "conversation_id": "CONV-0001",
+  "canal": "chat",
+  "tipo_interaccion": "ce",
+  "agente": "Nombre del agente",
+  "cuenta_id": "CTA-104",
+  "metadatos_caso": {
+    "tipificacion_agente": "Cancelación de CFDI",
+    "numero_caso": "CASO-58213",
+    "estado_caso": "cerrado",
+    "escalado": false,
+    "campos_capturados": {
+      "uuid_factura": "presente",
+      "motivo_cancelacion": "presente"
+    }
+  },
+  "mensajes": [
+    {
+      "n": 1,
+      "emisor": "cliente",
+      "timestamp": "2026-10-21T10:02:11",
+      "texto": "..."
+    },
+    {
+      "n": 2,
+      "emisor": "agente",
+      "timestamp": "2026-10-21T10:03:05",
+      "texto": "..."
+    }
+  ]
+}

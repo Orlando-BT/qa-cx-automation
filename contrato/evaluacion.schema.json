@@ -1,0 +1,594 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qa-cx-automation.example/contrato/evaluacion.schema.json",
+  "title": "Resultado final de la evaluación de una conversación",
+  "description": "Salida de JS-7/JS-8 del Workflow 2. Genérico para cualquier rúbrica: no fija secciones, criterios ni valores configurables (esos vienen de la rúbrica de version_reglas y de config). Solo existe para evaluaciones completas (incluye las de conversaciones sin mensajes del agente, evaluadas solo con JS: sin_mensajes_agente = true); si la evaluación falla, se registra en log_errores y la conversación queda en estado error. Se guarda resumida en la hoja evaluaciones (una fila) y desglosada en detalle_criterios (una fila por sección y por elemento de criterios). Con reglas_ce_v1: 8 secciones y 69 criterios (54 subelementos de sección, 3 de identidad y 12 errores críticos).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id_evaluacion",
+    "llave_dedup",
+    "conversation_id",
+    "lote",
+    "canal",
+    "tipo_interaccion",
+    "agente",
+    "cuenta_id",
+    "version_reglas",
+    "version_prompt",
+    "modelo_evaluador",
+    "tema_detectado",
+    "emocion_cliente",
+    "nota_base",
+    "nota_final",
+    "meta_calidad",
+    "cumple_meta",
+    "calidad",
+    "tiene_error_critico",
+    "sin_mensajes_agente",
+    "errores_criticos",
+    "secciones",
+    "criterios",
+    "consumo",
+    "marcas_tiempo"
+  ],
+  "properties": {
+    "id_evaluacion": {
+      "type": "string",
+      "pattern": "^EVAL-CONV-[0-9]{4,}-reglas_(ce|sales)_v[0-9]+-evaluador_(ce|sales)_v[0-9]+$",
+      "description": "EVAL- + conversation_id + - + version_reglas + - + version_prompt."
+    },
+    "llave_dedup": {
+      "type": "string",
+      "pattern": "^CONV-[0-9]{4,}\\|reglas_(ce|sales)_v[0-9]+\\|evaluador_(ce|sales)_v[0-9]+$",
+      "description": "conversation_id|version_reglas|version_prompt."
+    },
+    "conversation_id": {
+      "type": "string",
+      "pattern": "^CONV-[0-9]{4,}$"
+    },
+    "lote": {
+      "type": "string",
+      "pattern": "^(demo|calibracion_v[0-9]+)$"
+    },
+    "canal": {
+      "type": "string",
+      "enum": [
+        "chat"
+      ]
+    },
+    "tipo_interaccion": {
+      "type": "string",
+      "enum": [
+        "ce",
+        "sales"
+      ],
+      "description": "Del payload. Debe corresponder al prefijo de version_reglas y version_prompt."
+    },
+    "agente": {
+      "type": "string",
+      "minLength": 1
+    },
+    "cuenta_id": {
+      "type": "string",
+      "pattern": "^CTA-[0-9]{3,}$"
+    },
+    "version_reglas": {
+      "type": "string",
+      "pattern": "^reglas_(ce|sales)_v[0-9]+$",
+      "description": "Identifica la rúbrica aplicada y su versión."
+    },
+    "version_prompt": {
+      "type": "string",
+      "pattern": "^evaluador_(ce|sales)_v[0-9]+$"
+    },
+    "modelo_evaluador": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1,
+      "description": "Copia de config.modelo_evaluador al momento de evaluar. null si sin_mensajes_agente (no se llamó al LLM)."
+    },
+    "tema_detectado": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1,
+      "description": "tema.valor de la salida del LLM. JS-5 lo valida contra catalogo_temas del tipo_interaccion (tipo ∪ todos); el esquema no fija valores para no depender de una rúbrica. null si sin_mensajes_agente."
+    },
+    "emocion_cliente": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "description": "Emoción del cliente de la salida del LLM. Los valores permitidos los fija la enumeración emocion del glosario para la rúbrica del tipo_interaccion y los valida JS-5; el esquema no los fija. null si sin_mensajes_agente."
+    },
+    "nota_base": {
+      "$ref": "#/$defs/nota",
+      "description": "Nota renormalizada sin considerar errores críticos (D2, D5)."
+    },
+    "nota_final": {
+      "$ref": "#/$defs/nota",
+      "description": "0 si tiene_error_critico; si no, igual a nota_base. Nota oficial."
+    },
+    "meta_calidad": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Copia de config.meta_calidad."
+    },
+    "cumple_meta": {
+      "type": "boolean",
+      "description": "Comparación de nota_final con meta_calidad según config.meta_comparacion_inclusiva."
+    },
+    "calidad": {
+      "type": "string",
+      "enum": [
+        "buena",
+        "regular",
+        "mala"
+      ],
+      "description": "Banda de calidad según rubrica.md 2.4 (nota_final, críticos y límites de config). Enum genérico, igual para cualquier rúbrica."
+    },
+    "tiene_error_critico": {
+      "type": "boolean"
+    },
+    "sin_mensajes_agente": {
+      "type": "boolean",
+      "description": "true si la conversación no tiene mensajes del agente: se evaluó solo con JS, sin llamar al LLM (rubrica.md 3.12). Solo identifica el caso; no excluye la evaluación de las métricas."
+    },
+    "errores_criticos": {
+      "type": "array",
+      "description": "Solo los errores críticos detectados (vacío si ninguno).",
+      "items": {
+        "$ref": "#/$defs/error_critico"
+      }
+    },
+    "secciones": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Resultado agregado por sección (regla D1), en el orden de la rúbrica. Con reglas_ce_v1: apertura, empatia, diagnostico, solucion, comunicacion, recapitulacion, ayuda_adicional, cierre.",
+      "items": {
+        "$ref": "#/$defs/seccion"
+      }
+    },
+    "criterios": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Un elemento por subelemento de sección, subelemento de identidad y error crítico (detectado o no) de la rúbrica.",
+      "items": {
+        "$ref": "#/$defs/criterio"
+      }
+    },
+    "consumo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tokens_entrada",
+        "tokens_salida",
+        "intentos_llm",
+        "costo_usd"
+      ],
+      "properties": {
+        "tokens_entrada": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Suma de tokens de entrada de todos los intentos. 0 si sin_mensajes_agente."
+        },
+        "tokens_salida": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Suma de tokens de salida de todos los intentos. 0 si sin_mensajes_agente."
+        },
+        "intentos_llm": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "1 intento original + reenvíos por respuesta inválida (máximo según config.reintentos_validacion_llm). 0 si sin_mensajes_agente."
+        },
+        "costo_usd": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Tokens por precio de config (JS-8). 0 si sin_mensajes_agente (no hubo llamada). null solo si se llamó al LLM y algún precio del evaluador está en por_verificar. pendiente_fase_1 en las claves de alerta no afecta este valor."
+        }
+      }
+    },
+    "marcas_tiempo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "recibido_en",
+        "iniciado_en",
+        "evaluado_en"
+      ],
+      "properties": {
+        "recibido_en": {
+          "$ref": "#/$defs/marca_tiempo_sistema",
+          "description": "Cuando Ingesta recibió el payload."
+        },
+        "iniciado_en": {
+          "$ref": "#/$defs/marca_tiempo_sistema",
+          "description": "Inicio del Workflow 2."
+        },
+        "evaluado_en": {
+          "$ref": "#/$defs/marca_tiempo_sistema",
+          "description": "Fin de JS-8."
+        }
+      }
+    }
+  },
+  "$defs": {
+    "nota": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "origen": {
+      "type": "string",
+      "enum": [
+        "JS",
+        "LLM",
+        "HIBRIDO"
+      ]
+    },
+    "id_simple": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "marca_tiempo_sistema": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}[+-][0-9]{2}:[0-9]{2}$"
+    },
+    "lista_mensajes": {
+      "type": "array",
+      "items": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "description": "Números de mensaje (campo n del payload)."
+    },
+    "evidencia": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mensajes",
+        "dato"
+      ],
+      "properties": {
+        "mensajes": {
+          "$ref": "#/$defs/lista_mensajes"
+        },
+        "dato": {
+          "type": "string",
+          "description": "Dato concreto que respalda el resultado, con datos personales enmascarados. Ejemplos: 'primera respuesta 95 s > 60 s', 'frase detectada: \"con gusto te ayudo\"', 'tema LLM: Cancelación de CFDI; tipificación agente: Emisión de CFDI'."
+        }
+      }
+    },
+    "seccion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id_seccion",
+        "peso",
+        "resultado",
+        "factor",
+        "clave_fallidos",
+        "complementarios_aplicables",
+        "complementarios_fallidos"
+      ],
+      "properties": {
+        "id_seccion": {
+          "$ref": "#/$defs/id_simple"
+        },
+        "peso": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Copia del peso de config."
+        },
+        "resultado": {
+          "type": "string",
+          "enum": [
+            "cumple",
+            "parcial",
+            "no_cumple",
+            "no_aplica"
+          ]
+        },
+        "factor": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1,
+          "description": "1, config.factor_parcial o 0; null si resultado es no_aplica."
+        },
+        "clave_fallidos": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "IDs de subelementos clave con no_cumple."
+        },
+        "complementarios_aplicables": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "complementarios_fallidos": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "error_critico": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id_critico",
+        "origen",
+        "evidencia",
+        "justificacion"
+      ],
+      "properties": {
+        "id_critico": {
+          "type": "string",
+          "pattern": "^critico\\.[a-z0-9_]+$",
+          "description": "ID de la rúbrica de version_reglas."
+        },
+        "origen": {
+          "$ref": "#/$defs/origen"
+        },
+        "evidencia": {
+          "$ref": "#/$defs/evidencia"
+        },
+        "justificacion": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "criterio": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id_criterio",
+        "tipo_criterio",
+        "seccion",
+        "origen",
+        "clasificacion",
+        "resultado",
+        "evidencia",
+        "justificacion"
+      ],
+      "properties": {
+        "id_criterio": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*\\.[a-z0-9_]+$",
+          "description": "ID estable de la rúbrica de version_reglas (<seccion>.<subelemento>, identidad.<x> o critico.<x>)."
+        },
+        "tipo_criterio": {
+          "type": "string",
+          "enum": [
+            "subelemento",
+            "identidad",
+            "critico"
+          ]
+        },
+        "seccion": {
+          "$ref": "#/$defs/id_simple",
+          "description": "Prefijo del ID: id de sección, identidad o critico."
+        },
+        "origen": {
+          "$ref": "#/$defs/origen"
+        },
+        "clasificacion": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "clave",
+            "complementario",
+            "informativo",
+            null
+          ],
+          "description": "Obligatoria (no nula) en subelemento; null en identidad y critico."
+        },
+        "resultado": {
+          "type": "string",
+          "enum": [
+            "cumple",
+            "no_cumple",
+            "no_aplica",
+            "detectado",
+            "no_detectado"
+          ],
+          "description": "subelemento e identidad: cumple|no_cumple|no_aplica. critico: detectado|no_detectado."
+        },
+        "evidencia": {
+          "$ref": "#/$defs/evidencia"
+        },
+        "justificacion": {
+          "type": "string",
+          "description": "Para LLM e HIBRIDO, justificación del modelo (y regla JS aplicada en HIBRIDO). Para JS, descripción de la regla aplicada."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "tipo_criterio": {
+                "const": "subelemento"
+              }
+            },
+            "required": [
+              "tipo_criterio"
+            ]
+          },
+          "then": {
+            "properties": {
+              "clasificacion": {
+                "type": "string",
+                "enum": [
+                  "clave",
+                  "complementario",
+                  "informativo"
+                ]
+              },
+              "resultado": {
+                "enum": [
+                  "cumple",
+                  "no_cumple",
+                  "no_aplica"
+                ]
+              },
+              "seccion": {
+                "not": {
+                  "enum": [
+                    "identidad",
+                    "critico"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "tipo_criterio": {
+                "const": "identidad"
+              }
+            },
+            "required": [
+              "tipo_criterio"
+            ]
+          },
+          "then": {
+            "properties": {
+              "clasificacion": {
+                "type": "null"
+              },
+              "resultado": {
+                "enum": [
+                  "cumple",
+                  "no_cumple",
+                  "no_aplica"
+                ]
+              },
+              "seccion": {
+                "const": "identidad"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "tipo_criterio": {
+                "const": "critico"
+              }
+            },
+            "required": [
+              "tipo_criterio"
+            ]
+          },
+          "then": {
+            "properties": {
+              "clasificacion": {
+                "type": "null"
+              },
+              "resultado": {
+                "enum": [
+                  "detectado",
+                  "no_detectado"
+                ]
+              },
+              "seccion": {
+                "const": "critico"
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "sin_mensajes_agente": {
+            "const": true
+          }
+        },
+        "required": [
+          "sin_mensajes_agente"
+        ]
+      },
+      "then": {
+        "properties": {
+          "modelo_evaluador": {
+            "type": "null"
+          },
+          "tema_detectado": {
+            "type": "null"
+          },
+          "emocion_cliente": {
+            "type": "null"
+          },
+          "consumo": {
+            "properties": {
+              "tokens_entrada": {
+                "const": 0
+              },
+              "tokens_salida": {
+                "const": 0
+              },
+              "intentos_llm": {
+                "const": 0
+              },
+              "costo_usd": {
+                "const": 0
+              }
+            }
+          },
+          "nota_final": {
+            "const": 0
+          },
+          "tiene_error_critico": {
+            "const": true
+          },
+          "calidad": {
+            "const": "mala"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "modelo_evaluador": {
+            "type": "string"
+          },
+          "tema_detectado": {
+            "type": "string"
+          },
+          "emocion_cliente": {
+            "type": "string"
+          },
+          "consumo": {
+            "properties": {
+              "intentos_llm": {
+                "minimum": 1
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

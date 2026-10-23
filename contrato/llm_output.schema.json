@@ -1,0 +1,1054 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Salida del evaluador LLM (rúbrica ce, reglas_ce_v1 / evaluador_ce_v1)",
+  "description": "Solo juicios semánticos con evidencia. El modelo NUNCA calcula nota, ponderación, resultado de sección ni decide el resultado final de criterios híbridos; eso lo hace JavaScript. La conversación llega enmascarada ([EMAIL_n], [RFC_n], [TELEFONO_n], [NOMBRE_n]) y con mensajes numerados. Nota técnica: el uso de minimum en campos de tipo [integer, null] (primer_mensaje_info_cuenta.mensaje_n) se verifica en Fase 1 con una llamada real a OpenAI; si no se acepta en modo estricto, se quita del esquema y esa validación pasa a JS-5. Otras verificaciones de Fase 1 en config.md (notas de diseño). Las reglas de coherencia que aplica JS-5 sobre esta salida están en rubrica.md 6.1.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "tema",
+    "emocion_cliente",
+    "criterios",
+    "insumos_hibridos",
+    "errores_ortografia",
+    "primer_mensaje_info_cuenta",
+    "solicitudes_cliente",
+    "articulos_base_usados",
+    "criticos_posibles"
+  ],
+  "properties": {
+    "tema": {
+      "type": "object",
+      "description": "Tema principal de la conversación. valor debe ser exactamente uno de los temas del catálogo incluido en el prompt (JS-5 lo valida contra la hoja catalogo_temas).",
+      "additionalProperties": false,
+      "required": [
+        "valor",
+        "mensajes",
+        "justificacion"
+      ],
+      "properties": {
+        "valor": {
+          "type": "string",
+          "description": "Tema copiado textualmente del catálogo."
+        },
+        "mensajes": {
+          "type": "array",
+          "description": "Mensajes donde el cliente expone su necesidad.",
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "justificacion": {
+          "type": "string",
+          "description": "Justificación breve en español que cite lo que dice el agente o el cliente."
+        }
+      }
+    },
+    "emocion_cliente": {
+      "type": "object",
+      "description": "Emoción predominante del cliente.",
+      "additionalProperties": false,
+      "required": [
+        "emocion",
+        "mensajes",
+        "justificacion"
+      ],
+      "properties": {
+        "emocion": {
+          "type": "string",
+          "enum": [
+            "neutral",
+            "confusion",
+            "preocupacion",
+            "frustracion",
+            "enojo",
+            "satisfaccion"
+          ],
+          "description": "Emoción predominante del cliente."
+        },
+        "mensajes": {
+          "type": "array",
+          "description": "Mensajes del cliente que muestran la emoción.",
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "justificacion": {
+          "type": "string",
+          "description": "Justificación breve en español que cite lo que dice el agente o el cliente."
+        }
+      }
+    },
+    "criterios": {
+      "type": "object",
+      "description": "Resultado de cada criterio [LLM] de la rúbrica, agrupado por sección. El ID del criterio es <seccion>.<subelemento>.",
+      "additionalProperties": false,
+      "required": [
+        "empatia",
+        "diagnostico",
+        "solucion",
+        "comunicacion",
+        "recapitulacion"
+      ],
+      "properties": {
+        "empatia": {
+          "type": "object",
+          "description": "Sección empatia.",
+          "additionalProperties": false,
+          "required": [
+            "identifica_emocion",
+            "muestra_empatia",
+            "cordialidad",
+            "lenguaje_acorde",
+            "asertividad"
+          ],
+          "properties": {
+            "identifica_emocion": {
+              "type": "object",
+              "description": "empatia.identifica_emocion: el agente reconoce la emoción del cliente. no_aplica si el cliente es neutral y no hay señal emocional.",
+              "additionalProperties": false,
+              "required": [
+                "resultado",
+                "mensajes",
+                "justificacion"
+              ],
+              "properties": {
+                "resultado": {
+                  "type": "string",
+                  "enum": [
+                    "cumple",
+                    "no_cumple",
+                    "no_aplica"
+                  ],
+                  "description": "cumple, no_cumple o no_aplica (no_aplica solo si la rúbrica lo permite para este criterio)."
+                },
+                "mensajes": {
+                  "type": "array",
+                  "description": "Números de mensaje (campo n) que sirven de evidencia. Vacío solo si resultado es no_aplica.",
+                  "items": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "justificacion": {
+                  "type": "string",
+                  "description": "Justificación breve en español que cite lo que dice el agente o el cliente."
+                }
+              }
+            },
+            "muestra_empatia": {
+              "type": "object",
+              "description": "empatia.muestra_empatia: valida la situación del cliente con frases empáticas pertinentes, no genéricas. no_aplica SOLO si emocion_cliente.emocion es neutral y no hay situación que validar; tú decides la neutralidad y debes justificarla.",
+              "additionalProperties": false,
+              "required": [
+                "resultado",
+                "mensajes",
+                "justificacion"
+              ],
+              "properties": {
+                "resultado": {
+                  "type": "string",
+                  "enum": [
+                    "cumple",
+                    "no_cumple",
+                    "no_aplica"
+                  ],
+                  "description": "cumple, no_cumple o no_aplica (no_aplica solo si la rúbrica lo permite para este criterio)."
+                },
+                "mensajes": {
+                  "type": "array",
+                  "description": "Números de mensaje (campo n) que sirven de evidencia. Vacío solo si resultado es no_aplica.",
+                  "items": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "justificacion": {
+                  "type": "string",
+                  "description": "Justificación breve en español que cite lo que dice el agente o el cliente."
+                }
+              }
+            },
+            "cordialidad": {
+              "type": "object",
+              "description": "empatia.cordialidad: trato amable y respetuoso en toda la conversación; no_cumple si el tono es seco o cortante.",
+              "additionalProperties": false,
+              "required": [
+                "resultado",
+                "mensajes",
+                "justificacion"
+              ],
+              "properties": {
+                "resultado": {
+                  "type": "string",
+                  "enum": [
+                    "cumple",
+                    "no_cumple",
+                    "no_aplica"
+                  ],
+                  "description": "cumple, no_cumple o no_aplica (no_aplica solo si la rúbrica lo permite para este criterio)."
+                },
+                "mensajes": {
+                  "type": "array",
+                  "description": "Números de mensaje (campo n) que sirven de evidencia. Vacío solo si resultado es no_aplica.",
+                  "items": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "justificacion": {
+                  "type": "string",
+                  "description": "Justificación breve en español que cite lo que dice el agente o el cliente."
+                }
+              }
+            },
+            "lenguaje_acorde": {
+              "type": "object",
+              "description": "empatia.lenguaje_acorde: registro adecuado al cliente.",
+              "additionalProperties": false,
+              "required": [
+                "resultado",
+                "mensajes",
+                "justificacion"
+              ],
+              "properties": {
+                "resultado": {
+                  "type": "string",
+                  "enum": [
+                    "cumple",
+                    "no_cumple",
+                    "no_aplica"
+                  ],
+                  "description": "cumple, no_cumple o no_aplica (no_aplica solo si la rúbrica lo permite para este criterio)."
+                },
+                "mensajes": {
+                  "type": "array",
+                  "description": "Números de mensaje (campo n) que sirven de evidencia. Vacío solo si resultado es no_aplica.",
+                  "items": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "justificacion": {
+                  "type": "string",
+                  "description": "Justificación breve en español que cite lo que dice el agente o el cliente."
+                }
+              }
+            },
+            "asertividad": {
+              "type": "object",
+              "description": "empatia.asertividad: comunica límites y negativas con claridad y respeto. no_aplica si no hubo nada que negar o limitar.",
+              "additionalProperties": false,
+              "required": [
+                "resultado",
+                "mensajes",
+                "justificacion"
+              ],
+              "properties": {
+                "resultado": {
+                  "type": "string",
+                  "enum": [
+                    "cumple",
+                    "no_cumple",
+                    "no_aplica"
+                  ],
+                  "description": "cumple, no_cumple o no_aplica (no_aplica solo si la rúbrica lo permite para este criterio)."
+                },
+                "mensajes": {
+                  "type": "array",
+                  "description": "Números de mensaje (campo n) que sirven de evidencia. Vacío solo si resultado es no_aplica.",
+                  "items": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "justificacion": {
+                  "type": "string",
+                  "description": "Justificación breve en español que cite lo que dice el agente o el cliente."
+                }
+              }
+            }
+          }
+        },
+        "diagnostico": {
+          "type": "object",
+          "description": "Sección diagnostico.",
+          "additionalProperties": false,
+          "required": [
+            "preguntas_necesarias",
+            "solicitudes_detectadas",
+            "solicitudes_atendidas"
+          ],
+          "properties": {
+            "preguntas_necesarias": {
+              "type": "object",
+              "description": "diagnostico.preguntas_necesarias: hace las preguntas necesarias según el artículo de la base. no_aplica si la solicitud llegó completa.",
+              "additionalProperties": false,
+              "required": [
+                "resultado",
+                "mensajes",
+                "justificacion"
+              ],
+              "properties": {
+                "resultado": {
+                  "type": "string",
+                  "enum": [
+                    "cumple",
+                    "no_cumple",
+                    "no_aplica"
+                  ],
+                  "description": "cumple, no_cumple o no_aplica (no_aplica solo si la rúbrica lo permite para este criterio)."
+                },
+                "mensajes": {
+                  "type": "array",
+                  "description": "Números de mensaje (campo n) que sirven de evidencia. Vacío solo si resultado es no_aplica.",
+                  "items": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "justificacion": {
+                  "type": "string",
+                  "description": "Justificación breve en español que cite lo que dice el agente o el cliente."
+                }
+              }
+            },
+            "solicitudes_detectadas": {
+              "type": "object",
+              "description": "diagnostico.solicitudes_detectadas: reconoce todas las solicitudes del cliente. Debe ser coherente con solicitudes_cliente[].detectada_por_agente.",
+              "additionalProperties": false,
+              "required": [
+                "resultado",
+                "mensajes",
+                "justificacion"
+              ],
+              "properties": {
+                "resultado": {
+                  "type": "string",
+                  "enum": [
+                    "cumple",
+                    "no_cumple",
+                    "no_aplica"
+                  ],
+                  "description": "cumple, no_cumple o no_aplica (no_aplica solo si la rúbrica lo permite para este criterio)."
+                },
+                "mensajes": {
+                  "type": "array",
+                  "description": "Números de mensaje (campo n) que sirven de evidencia. Vacío solo si resultado es no_aplica.",
+                  "items": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "justificacion": {
+                  "type": "string",
+                  "description": "Justificación breve en español que cite lo que dice el agente o el cliente."
+                }
+              }
+            },
+            "solicitudes_atendidas": {
+              "type": "object",
+              "description": "diagnostico.solicitudes_atendidas: atiende todas las solicitudes del cliente. Debe ser coherente con solicitudes_cliente[].atendida.",
+              "additionalProperties": false,
+              "required": [
+                "resultado",
+                "mensajes",
+                "justificacion"
+              ],
+              "properties": {
+                "resultado": {
+                  "type": "string",
+                  "enum": [
+                    "cumple",
+                    "no_cumple",
+                    "no_aplica"
+                  ],
+                  "description": "cumple, no_cumple o no_aplica (no_aplica solo si la rúbrica lo permite para este criterio)."
+                },
+                "mensajes": {
+                  "type": "array",
+                  "description": "Números de mensaje (campo n) que sirven de evidencia. Vacío solo si resultado es no_aplica.",
+                  "items": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "justificacion": {
+                  "type": "string",
+                  "description": "Justificación breve en español que cite lo que dice el agente o el cliente."
+                }
+              }
+            }
+          }
+        },
+        "solucion": {
+          "type": "object",
+          "description": "Sección solucion.",
+          "additionalProperties": false,
+          "required": [
+            "informacion_correcta",
+            "informacion_completa",
+            "apego_proceso",
+            "ofrece_alternativas"
+          ],
+          "properties": {
+            "informacion_correcta": {
+              "type": "object",
+              "description": "solucion.informacion_correcta: la información coincide con la base de conocimiento.",
+              "additionalProperties": false,
+              "required": [
+                "resultado",
+                "mensajes",
+                "justificacion"
+              ],
+              "properties": {
+                "resultado": {
+                  "type": "string",
+                  "enum": [
+                    "cumple",
+                    "no_cumple",
+                    "no_aplica"
+                  ],
+                  "description": "cumple, no_cumple o no_aplica (no_aplica solo si la rúbrica lo permite para este criterio)."
+                },
+                "mensajes": {
+                  "type": "array",
+                  "description": "Números de mensaje (campo n) que sirven de evidencia. Vacío solo si resultado es no_aplica.",
+                  "items": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "justificacion": {
+                  "type": "string",
+                  "description": "Justificación breve en español que cite lo que dice el agente o el cliente."
+                }
+              }
+            },
+            "informacion_completa": {
+              "type": "object",
+              "description": "solucion.informacion_completa: no omite pasos, requisitos, plazos o condiciones relevantes.",
+              "additionalProperties": false,
+              "required": [
+                "resultado",
+                "mensajes",
+                "justificacion"
+              ],
+              "properties": {
+                "resultado": {
+                  "type": "string",
+                  "enum": [
+                    "cumple",
+                    "no_cumple",
+                    "no_aplica"
+                  ],
+                  "description": "cumple, no_cumple o no_aplica (no_aplica solo si la rúbrica lo permite para este criterio)."
+                },
+                "mensajes": {
+                  "type": "array",
+                  "description": "Números de mensaje (campo n) que sirven de evidencia. Vacío solo si resultado es no_aplica.",
+                  "items": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "justificacion": {
+                  "type": "string",
+                  "description": "Justificación breve en español que cite lo que dice el agente o el cliente."
+                }
+              }
+            },
+            "apego_proceso": {
+              "type": "object",
+              "description": "solucion.apego_proceso: sigue el proceso y las políticas de la base de conocimiento.",
+              "additionalProperties": false,
+              "required": [
+                "resultado",
+                "mensajes",
+                "justificacion"
+              ],
+              "properties": {
+                "resultado": {
+                  "type": "string",
+                  "enum": [
+                    "cumple",
+                    "no_cumple",
+                    "no_aplica"
+                  ],
+                  "description": "cumple, no_cumple o no_aplica (no_aplica solo si la rúbrica lo permite para este criterio)."
+                },
+                "mensajes": {
+                  "type": "array",
+                  "description": "Números de mensaje (campo n) que sirven de evidencia. Vacío solo si resultado es no_aplica.",
+                  "items": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "justificacion": {
+                  "type": "string",
+                  "description": "Justificación breve en español que cite lo que dice el agente o el cliente."
+                }
+              }
+            },
+            "ofrece_alternativas": {
+              "type": "object",
+              "description": "solucion.ofrece_alternativas: ofrece alternativas cuando la solución principal no es posible. no_aplica si la solución principal se pudo dar.",
+              "additionalProperties": false,
+              "required": [
+                "resultado",
+                "mensajes",
+                "justificacion"
+              ],
+              "properties": {
+                "resultado": {
+                  "type": "string",
+                  "enum": [
+                    "cumple",
+                    "no_cumple",
+                    "no_aplica"
+                  ],
+                  "description": "cumple, no_cumple o no_aplica (no_aplica solo si la rúbrica lo permite para este criterio)."
+                },
+                "mensajes": {
+                  "type": "array",
+                  "description": "Números de mensaje (campo n) que sirven de evidencia. Vacío solo si resultado es no_aplica.",
+                  "items": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "justificacion": {
+                  "type": "string",
+                  "description": "Justificación breve en español que cite lo que dice el agente o el cliente."
+                }
+              }
+            }
+          }
+        },
+        "comunicacion": {
+          "type": "object",
+          "description": "Sección comunicacion.",
+          "additionalProperties": false,
+          "required": [
+            "redaccion",
+            "congruencia"
+          ],
+          "properties": {
+            "redaccion": {
+              "type": "object",
+              "description": "comunicacion.redaccion: redacción clara, ordenada y comprensible.",
+              "additionalProperties": false,
+              "required": [
+                "resultado",
+                "mensajes",
+                "justificacion"
+              ],
+              "properties": {
+                "resultado": {
+                  "type": "string",
+                  "enum": [
+                    "cumple",
+                    "no_cumple",
+                    "no_aplica"
+                  ],
+                  "description": "cumple, no_cumple o no_aplica (no_aplica solo si la rúbrica lo permite para este criterio)."
+                },
+                "mensajes": {
+                  "type": "array",
+                  "description": "Números de mensaje (campo n) que sirven de evidencia. Vacío solo si resultado es no_aplica.",
+                  "items": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "justificacion": {
+                  "type": "string",
+                  "description": "Justificación breve en español que cite lo que dice el agente o el cliente."
+                }
+              }
+            },
+            "congruencia": {
+              "type": "object",
+              "description": "comunicacion.congruencia: mensajes coherentes entre sí y con lo que pregunta el cliente.",
+              "additionalProperties": false,
+              "required": [
+                "resultado",
+                "mensajes",
+                "justificacion"
+              ],
+              "properties": {
+                "resultado": {
+                  "type": "string",
+                  "enum": [
+                    "cumple",
+                    "no_cumple",
+                    "no_aplica"
+                  ],
+                  "description": "cumple, no_cumple o no_aplica (no_aplica solo si la rúbrica lo permite para este criterio)."
+                },
+                "mensajes": {
+                  "type": "array",
+                  "description": "Números de mensaje (campo n) que sirven de evidencia. Vacío solo si resultado es no_aplica.",
+                  "items": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "justificacion": {
+                  "type": "string",
+                  "description": "Justificación breve en español que cite lo que dice el agente o el cliente."
+                }
+              }
+            }
+          }
+        },
+        "recapitulacion": {
+          "type": "object",
+          "description": "Sección recapitulacion.",
+          "additionalProperties": false,
+          "required": [
+            "recapitula"
+          ],
+          "properties": {
+            "recapitula": {
+              "type": "object",
+              "description": "recapitulacion.recapitula: antes del cierre resume la solicitud y la solución o siguiente paso. No uses no_aplica salvo que el prompt indique termina_por_inactividad = true (en ese caso JS impone no_aplica de todos modos).",
+              "additionalProperties": false,
+              "required": [
+                "resultado",
+                "mensajes",
+                "justificacion"
+              ],
+              "properties": {
+                "resultado": {
+                  "type": "string",
+                  "enum": [
+                    "cumple",
+                    "no_cumple",
+                    "no_aplica"
+                  ],
+                  "description": "cumple, no_cumple o no_aplica (no_aplica solo si la rúbrica lo permite para este criterio)."
+                },
+                "mensajes": {
+                  "type": "array",
+                  "description": "Números de mensaje (campo n) que sirven de evidencia. Vacío solo si resultado es no_aplica.",
+                  "items": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "justificacion": {
+                  "type": "string",
+                  "description": "Justificación breve en español que cite lo que dice el agente o el cliente."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "insumos_hibridos": {
+      "type": "object",
+      "description": "Juicios semánticos que JavaScript combina con reglas para decidir criterios [HÍBRIDO]. No son resultados.",
+      "additionalProperties": false,
+      "required": [
+        "situacion_escalamiento",
+        "uso_solucion_seguimiento"
+      ],
+      "properties": {
+        "situacion_escalamiento": {
+          "type": "object",
+          "description": "Insumo para calcular requiere, usado por solucion.escala_cuando_requiere y solucion.no_escala_innecesario. No es un resultado.",
+          "additionalProperties": false,
+          "required": [
+            "situacion_requiere_escalamiento",
+            "mensajes",
+            "justificacion"
+          ],
+          "properties": {
+            "situacion_requiere_escalamiento": {
+              "type": "boolean",
+              "description": "true si, según la base de conocimiento, la situación descrita es un caso que se escala."
+            },
+            "mensajes": {
+              "type": "array",
+              "description": "Mensajes que muestran la situación.",
+              "items": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "justificacion": {
+              "type": "string",
+              "description": "Artículo y regla de la base que aplica."
+            }
+          }
+        },
+        "uso_solucion_seguimiento": {
+          "type": "object",
+          "description": "Insumo de recapitulacion.uso_solucion_seguimiento.",
+          "additionalProperties": false,
+          "required": [
+            "problema_resuelto_en_conversacion",
+            "uso_correcto",
+            "mensajes",
+            "justificacion"
+          ],
+          "properties": {
+            "problema_resuelto_en_conversacion": {
+              "type": "boolean",
+              "description": "true si el problema del cliente quedó resuelto dentro de la conversación."
+            },
+            "uso_correcto": {
+              "type": [
+                "boolean",
+                "null"
+              ],
+              "description": "true si el agente usa \"solución\" o \"seguimiento\" de forma acorde a lo que realmente pasó; null si no usa ninguna de las dos palabras."
+            },
+            "mensajes": {
+              "type": "array",
+              "description": "Mensajes donde el agente usa la palabra.",
+              "items": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "justificacion": {
+              "type": "string",
+              "description": "Justificación breve en español que cite lo que dice el agente o el cliente."
+            }
+          }
+        }
+      }
+    },
+    "errores_ortografia": {
+      "type": "array",
+      "description": "Errores de ortografía SOLO en mensajes del agente. Vacío si no hay. grave: cambia el sentido o es un error evidente (acento diacrítico, haber/a ver, b/v, h). menor: acento omitido sin cambio de sentido o error de dedo. Definiciones completas en rubrica.md 3.5.",
+      "items": {
+        "type": "object",
+        "description": "Un error de ortografía.",
+        "additionalProperties": false,
+        "required": [
+          "mensaje_n",
+          "texto_error",
+          "correccion",
+          "gravedad"
+        ],
+        "properties": {
+          "mensaje_n": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Número de mensaje del agente."
+          },
+          "texto_error": {
+            "type": "string",
+            "description": "Palabra o fragmento con el error, copiado textualmente."
+          },
+          "correccion": {
+            "type": "string",
+            "description": "Forma correcta."
+          },
+          "gravedad": {
+            "type": "string",
+            "enum": [
+              "grave",
+              "menor"
+            ],
+            "description": "Gravedad del error."
+          }
+        }
+      }
+    },
+    "primer_mensaje_info_cuenta": {
+      "type": "object",
+      "description": "Primer mensaje del agente que revela información de la cuenta del cliente (datos fiscales, facturas, pagos, usuarios, configuración, estado de la suscripción).",
+      "additionalProperties": false,
+      "required": [
+        "mensaje_n",
+        "justificacion"
+      ],
+      "properties": {
+        "mensaje_n": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "description": "Número del mensaje del agente; null si el agente nunca revela información de la cuenta."
+        },
+        "justificacion": {
+          "type": "string",
+          "description": "Justificación breve en español que cite lo que dice el agente o el cliente."
+        }
+      }
+    },
+    "solicitudes_cliente": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Cada solicitud o necesidad distinta del cliente.",
+      "items": {
+        "type": "object",
+        "description": "Una solicitud del cliente.",
+        "additionalProperties": false,
+        "required": [
+          "descripcion",
+          "mensaje_n",
+          "detectada_por_agente",
+          "atendida",
+          "mensajes_atencion",
+          "justificacion"
+        ],
+        "properties": {
+          "descripcion": {
+            "type": "string",
+            "description": "Solicitud resumida en una frase."
+          },
+          "mensaje_n": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Mensaje del cliente donde la plantea por primera vez."
+          },
+          "detectada_por_agente": {
+            "type": "boolean",
+            "description": "true si el agente reconoce la solicitud."
+          },
+          "atendida": {
+            "type": "boolean",
+            "description": "true si el agente la resuelve o deja un siguiente paso concreto."
+          },
+          "mensajes_atencion": {
+            "type": "array",
+            "description": "Mensajes del agente donde la atiende. Vacío si atendida es false.",
+            "items": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "justificacion": {
+            "type": "string",
+            "description": "Justificación breve en español que cite lo que dice el agente o el cliente."
+          }
+        }
+      }
+    },
+    "articulos_base_usados": {
+      "type": "array",
+      "description": "Artículos de la base de conocimiento que corresponden a lo que el agente debía informar. Vacío si ninguno aplica.",
+      "items": {
+        "type": "object",
+        "description": "Artículo usado.",
+        "additionalProperties": false,
+        "required": [
+          "id_articulo",
+          "mensajes",
+          "justificacion"
+        ],
+        "properties": {
+          "id_articulo": {
+            "type": "string",
+            "pattern": "^KB-[0-9]{2}$",
+            "description": "ID del artículo, por ejemplo KB-03."
+          },
+          "mensajes": {
+            "type": "array",
+            "description": "Mensajes del agente relacionados con el artículo.",
+            "items": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "justificacion": {
+            "type": "string",
+            "description": "Justificación breve en español que cite lo que dice el agente o el cliente."
+          }
+        }
+      }
+    },
+    "criticos_posibles": {
+      "type": "object",
+      "description": "Posibles errores críticos que requieren comprensión del lenguaje. JS decide si se aceptan.",
+      "additionalProperties": false,
+      "required": [
+        "informacion_incorrecta",
+        "promesa_no_autorizada",
+        "negacion_servicio",
+        "mala_actitud",
+        "comentarios_negativos_marca",
+        "confidencialidad"
+      ],
+      "properties": {
+        "informacion_incorrecta": {
+          "type": "object",
+          "description": "critico.informacion_incorrecta: información incorrecta respecto a la base con impacto para el cliente: pérdida o cobro de dinero, incumplimiento de un plazo legal o fiscal, sanción del SAT, pérdida de datos o acceso indebido a la cuenta (rubrica.md sección 5).",
+          "additionalProperties": false,
+          "required": [
+            "detectado",
+            "mensajes",
+            "justificacion"
+          ],
+          "properties": {
+            "detectado": {
+              "type": "boolean",
+              "description": "true solo si hay evidencia clara en mensajes del agente."
+            },
+            "mensajes": {
+              "type": "array",
+              "description": "Números de mensaje del agente donde ocurre. Vacío si detectado es false.",
+              "items": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "justificacion": {
+              "type": "string",
+              "description": "Por qué se detecta o por qué no. Si detectado es true, citar el texto del agente."
+            }
+          }
+        },
+        "promesa_no_autorizada": {
+          "type": "object",
+          "description": "critico.promesa_no_autorizada: promete algo que la base no autoriza (descuentos, reembolsos, plazos, promociones no vigentes).",
+          "additionalProperties": false,
+          "required": [
+            "detectado",
+            "mensajes",
+            "justificacion"
+          ],
+          "properties": {
+            "detectado": {
+              "type": "boolean",
+              "description": "true solo si hay evidencia clara en mensajes del agente."
+            },
+            "mensajes": {
+              "type": "array",
+              "description": "Números de mensaje del agente donde ocurre. Vacío si detectado es false.",
+              "items": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "justificacion": {
+              "type": "string",
+              "description": "Por qué se detecta o por qué no. Si detectado es true, citar el texto del agente."
+            }
+          }
+        },
+        "negacion_servicio": {
+          "type": "object",
+          "description": "critico.negacion_servicio: se niega a atender una solicitud que sí corresponde al soporte.",
+          "additionalProperties": false,
+          "required": [
+            "detectado",
+            "mensajes",
+            "justificacion"
+          ],
+          "properties": {
+            "detectado": {
+              "type": "boolean",
+              "description": "true solo si hay evidencia clara en mensajes del agente."
+            },
+            "mensajes": {
+              "type": "array",
+              "description": "Números de mensaje del agente donde ocurre. Vacío si detectado es false.",
+              "items": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "justificacion": {
+              "type": "string",
+              "description": "Por qué se detecta o por qué no. Si detectado es true, citar el texto del agente."
+            }
+          }
+        },
+        "mala_actitud": {
+          "type": "object",
+          "description": "critico.mala_actitud: sarcasmo, burla, culpar al cliente o trato despectivo.",
+          "additionalProperties": false,
+          "required": [
+            "detectado",
+            "mensajes",
+            "justificacion"
+          ],
+          "properties": {
+            "detectado": {
+              "type": "boolean",
+              "description": "true solo si hay evidencia clara en mensajes del agente."
+            },
+            "mensajes": {
+              "type": "array",
+              "description": "Números de mensaje del agente donde ocurre. Vacío si detectado es false.",
+              "items": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "justificacion": {
+              "type": "string",
+              "description": "Por qué se detecta o por qué no. Si detectado es true, citar el texto del agente."
+            }
+          }
+        },
+        "comentarios_negativos_marca": {
+          "type": "object",
+          "description": "critico.comentarios_negativos_marca: comentarios negativos sobre la marca, sus productos o la empresa.",
+          "additionalProperties": false,
+          "required": [
+            "detectado",
+            "mensajes",
+            "justificacion"
+          ],
+          "properties": {
+            "detectado": {
+              "type": "boolean",
+              "description": "true solo si hay evidencia clara en mensajes del agente."
+            },
+            "mensajes": {
+              "type": "array",
+              "description": "Números de mensaje del agente donde ocurre. Vacío si detectado es false.",
+              "items": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "justificacion": {
+              "type": "string",
+              "description": "Por qué se detecta o por qué no. Si detectado es true, citar el texto del agente."
+            }
+          }
+        },
+        "confidencialidad": {
+          "type": "object",
+          "description": "critico.confidencialidad (parte LLM): revela información confidencial de la cuenta, de terceros o información interna.",
+          "additionalProperties": false,
+          "required": [
+            "detectado",
+            "mensajes",
+            "justificacion"
+          ],
+          "properties": {
+            "detectado": {
+              "type": "boolean",
+              "description": "true solo si hay evidencia clara en mensajes del agente."
+            },
+            "mensajes": {
+              "type": "array",
+              "description": "Números de mensaje del agente donde ocurre. Vacío si detectado es false.",
+              "items": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "justificacion": {
+              "type": "string",
+              "description": "Por qué se detecta o por qué no. Si detectado es true, citar el texto del agente."
+            }
+          }
+        }
+      }
+    }
+  }
+}

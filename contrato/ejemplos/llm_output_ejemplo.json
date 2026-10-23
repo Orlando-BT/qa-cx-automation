@@ -1,0 +1,207 @@
+{
+  "tema": {
+    "valor": "Cancelación de CFDI",
+    "mensajes": [
+      1
+    ],
+    "justificacion": "El cliente pide cancelar una factura."
+  },
+  "emocion_cliente": {
+    "emocion": "preocupacion",
+    "mensajes": [
+      1
+    ],
+    "justificacion": "Ejemplo ilustrativo."
+  },
+  "criterios": {
+    "empatia": {
+      "identifica_emocion": {
+        "resultado": "cumple",
+        "mensajes": [
+          2
+        ],
+        "justificacion": "Ejemplo ilustrativo."
+      },
+      "muestra_empatia": {
+        "resultado": "cumple",
+        "mensajes": [
+          2
+        ],
+        "justificacion": "Ejemplo ilustrativo."
+      },
+      "cordialidad": {
+        "resultado": "cumple",
+        "mensajes": [
+          2
+        ],
+        "justificacion": "Ejemplo ilustrativo."
+      },
+      "lenguaje_acorde": {
+        "resultado": "cumple",
+        "mensajes": [
+          2
+        ],
+        "justificacion": "Ejemplo ilustrativo."
+      },
+      "asertividad": {
+        "resultado": "no_aplica",
+        "mensajes": [],
+        "justificacion": "Ejemplo ilustrativo."
+      }
+    },
+    "diagnostico": {
+      "preguntas_necesarias": {
+        "resultado": "cumple",
+        "mensajes": [
+          2
+        ],
+        "justificacion": "Ejemplo ilustrativo."
+      },
+      "solicitudes_detectadas": {
+        "resultado": "cumple",
+        "mensajes": [
+          2
+        ],
+        "justificacion": "Ejemplo ilustrativo."
+      },
+      "solicitudes_atendidas": {
+        "resultado": "cumple",
+        "mensajes": [
+          2
+        ],
+        "justificacion": "Ejemplo ilustrativo."
+      }
+    },
+    "solucion": {
+      "informacion_correcta": {
+        "resultado": "cumple",
+        "mensajes": [
+          2
+        ],
+        "justificacion": "Ejemplo ilustrativo."
+      },
+      "informacion_completa": {
+        "resultado": "cumple",
+        "mensajes": [
+          2
+        ],
+        "justificacion": "Ejemplo ilustrativo."
+      },
+      "apego_proceso": {
+        "resultado": "cumple",
+        "mensajes": [
+          2
+        ],
+        "justificacion": "Ejemplo ilustrativo."
+      },
+      "ofrece_alternativas": {
+        "resultado": "no_aplica",
+        "mensajes": [],
+        "justificacion": "Ejemplo ilustrativo."
+      }
+    },
+    "comunicacion": {
+      "redaccion": {
+        "resultado": "cumple",
+        "mensajes": [
+          2
+        ],
+        "justificacion": "Ejemplo ilustrativo."
+      },
+      "congruencia": {
+        "resultado": "cumple",
+        "mensajes": [
+          2
+        ],
+        "justificacion": "Ejemplo ilustrativo."
+      }
+    },
+    "recapitulacion": {
+      "recapitula": {
+        "resultado": "cumple",
+        "mensajes": [
+          2
+        ],
+        "justificacion": "Ejemplo ilustrativo."
+      }
+    }
+  },
+  "insumos_hibridos": {
+    "situacion_escalamiento": {
+      "situacion_requiere_escalamiento": false,
+      "mensajes": [],
+      "justificacion": "Ejemplo ilustrativo."
+    },
+    "uso_solucion_seguimiento": {
+      "problema_resuelto_en_conversacion": true,
+      "uso_correcto": null,
+      "mensajes": [],
+      "justificacion": "Ejemplo ilustrativo."
+    }
+  },
+  "errores_ortografia": [
+    {
+      "mensaje_n": 2,
+      "texto_error": "aver",
+      "correccion": "a ver",
+      "gravedad": "grave"
+    }
+  ],
+  "primer_mensaje_info_cuenta": {
+    "mensaje_n": 2,
+    "justificacion": "Ejemplo ilustrativo."
+  },
+  "solicitudes_cliente": [
+    {
+      "descripcion": "Cancelar una factura",
+      "mensaje_n": 1,
+      "detectada_por_agente": true,
+      "atendida": true,
+      "mensajes_atencion": [
+        2
+      ],
+      "justificacion": "Ejemplo ilustrativo."
+    }
+  ],
+  "articulos_base_usados": [
+    {
+      "id_articulo": "KB-02",
+      "mensajes": [
+        2
+      ],
+      "justificacion": "Ejemplo ilustrativo."
+    }
+  ],
+  "criticos_posibles": {
+    "informacion_incorrecta": {
+      "detectado": false,
+      "mensajes": [],
+      "justificacion": "Sin evidencia en los mensajes del agente."
+    },
+    "promesa_no_autorizada": {
+      "detectado": false,
+      "mensajes": [],
+      "justificacion": "Sin evidencia en los mensajes del agente."
+    },
+    "negacion_servicio": {
+      "detectado": false,
+      "mensajes": [],
+      "justificacion": "Sin evidencia en los mensajes del agente."
+    },
+    "mala_actitud": {
+      "detectado": false,
+      "mensajes": [],
+      "justificacion": "Sin evidencia en los mensajes del agente."
+    },
+    "comentarios_negativos_marca": {
+      "detectado": false,
+      "mensajes": [],
+      "justificacion": "Sin evidencia en los mensajes del agente."
+    },
+    "confidencialidad": {
+      "detectado": false,
+      "mensajes": [],
+      "justificacion": "Sin evidencia en los mensajes del agente."
+    }
+  }
+}

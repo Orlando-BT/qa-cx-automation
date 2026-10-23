@@ -1,0 +1,165 @@
+{
+  "id_evaluacion": "EVAL-CONV-0001-reglas_ce_v1-evaluador_ce_v1",
+  "llave_dedup": "CONV-0001|reglas_ce_v1|evaluador_ce_v1",
+  "conversation_id": "CONV-0001",
+  "lote": "demo",
+  "canal": "chat",
+  "tipo_interaccion": "ce",
+  "agente": "Nombre del agente",
+  "cuenta_id": "CTA-104",
+  "version_reglas": "reglas_ce_v1",
+  "version_prompt": "evaluador_ce_v1",
+  "modelo_evaluador": "por_verificar",
+  "tema_detectado": "Cancelación de CFDI",
+  "emocion_cliente": "preocupacion",
+  "nota_base": 63.68,
+  "nota_final": 0,
+  "meta_calidad": 80,
+  "cumple_meta": false,
+  "calidad": "mala",
+  "tiene_error_critico": true,
+  "sin_mensajes_agente": false,
+  "errores_criticos": [
+    {
+      "id_critico": "critico.mala_actitud",
+      "origen": "LLM",
+      "evidencia": {
+        "mensajes": [
+          2
+        ],
+        "dato": "Ejemplo ilustrativo."
+      },
+      "justificacion": "Ejemplo ilustrativo."
+    }
+  ],
+  "secciones": [
+    {
+      "id_seccion": "apertura",
+      "peso": 5,
+      "resultado": "cumple",
+      "factor": 1,
+      "clave_fallidos": [],
+      "complementarios_aplicables": 3,
+      "complementarios_fallidos": 0
+    },
+    {
+      "id_seccion": "empatia",
+      "peso": 10,
+      "resultado": "parcial",
+      "factor": 0.5,
+      "clave_fallidos": [],
+      "complementarios_aplicables": 3,
+      "complementarios_fallidos": 1
+    },
+    {
+      "id_seccion": "diagnostico",
+      "peso": 15,
+      "resultado": "cumple",
+      "factor": 1,
+      "clave_fallidos": [],
+      "complementarios_aplicables": 3,
+      "complementarios_fallidos": 0
+    },
+    {
+      "id_seccion": "solucion",
+      "peso": 35,
+      "resultado": "parcial",
+      "factor": 0.5,
+      "clave_fallidos": [],
+      "complementarios_aplicables": 3,
+      "complementarios_fallidos": 1
+    },
+    {
+      "id_seccion": "comunicacion",
+      "peso": 13,
+      "resultado": "cumple",
+      "factor": 1,
+      "clave_fallidos": [],
+      "complementarios_aplicables": 3,
+      "complementarios_fallidos": 0
+    },
+    {
+      "id_seccion": "recapitulacion",
+      "peso": 12,
+      "resultado": "no_cumple",
+      "factor": 0,
+      "clave_fallidos": [],
+      "complementarios_aplicables": 3,
+      "complementarios_fallidos": 0
+    },
+    {
+      "id_seccion": "ayuda_adicional",
+      "peso": 5,
+      "resultado": "no_aplica",
+      "factor": null,
+      "clave_fallidos": [],
+      "complementarios_aplicables": 3,
+      "complementarios_fallidos": 0
+    },
+    {
+      "id_seccion": "cierre",
+      "peso": 5,
+      "resultado": "cumple",
+      "factor": 1,
+      "clave_fallidos": [],
+      "complementarios_aplicables": 3,
+      "complementarios_fallidos": 0
+    }
+  ],
+  "criterios": [
+    {
+      "id_criterio": "apertura.saludo",
+      "tipo_criterio": "subelemento",
+      "seccion": "apertura",
+      "origen": "JS",
+      "clasificacion": "complementario",
+      "resultado": "cumple",
+      "evidencia": {
+        "mensajes": [
+          2
+        ],
+        "dato": "frase detectada"
+      },
+      "justificacion": "Ejemplo ilustrativo."
+    },
+    {
+      "id_criterio": "identidad.pide_datos",
+      "tipo_criterio": "identidad",
+      "seccion": "identidad",
+      "origen": "JS",
+      "clasificacion": null,
+      "resultado": "no_aplica",
+      "evidencia": {
+        "mensajes": [],
+        "dato": "bloque de identidad no aplica"
+      },
+      "justificacion": "Ejemplo ilustrativo."
+    },
+    {
+      "id_criterio": "critico.mala_actitud",
+      "tipo_criterio": "critico",
+      "seccion": "critico",
+      "origen": "LLM",
+      "clasificacion": null,
+      "resultado": "detectado",
+      "evidencia": {
+        "mensajes": [
+          2
+        ],
+        "dato": "Ejemplo ilustrativo."
+      },
+      "justificacion": "Ejemplo ilustrativo."
+    }
+  ],
+  "consumo": {
+    "tokens_entrada": 5000,
+    "tokens_salida": 900,
+    "intentos_llm": 1,
+    "costo_usd": null
+  },
+  "marcas_tiempo": {
+    "recibido_en": "2026-10-21T10:05:00-06:00",
+    "iniciado_en": "2026-10-21T10:05:01-06:00",
+    "evaluado_en": "2026-10-21T10:05:20-06:00"
+  }
+}

@@ -1,0 +1,172 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qa-cx-automation.example/contrato/payload.schema.json",
+  "title": "Payload del webhook de Ingesta",
+  "description": "Conversación de soporte por chat que recibe el Workflow 1 (Ingesta). Solo contiene datos observables de la conversación y del caso; nunca la verdad del escenario (calidad esperada, errores inyectados). El lote NO viaja en el cuerpo: llega como parámetro de consulta ?lote= (ver glosario.md). Reglas que este esquema no puede expresar y que valida JS en Ingesta: (1) los valores de n son consecutivos desde 1 y únicos; (2) los timestamps son fechas reales y no decrecen al ordenar por n; (3) cuenta_id existe en la hoja cuentas.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "conversation_id",
+    "canal",
+    "tipo_interaccion",
+    "agente",
+    "cuenta_id",
+    "metadatos_caso",
+    "mensajes"
+  ],
+  "properties": {
+    "conversation_id": {
+      "description": "Identificador único de la conversación. Nombre en inglés conservado del payload original (excepción registrada en glosario.md).",
+      "type": "string",
+      "pattern": "^CONV-[0-9]{4,}$"
+    },
+    "canal": {
+      "description": "Canal de atención. Determina qué bloque de tiempos de config se aplica.",
+      "type": "string",
+      "enum": [
+        "chat"
+      ]
+    },
+    "tipo_interaccion": {
+      "description": "Tipo de interacción: ce (Customer Experience) o sales (Sales). Valores en inglés a propósito (excepción registrada en glosario.md). Determina la rúbrica (config por tipo). En esta versión solo ce tiene rúbrica; sales es válido pero no se evalúa.",
+      "type": "string",
+      "enum": [
+        "ce",
+        "sales"
+      ]
+    },
+    "agente": {
+      "description": "Nombre del agente tal como se presenta al cliente.",
+      "type": "string",
+      "minLength": 1
+    },
+    "cuenta_id": {
+      "description": "Cuenta del cliente en la hoja cuentas.",
+      "type": "string",
+      "pattern": "^CTA-[0-9]{3,}$"
+    },
+    "metadatos_caso": {
+      "description": "Datos que el agente registró en el sistema de casos al atender la conversación.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tipificacion_agente",
+        "numero_caso",
+        "estado_caso",
+        "escalado",
+        "campos_capturados"
+      ],
+      "properties": {
+        "tipificacion_agente": {
+          "description": "Tipificación elegida por el agente. Se compara contra catalogo_temas.tipificacion_valida (puede ser incorrecta a propósito).",
+          "type": "string",
+          "minLength": 1
+        },
+        "numero_caso": {
+          "description": "Número de caso generado. null significa que el agente no generó caso (dispara critico.no_genera_caso). Debe ir presente aunque sea null.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^CASO-[0-9]{5}$"
+        },
+        "estado_caso": {
+          "description": "Estado del caso al terminar la conversación. sin_caso si y solo si numero_caso es null.",
+          "type": "string",
+          "enum": [
+            "abierto",
+            "en_seguimiento",
+            "cerrado",
+            "sin_caso"
+          ]
+        },
+        "escalado": {
+          "description": "true si el agente escaló el caso.",
+          "type": "boolean"
+        },
+        "campos_capturados": {
+          "description": "Campos del caso capturados por el agente. Llave: nombre del campo según catalogo_temas.campos_obligatorios; valor: presente o ausente. Puede estar vacío.",
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "enum": [
+              "presente",
+              "ausente"
+            ]
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "numero_caso": {
+            "type": "null"
+          }
+        },
+        "required": [
+          "numero_caso"
+        ]
+      },
+      "then": {
+        "properties": {
+          "estado_caso": {
+            "const": "sin_caso"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "estado_caso": {
+            "enum": [
+              "abierto",
+              "en_seguimiento",
+              "cerrado"
+            ]
+          }
+        }
+      }
+    },
+    "mensajes": {
+      "description": "Mensajes de la conversación en orden. Texto original, sin enmascarar.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "n",
+          "emisor",
+          "timestamp",
+          "texto"
+        ],
+        "properties": {
+          "n": {
+            "description": "Número de mensaje, consecutivo desde 1.",
+            "type": "integer",
+            "minimum": 1
+          },
+          "emisor": {
+            "description": "Quién envía el mensaje.",
+            "type": "string",
+            "enum": [
+              "cliente",
+              "agente"
+            ]
+          },
+          "timestamp": {
+            "description": "Hora local sin zona horaria, formato YYYY-MM-DDTHH:MM:SS. La zona está en config.zona_horaria.",
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}$"
+          },
+          "texto": {
+            "description": "Contenido del mensaje.",
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}
