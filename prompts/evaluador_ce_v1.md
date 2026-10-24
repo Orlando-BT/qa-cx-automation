@@ -9,7 +9,7 @@
 | Muestreo | Decisión del dueño: temperatura 0 (`config.llm_temperatura`). La prueba A del 23-oct-2026 mostró que `gpt-6-luna` rechaza `temperature`, así que con este modelo JS-4 envía `reasoning: {effort: "none"}` (`config.llm_esfuerzo_razonamiento`) y no envía `temperature`. Si `llm_esfuerzo_razonamiento` está vacía, JS-4 envía `temperature` = `config.llm_temperatura`. Lo decide JS-4 (`js/construccion_prompt.js`) con `config`, no este texto. |
 | Costo estimado por conversación | **SUPUESTO**: entre USD 0.0026 y 0.0035 por intento (cálculo abajo). |
 | Autor | subagente `evaluador-llm`, Fase 1 |
-| Revisión | 23-oct-2026: ajuste al contrato del commit ab7d370 (RFC genéricos en confidencialidad; el número de caso de la conversación actual no es información de la cuenta; el contenido de casos anteriores sí lo es, `rubrica.md` sección de identidad, `info_n`). Sin cambio de nombre de versión: ninguna conversación se ha evaluado todavía, igual que `reglas_ce_v1` (`config.md`, notas de diseño). `evaluador_ce_v1` se congela al cerrar la Fase 1. |
+| Revisión | 23-oct-2026: ajuste al contrato del commit ba53913 (RFC genéricos en confidencialidad; el número de caso de la conversación actual no es información de la cuenta; el contenido de casos anteriores sí lo es, `rubrica.md` sección de identidad, `info_n`). Sin cambio de nombre de versión: ninguna conversación se ha evaluado todavía, igual que `reglas_ce_v1` (`config.md`, notas de diseño). `evaluador_ce_v1` se congela al cerrar la Fase 1. |
 
 ## Costo estimado (SUPUESTO, no medición)
 

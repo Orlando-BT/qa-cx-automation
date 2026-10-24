@@ -9,7 +9,7 @@
 | Muestreo | **No se envía `temperature`** (la API la rechaza desde 2026-10-21). La variedad sale de los parámetros del escenario. |
 | Costo estimado por conversación | No disponible: precios del generador sin verificar; estimación de costo no disponible hasta verificarlos |
 | Autor | subagente `evaluador-llm`, Fase 1 |
-| Revisión | 23-oct-2026: ajuste al contrato del commit ab7d370 (identidad con `identidad_min_datos_correctos`, datos alternativos y declinación; número de caso fuera de la validación; RFC genéricos; plazos sin minutos y con cifras; `max_tokens_generador`). Sin cambio de nombre de versión: el simulador todavía no ha generado conversaciones. `generador_ce_v1` se congela al cerrar la Fase 1. |
+| Revisión | 23-oct-2026: ajuste al contrato del commit ba53913 (identidad con `identidad_min_datos_correctos`, datos alternativos y declinación; número de caso fuera de la validación; RFC genéricos; plazos sin minutos y con cifras; `max_tokens_generador`). Sin cambio de nombre de versión: el simulador todavía no ha generado conversaciones. `generador_ce_v1` se congela al cerrar la Fase 1. |
 
 ## Costo estimado (SUPUESTO, no medición)
 

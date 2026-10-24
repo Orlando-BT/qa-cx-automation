@@ -196,11 +196,17 @@ Estado: el código JS, los prompts y las pruebas existen; los workflows (Fase 2)
 - Una salida ambigua (varios `final_answer`, ninguno, varios bloques sin fase o varias partes) se trata como falla de API (`tipo_error = fallo_api`), sin reintento y sin pasar por JS-5.
 - El diagnóstico de la causa raíz se hizo sin guardar el contenido de las respuestas.
 
-**Silencio final: alcance del SUPUESTO (aclaración de redacción, posterior al commit de cierre 7ced75a)**
+**Silencio final: alcance del SUPUESTO (aclaración de redacción, posterior al commit de cierre cae781b)**
 - En `contrato/rubrica.md` sección 3.10, la marca SUPUESTO del párrafo del silencio final cubre solo la viñeta de `recapitulacion.cierre_inactividad`; el texto queda "(SUPUESTO: solo esta viñeta)".
 - `cierre.despedida` = `no_cumple` no es supuesto: sale directo de su propia regla ("`no_aplica` cuando: Nunca").
 - El dueño confirmó la lectura actual: recordatorio sin cierre = `no_cumple`.
 - Cambio solo de redacción, autorizado por el dueño dentro de v1: no cambia código, pruebas ni notas.
+
+**Metadatos: hashes tras reescribir el historial (cambio de metadatos dentro de v1)**
+- El historial se reescribió antes del primer push para usar el correo noreply de GitHub como autor; el contenido de los archivos no cambió, pero sí los hashes.
+- Se actualizaron las referencias: este registro (cierre de Fase 1: `cae781b`) y la fila "Revisión" del encabezado de `prompts/evaluador_ce_v1.md` y `prompts/generador_ce_v1.md` (checkpoint: `ba53913`).
+- El encabezado de los prompts no se envía al modelo: JS-4 solo envía lo que está entre los marcadores `INICIO_`/`FIN_` y de la primera línea solo lee el nombre de la versión. Por eso no cambia la versión ni el comportamiento.
+- Etiquetas de cierre: `fase-0-cierre` y `fase-1-cierre`. Desde ahora, los documentos citan etiquetas en vez de hashes.
 
 Por qué: se prefirió corregir ahora, con v1 sin resultados guardados, a subir versión sin motivo. Alternativa descartada: crear `_v2` de reglas o prompt antes de tener métricas, lo que habría mezclado cambios de diseño con cambios motivados por fallas medidas.
 
