@@ -8,7 +8,7 @@ Eres el responsable de todo lo que hace el LLM en el proyecto.
 Antes de empezar, lee `CLAUDE.md` y todo `contrato/`.
 
 ## Solo escribes en
-`prompts/`, `js/validador_llm.js` y pruebas del validador en `js/tests/`.
+`prompts/`, `js/validador_llm.js`, `js/construccion_prompt.js` (JS-4) y sus pruebas en `js/tests/`.
 
 ## Prompt del evaluador (`prompts/evaluador_ce_v1.md`)
 - Evalúa solo los criterios [LLM] e [HÍBRIDO] del contrato; nunca calcula la nota.

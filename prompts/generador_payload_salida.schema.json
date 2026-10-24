@@ -1,0 +1,120 @@
+{
+  "type": "object",
+  "description": "Salida estructurada del generador del simulador (generador_ce_v1, Anthropic Messages API, output_config.format json_schema). Versión simplificada de contrato/payload.schema.json, compatible con la salida estructurada de Anthropic: sin minimum/maximum, minLength/maxLength, pattern, propertyNames, if/then/else ni additionalProperties distinto de false. Única diferencia de forma con el payload: metadatos_caso.campos_capturados es una lista de {campo, estado} en lugar de un objeto. validador_payload.js (reglas-js) convierte la lista en objeto y valida el resultado contra el esquema completo (patrones, n consecutivos, timestamps no decrecientes, sin_caso si y solo si numero_caso es null). Nunca contiene la verdad del escenario.",
+  "additionalProperties": false,
+  "required": [
+    "conversation_id",
+    "canal",
+    "tipo_interaccion",
+    "agente",
+    "cuenta_id",
+    "metadatos_caso",
+    "mensajes"
+  ],
+  "properties": {
+    "conversation_id": {
+      "type": "string",
+      "description": "Copia exacta del conversation_id recibido (formato CONV-nnnn)."
+    },
+    "canal": {
+      "type": "string",
+      "enum": ["chat"],
+      "description": "Canal de atención."
+    },
+    "tipo_interaccion": {
+      "type": "string",
+      "enum": ["ce"],
+      "description": "Tipo de interacción. Este generador (generador_ce_v1) solo produce ce."
+    },
+    "agente": {
+      "type": "string",
+      "description": "Nombre y apellido ficticios del agente, tal como se presenta al cliente."
+    },
+    "cuenta_id": {
+      "type": "string",
+      "description": "Copia exacta del cuenta_id recibido (formato CTA-nnn)."
+    },
+    "metadatos_caso": {
+      "type": "object",
+      "description": "Datos que el agente registró en el sistema de casos.",
+      "additionalProperties": false,
+      "required": [
+        "tipificacion_agente",
+        "numero_caso",
+        "estado_caso",
+        "escalado",
+        "campos_capturados"
+      ],
+      "properties": {
+        "tipificacion_agente": {
+          "type": "string",
+          "description": "Tipificación elegida por el agente; una tipificacion_valida del catálogo."
+        },
+        "numero_caso": {
+          "anyOf": [
+            { "type": "string", "description": "Formato CASO- seguido de 5 dígitos." },
+            { "type": "null" }
+          ],
+          "description": "Número de caso, o null si el agente no generó caso."
+        },
+        "estado_caso": {
+          "type": "string",
+          "enum": ["abierto", "en_seguimiento", "cerrado", "sin_caso"],
+          "description": "sin_caso si y solo si numero_caso es null."
+        },
+        "escalado": {
+          "type": "boolean",
+          "description": "true si el agente escaló el caso."
+        },
+        "campos_capturados": {
+          "type": "array",
+          "description": "Un elemento por campo capturado (los campos_obligatorios de la tipificación). validador_payload.js lo convierte en el objeto {campo: estado} del payload.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["campo", "estado"],
+            "properties": {
+              "campo": {
+                "type": "string",
+                "description": "Nombre del campo en snake_case, tal como aparece en campos_obligatorios del catálogo."
+              },
+              "estado": {
+                "type": "string",
+                "enum": ["presente", "ausente"],
+                "description": "presente o ausente."
+              }
+            }
+          }
+        }
+      }
+    },
+    "mensajes": {
+      "type": "array",
+      "description": "Mensajes de la conversación en orden, con n consecutivo desde 1.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["n", "emisor", "timestamp", "texto"],
+        "properties": {
+          "n": {
+            "type": "integer",
+            "description": "Número de mensaje, consecutivo desde 1."
+          },
+          "emisor": {
+            "type": "string",
+            "enum": ["cliente", "agente"],
+            "description": "Quién envía el mensaje."
+          },
+          "timestamp": {
+            "type": "string",
+            "description": "Hora local sin zona, formato YYYY-MM-DDTHH:MM:SS. No decrece al avanzar n."
+          },
+          "texto": {
+            "type": "string",
+            "description": "Contenido del mensaje, sin acotaciones ni comentarios fuera de la conversación."
+          }
+        }
+      }
+    }
+  }
+}

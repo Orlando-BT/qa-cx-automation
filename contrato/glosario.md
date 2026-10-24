@@ -172,6 +172,8 @@ Agrupa frases o términos que usa una regla JS. Cada fila de `listas` tiene una 
 | `despedida` | `frase_criterio` | `cierre.despedida`, `critico.abandono` |
 | `pide_datos_identidad` | `frase_criterio` | `identidad.pide_datos` |
 | `declina_validacion` | `frase_criterio` | `identidad.datos_coinciden` |
+| `pide_numero_caso` | `frase_criterio` | `identidad.datos_coinciden` (el mensaje que coincide cuenta como "sigue pidiendo datos"; no cuenta como `identidad.pide_datos`). Exige verbo de solicitud; única excepción aprobada: la forma elíptica "numero de caso, por favor" y "¿numero de caso?" (texto normalizado: se quitan acentos y mayúsculas, se conservan "¿", "?" y la coma) |
+| `dato_de_tercero` | `frase_criterio` | `identidad.datos_coinciden`, vía la definición de "mensaje del cliente que aporta datos de identidad" (`rubrica.md` sección 4). Se aplica a la cláusula del mensaje del **cliente** (delimitada por `.` `?` `!` `;` o salto de línea) donde JS-2 extrae un correo, RFC o teléfono: si la cláusula coincide, ese dato se marca de tercero y no cuenta como dato de identidad aportado. **Nunca** se aplica a un dato que coincide con la cuenta (regla del dueño, 23-oct-2026). Confidencialidad: no afecta a `critico.confidencialidad` (solo se evalúa en mensajes del cliente; el dato de un tercero que revela el agente sigue su propia regla en `rubrica.md`) |
 | `plazo_seguimiento` | `frase_criterio` | `solucion.seguimiento_en_plazo` (expresión regular que captura el número, el rango y la unidad; no reconoce minutos, que no son plazo de seguimiento: `rubrica.md` 3.11) |
 | `numero_en_palabras` | `frase_criterio` | `solucion.seguimiento_en_plazo`: JS la aplica **antes** de `plazo_seguimiento` para convertir números escritos con palabras en cifras (ver convención debajo de esta tabla) |
 | `termino_prohibido` | `termino_prohibido` | `comunicacion.tecnicismos` (tecnicismos y nombres de sistemas internos) |
@@ -231,7 +233,7 @@ Reglas adicionales:
 | `meta_calidad` | Meta de calidad (80). |
 | `cumple_meta` | Compara `nota_final` con `meta_calidad` según `config.meta_comparacion_inclusiva` (por defecto ≥). |
 | `calidad` (buena, regular, mala) | Banda derivada de `nota_final` y críticos (ver `rubrica.md` 2.4). |
-| `primer_mensaje_info_cuenta` | Número del primer mensaje del agente que revela información de la cuenta del cliente (lo identifica el LLM). |
+| `primer_mensaje_info_cuenta` | Número del primer mensaje del agente que revela información de la cuenta del cliente (lo identifica el LLM). Comunicar el número de caso de la conversación actual NO es información de la cuenta; revelar el contenido de casos anteriores SÍ lo es. |
 | `termina_por_inactividad` | `true` si hay un recordatorio de inactividad del agente, seguido de un cierre por inactividad del agente, sin mensajes del cliente entre ambos. Con `true`, JS impone `no_aplica` en `recapitulacion.recapitula`, `recapitulacion.uso_solucion_seguimiento` y toda la sección `ayuda_adicional` (ver `rubrica.md` 3.10). |
 | abandono del agente | Mensaje del cliente sin respuesta posterior del agente, salvo que el agente ya se hubiera despedido o cerrado por inactividad antes de ese mensaje (`critico.abandono`). |
 | `requiere` (escalamiento) | Si la conversación requiere escalamiento. Lo calcula JS con `catalogo_temas.requiere_escalamiento` y, cuando el catálogo dice `segun_caso`, con el insumo del LLM (ver `rubrica.md` 3.4). |

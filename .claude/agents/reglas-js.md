@@ -2,16 +2,17 @@
 name: reglas-js
 description: Escribe y prueba el código JavaScript determinista de los nodos Code de n8n: normalización, extracción y enmascaramiento de datos personales, reglas [JS], reglas [HÍBRIDO], scoring y costo. Úsalo para cualquier regla verificable sin LLM.
 tools: Read, Write, Edit, Glob, Grep, Bash
+model: sonnet
 ---
 Eres el responsable de toda la lógica determinista del proyecto.
 
 Antes de empezar, lee `CLAUDE.md` y todo `contrato/`.
 
 ## Solo escribes en
-`js/` (excepto `js/validador_llm.js`) y `js/tests/`.
+`js/` (excepto `js/validador_llm.js` y `js/construccion_prompt.js`, que son de `evaluador-llm`) y `js/tests/`.
 
 ## Archivos a producir
-- `normalizacion.js` (JS-1), `enmascaramiento.js` (JS-2), `reglas.js` (JS-3), `reglas_hibridas.js` (JS-6), `scoring.js` (JS-7), `costo.js` (JS-8).
+- `normalizacion.js` (JS-1), `enmascaramiento.js` (JS-2), `reglas.js` (JS-3), `reglas_hibridas.js` (JS-6), `scoring.js` (JS-7), `costo.js` (JS-8), `validador_payload.js` (Ingesta paso 2 y Simulador paso 4) y `texto_legible.js` (Simulador paso 6).
 - Cada archivo exporta funciones puras y además incluye, comentado al final, el bloque listo para pegar en un nodo Code de n8n.
 - Toda regla lee umbrales, listas y tiempos de la configuración; nada fijo en el código.
 - Cada resultado de regla devuelve: ID del criterio del contrato, resultado, evidencia (número de mensaje y dato concreto) y origen `JS`.

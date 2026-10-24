@@ -1,0 +1,153 @@
+flowchart TD
+
+  %% Actores y servicios externos
+  HUMANO["Dueno del proyecto: califica a ciegas"]
+  CLAUDE["API Anthropic: generador del simulador"]
+  OPENAI["API OpenAI: evaluador"]
+  TG["Telegram: solo envio de alertas"]
+
+  %% Hojas de Google Sheets (nombres exactos del contrato)
+  subgraph SHEETS["Libro de Google Sheets"]
+    H_config[("config")]
+    H_listas[("listas")]
+    H_catalogo[("catalogo_temas")]
+    H_base[("base_conocimiento")]
+    H_cuentas[("cuentas")]
+    H_conv[("conversaciones")]
+    H_esc[("escenarios")]
+    H_rev[("revision_humana")]
+    H_eval[("evaluaciones")]
+    H_det[("detalle_criterios")]
+    H_log[("log_errores")]
+    H_alert[("alertas")]
+    H_met[("metricas")]
+  end
+
+  %% Workflow 0
+  subgraph W0["W0 Simulador"]
+    W0a["Form Trigger: tema, calidad, error critico, cantidad, lote"]
+    W0b["JS: completar escenario, elegir cuenta, generar ID"]
+    W0c["Claude API: generar conversacion"]
+    W0d["JS: validar estructura y timestamps, 1 reintento"]
+    W0e["JS: texto legible para revision humana"]
+    W0f["HTTP Request: POST a Ingesta con ?lote="]
+    W0a --> W0b --> W0c --> W0d --> W0e --> W0f
+  end
+
+  %% Workflow 1
+  subgraph W1["W1 Ingesta"]
+    W1a["Webhook POST: acuse de recibido inmediato"]
+    W1m["Disparador manual de calibracion: lote y version"]
+    W1b["JS: validar payload"]
+    W1c["Deduplicar por ID, version de reglas y version de prompt"]
+    W1d["Guardar como pendiente"]
+    W1e{"Lote de calibracion?"}
+    W1f["Execute Workflow: llamar a Evaluacion"]
+    W1g["Crear filas pendientes de la version y pasarlas una por una"]
+    W1a --> W1b
+    W1b -- "valido" --> W1c --> W1d --> W1e
+    W1e -- "no, o evaluar_al_ingerir_calibracion = si" --> W1f
+    W1e -- "si: queda pendiente sin evaluar" --> FIN1["Fin"]
+    W1m --> W1g --> W1f
+  end
+
+  %% Workflow 2
+  subgraph W2["W2 Evaluacion"]
+    W2a["Cargar config, listas, catalogo, base y cuenta"]
+    W2b["JS-1 Normalizacion"]
+    W2c["JS-2 Extraccion y enmascaramiento"]
+    W2d["JS-3 Reglas deterministas"]
+    W2e["JS-4 Construccion del prompt"]
+    W2f["OpenAI: temperatura 0, salida JSON estructurada"]
+    W2g{"JS-5 Validacion de la respuesta"}
+    W2h["Reenviar con el error explicado, maximo 2 intentos"]
+    W2i["JS-6 Reglas hibridas"]
+    W2j["JS-7 Scoring"]
+    W2k["JS-8 Costo"]
+    W2l["Guardar resultados y marcar evaluada"]
+    W2m["Alertas de calidad y de costo"]
+    W2n["Salida de error: respuesta del LLM invalida"]
+    W2a --> W2b --> W2c --> W2d --> W2e --> W2f --> W2g
+    W2g -- "valida" --> W2i --> W2j --> W2k --> W2l --> W2m
+    W2g -- "invalida" --> W2h
+    W2h -- "reintento" --> W2f
+    W2h -- "sigue fallando" --> W2n
+  end
+
+  %% Workflow de errores
+  subgraph WE["WE Errores"]
+    WEa["Error Trigger"]
+    WEb["Registrar workflow, nodo, mensaje y conversacion"]
+    WEc["Alerta operativa"]
+    WEa --> WEb --> WEc
+  end
+
+  %% Workflow 3
+  subgraph W3["W3 Metricas de calibracion"]
+    W3a["Disparador manual: lote"]
+    W3b["Calcular metricas con filas calificadas"]
+    W3c{"Acuerdo bajo el umbral?"}
+    W3d["Alerta de calibracion"]
+    W3a --> W3b --> W3c
+    W3c -- "si" --> W3d
+  end
+
+  %% Flujo entre workflows
+  W0f -- "payload + ?lote=" --> W1a
+  W1f --> W2a
+  W1b -- "invalido" --> W1err["Registrar payload invalido y alerta operativa"]
+
+  %% Claude y OpenAI
+  CLAUDE -.-> W0c
+  OPENAI -.-> W2f
+
+  %% Lecturas y escrituras de hojas: W0
+  H_cuentas --> W0b
+  H_catalogo --> W0c
+  H_base --> W0c
+  H_config --> W0a
+  W0d -- "falla tras reintento" --> H_log
+  W0c -- "verdad del escenario" --> H_esc
+  W0e -- "texto legible, columnas vacias" --> H_rev
+
+  %% W1
+  W1c <--> H_conv
+  W1d --> H_conv
+  W1err --> H_log
+  W1g --> H_conv
+  H_cuentas --> W1b
+  H_config --> W1c
+
+  %% W2
+  H_config --> W2a
+  H_listas --> W2a
+  H_catalogo --> W2a
+  H_base --> W2a
+  H_cuentas --> W2a
+  H_conv --> W2a
+  W2l --> H_eval
+  W2l --> H_det
+  W2l --> H_conv
+  W2n --> H_log
+
+  %% W3
+  H_eval --> W3b
+  H_rev --> W3b
+  H_esc --> W3b
+  W3b --> H_met
+  H_config --> W3c
+  W3b -- "error de calculo" --> H_log
+
+  %% Errores
+  WEb --> H_log
+
+  %% Revision humana
+  HUMANO -. "califica sin ver evaluaciones ni escenarios" .-> H_rev
+
+  %% Alertas por Telegram y registro en alertas
+  W1err --> TG
+  W2n --> TG
+  W2m -- "error critico o costo" --> TG
+  W3d --> TG
+  WEc --> TG
+  TG -. "toda alerta enviada se registra (W0, W1, W2, W3 y WE escriben alertas)" .-> H_alert

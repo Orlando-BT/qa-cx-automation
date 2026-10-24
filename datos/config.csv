@@ -66,9 +66,9 @@ precio_entrada_usd_millon_evaluador,todos,0.10,decimal,Precio de tokens de entra
 precio_salida_usd_millon_evaluador,todos,0.50,decimal,Precio de tokens de salida de gpt-6-luna. Verificado el 22-oct-2026 en developers.openai.com/api/docs/pricing.,no
 precio_entrada_usd_millon_generador,todos,por_verificar,decimal,Precio de tokens de entrada del modelo generador.,si
 precio_salida_usd_millon_generador,todos,por_verificar,decimal,Precio de tokens de salida del modelo generador.,si
-costo_estimado_por_evaluacion_usd,todos,pendiente_fase_1,decimal,"Costo esperado de una evaluación; base de la alerta de costo relativo. Mientras esté en pendiente_fase_1, esa alerta no se evalúa.",no
+costo_estimado_por_evaluacion_usd,todos,0.005,decimal,"PROVISIONAL (23-oct-2026), a recalcular con las 24 conversaciones de calibracion_v1 en la Fase 4. Costo esperado de una evaluación; base de la alerta de costo relativo. Base de cálculo: prueba B real (gpt-6-luna, 0.10/0.50 USD por millón, 5 evaluaciones en 3 corridas): ~0.002 sin bloque commentary, ~0.005 con commentary.",no
 multiplicador_alerta_costo,todos,2,decimal,Alerta de costo si costo_usd > multiplicador × costo_estimado_por_evaluacion_usd.,no
-tope_costo_lote_usd,todos,pendiente_fase_1,decimal,"Alerta de costo si el costo acumulado de un lote supera este tope. Mientras esté en pendiente_fase_1, esa alerta no se evalúa.",no
+tope_costo_lote_usd,todos,0.25,decimal,"PROVISIONAL (23-oct-2026), a recalcular con las 24 conversaciones de calibracion_v1 en la Fase 4. Alerta de costo si el costo acumulado de un lote supera este tope. Base de cálculo: 24 x 0.005 = 0.12, con margen 2x para reintentos.",no
 umbral_acuerdo_global,todos,0.80,decimal,Alerta de calibración si el acuerdo global es menor.,no
 umbral_diferencia_nota,todos,5,decimal,Alerta de calibración si la diferencia promedio absoluta de nota sistema-humano es mayor.,no
 precision_criticos_referencia,todos,0.95,decimal,Meta de referencia de precisión de errores críticos. Solo se reporta; no dispara alerta.,no

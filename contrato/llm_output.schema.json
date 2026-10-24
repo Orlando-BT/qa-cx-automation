@@ -764,7 +764,7 @@
     },
     "primer_mensaje_info_cuenta": {
       "type": "object",
-      "description": "Primer mensaje del agente que revela información de la cuenta del cliente (datos fiscales, facturas, pagos, usuarios, configuración, estado de la suscripción).",
+      "description": "Primer mensaje del agente que revela información de la cuenta del cliente (datos fiscales, facturas, pagos, usuarios, configuración, estado de la suscripción). Comunicar el número de caso de la conversación actual NO es información de la cuenta; revelar el contenido de casos anteriores SÍ lo es.",
       "additionalProperties": false,
       "required": [
         "mensaje_n",

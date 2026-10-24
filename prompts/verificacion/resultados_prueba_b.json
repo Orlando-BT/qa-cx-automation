@@ -1,0 +1,88 @@
+{
+  "fecha_ejecucion": "2026-10-24T00:41:58.751Z",
+  "node": "v24.18.0",
+  "modelo_solicitado": "gpt-6-luna",
+  "version_prompt": "evaluador_ce_v1",
+  "precios_usd_millon": {
+    "modelo": "gpt-6-luna",
+    "entrada": 0.1,
+    "salida": 0.5
+  },
+  "parametros": {
+    "origen": "resultados_prueba_a.json",
+    "temperature": null,
+    "reasoning": {
+      "effort": "none"
+    },
+    "claves_quitadas_del_esquema": [],
+    "max_output_tokens": 8000
+  },
+  "entrada": {
+    "payload": "contrato/ejemplos/payload_ejemplo.json",
+    "termina_por_inactividad": true,
+    "origen_termina_por_inactividad": "JS-3 (js/reglas.js)",
+    "nota": "El payload de ejemplo tiene textos de relleno (\"...\"): la conversación es mínima, así que el costo medido subestima una conversación real (faltan unos 800 a 1,500 tokens de entrada de la conversación).",
+    "caracteres_instrucciones": 19762,
+    "caracteres_entrada": 14458,
+    "caracteres_esquema": 24318,
+    "mensajes_conversacion": 10
+  },
+  "intentos": [
+    {
+      "intento": 1,
+      "http_status": 200,
+      "status": "completed",
+      "input_tokens": 13750,
+      "cached_tokens": 10180,
+      "output_tokens": 7492,
+      "reasoning_tokens": 0,
+      "costo_usd": 0.005121,
+      "valido": false,
+      "errores": [
+        "La respuesta no es un JSON válido: hay texto después del objeto JSON (el objeto termina en la posición 5813 de 31604). Responde solo con UN objeto JSON completo del esquema, sin texto antes ni después."
+      ],
+      "estructura_salida": {
+        "items_por_tipo": {
+          "message": 2
+        },
+        "mensajes": 2,
+        "partes_output_text": 2,
+        "fases": [
+          "commentary",
+          "final_answer"
+        ],
+        "incompleto_por": null
+      }
+    },
+    {
+      "intento": 2,
+      "http_status": 200,
+      "status": "completed",
+      "input_tokens": 21339,
+      "cached_tokens": 13747,
+      "output_tokens": 1310,
+      "reasoning_tokens": 0,
+      "costo_usd": 0.002789,
+      "valido": true,
+      "errores": [],
+      "estructura_salida": {
+        "items_por_tipo": {
+          "message": 1
+        },
+        "mensajes": 1,
+        "partes_output_text": 1,
+        "fases": [
+          "final_answer"
+        ],
+        "incompleto_por": null
+      }
+    }
+  ],
+  "totales": {
+    "intentos_llm": 2,
+    "valida_al_final": true,
+    "tokens_entrada": 35089,
+    "tokens_salida": 8802,
+    "costo_usd": 0.00791
+  }
+}

@@ -1,0 +1,120 @@
+{
+  "fecha_ejecucion": "2026-10-23T16:21:48.304Z",
+  "node": "v24.18.0",
+  "modelo_solicitado": "gpt-6-luna",
+  "precios_usd_millon": {
+    "modelo": "gpt-6-luna",
+    "entrada": 0.1,
+    "salida": 0.5,
+    "fuente": "developers.openai.com, verificado por el orquestador el 22-oct-2026"
+  },
+  "conclusion": {
+    "aceptado": true,
+    "variante_esquema_aceptada": "esquema tal cual (contrato/llm_output.schema.json)",
+    "claves_que_hubo_que_quitar": [],
+    "parametros_aceptados": "sin temperature, reasoning.effort none",
+    "rechazos_observados": [
+      {
+        "intento": 1,
+        "http_status": 400,
+        "categoria": "temperature",
+        "claves_mencionadas_en_error": [
+          "temperature"
+        ],
+        "mensaje_literal": "Unsupported parameter: 'temperature' is not supported with this model."
+      }
+    ]
+  },
+  "costo_total_usd": 0.001214,
+  "intentos": [
+    {
+      "intento": 1,
+      "prueba": "A1",
+      "parametros_enviados": {
+        "endpoint": "POST https://api.openai.com/v1/responses",
+        "model": "gpt-6-luna",
+        "temperature": 0,
+        "reasoning": "(no enviado)",
+        "text_format": {
+          "type": "json_schema",
+          "name": "evaluacion_ce",
+          "strict": true
+        },
+        "max_output_tokens": 8000,
+        "store": false,
+        "variante_esquema": "esquema tal cual (contrato/llm_output.schema.json)",
+        "claves_quitadas_del_esquema": []
+      },
+      "http_status": 400,
+      "exito": false,
+      "error": {
+        "mensaje_literal": "Unsupported parameter: 'temperature' is not supported with this model.",
+        "type": "invalid_request_error",
+        "param": "temperature",
+        "code": null
+      },
+      "clasificacion_error": {
+        "categoria": "temperature",
+        "claves_mencionadas": [
+          "temperature"
+        ]
+      }
+    },
+    {
+      "intento": 2,
+      "prueba": "A3",
+      "parametros_enviados": {
+        "endpoint": "POST https://api.openai.com/v1/responses",
+        "model": "gpt-6-luna",
+        "temperature": "(no enviado)",
+        "reasoning": {
+          "effort": "none"
+        },
+        "text_format": {
+          "type": "json_schema",
+          "name": "evaluacion_ce",
+          "strict": true
+        },
+        "max_output_tokens": 8000,
+        "store": false,
+        "variante_esquema": "esquema tal cual (contrato/llm_output.schema.json)",
+        "claves_quitadas_del_esquema": []
+      },
+      "http_status": 200,
+      "exito": true,
+      "error": null,
+      "respuesta": {
+        "status": "completed",
+        "incomplete_details": null,
+        "modelo_reportado": "gpt-6-luna",
+        "temperature_reportada": 1,
+        "reasoning_reportado": {
+          "context": "all_turns",
+          "effort": "none",
+          "mode": "standard",
+          "summary": null
+        },
+        "usage": {
+          "input_tokens": 5888,
+          "input_tokens_details": {
+            "cache_write_tokens": 5885,
+            "cached_tokens": 0
+          },
+          "output_tokens": 1250,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 7138
+        },
+        "input_tokens": 5888,
+        "output_tokens": 1250,
+        "reasoning_tokens": 0,
+        "hubo_refusal": false,
+        "longitud_texto_salida": 5285,
+        "salida_parsea_json": true,
+        "claves_raiz_faltantes": []
+      },
+      "costo_usd": 0.0012138000000000001
+    }
+  ]
+}

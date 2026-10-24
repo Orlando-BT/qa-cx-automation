@@ -156,9 +156,9 @@ Los precios se expresan en USD por millón de tokens.
 | `precio_salida_usd_millon_evaluador` | `0.50` | decimal | Precio de tokens de salida de `gpt-6-luna`. Verificado el 22-oct-2026 en developers.openai.com/api/docs/pricing. | no |
 | `precio_entrada_usd_millon_generador` | `por_verificar` | decimal | Precio de tokens de entrada del modelo generador. | si |
 | `precio_salida_usd_millon_generador` | `por_verificar` | decimal | Precio de tokens de salida del modelo generador. | si |
-| `costo_estimado_por_evaluacion_usd` | `pendiente_fase_1` | decimal | Costo esperado de una evaluación; base de la alerta de costo relativo. Mientras esté en `pendiente_fase_1`, esa alerta no se evalúa. | no (decisión D4) |
+| `costo_estimado_por_evaluacion_usd` | `0.005` | decimal | PROVISIONAL (23-oct-2026), a recalcular con las 24 conversaciones de `calibracion_v1` en la Fase 4. Costo esperado de una evaluación; base de la alerta de costo relativo. Base de cálculo: prueba B real (gpt-6-luna, 0.10/0.50 USD por millón, 5 evaluaciones en 3 corridas): ~0.002 sin bloque commentary, ~0.005 con commentary. | no (decisión D4) |
 | `multiplicador_alerta_costo` | `2` | decimal | Alerta de costo si `costo_usd > multiplicador × costo_estimado_por_evaluacion_usd`. | no (decisión D4) |
-| `tope_costo_lote_usd` | `pendiente_fase_1` | decimal | Alerta de costo si el costo acumulado de un lote supera este tope. Mientras esté en `pendiente_fase_1`, esa alerta no se evalúa. | no (decisión D4) |
+| `tope_costo_lote_usd` | `0.25` | decimal | PROVISIONAL (23-oct-2026), a recalcular con las 24 conversaciones de `calibracion_v1` en la Fase 4. Alerta de costo si el costo acumulado de un lote supera este tope. Base de cálculo: 24 × 0.005 = 0.12, con margen 2× para reintentos. | no (decisión D4) |
 
 ## 11. Calibración y métricas (ámbito `todos`)
 
@@ -185,9 +185,12 @@ Modo de las alertas de calidad: **se decide por el lote de la conversación**.
 ## 13. Notas de diseño
 
 - **D3, base de conocimiento:** en v1 el evaluador recibe toda la base de conocimiento en una sola llamada. Separar la clasificación del tema y la evaluación en dos llamadas queda como **hipótesis para v2**. Se decidirá con las métricas de acuerdo de `recapitulacion.tipificacion` y el costo por evaluación de v1.
+- **Backlog / hipótesis v2: datos de terceros y críticos solo-LLM (decisión del dueño, 23-oct-2026):**
+  - (a) Evaluar que el LLM juzgue de quién es un RFC (cuenta, receptor u otro tercero), con evidencia (número de mensaje y justificación), en lugar de la lista `dato_de_tercero` de v1. En v1 la regla del dueño sigue vigente: un dato que coincide con la cuenta nunca es de tercero.
+  - (b) Medir los "críticos solo-LLM" (sobre todo la parte LLM de `critico.confidencialidad`) en la prueba B y en la calibración, como insumo para v2.
 - **D4, alertas de costo:**
   - Costo relativo: se alerta por evaluación cuando el costo supera `multiplicador_alerta_costo` veces el costo estimado.
-  - Costo absoluto: el tope por lote se fija en Fase 1, después de estimar costos reales.
+  - Costo absoluto: el tope por lote es PROVISIONAL (0.25 USD, fijado 23-oct-2026 con la prueba B) y se recalcula con las 24 conversaciones de `calibracion_v1` en la Fase 4.
 - **Precios y costo (sin contradicciones con `evaluacion.schema.json`, `sheets.md` y `glosario.md`):**
   - Precios del evaluador en `por_verificar` → `costo_usd = null` (celda vacía en `evaluaciones.costo_usd`) y sin alertas de costo.
   - Evaluación sin llamada al LLM (conversación sin mensajes del agente, `rubrica.md` 3.12) → tokens `0`, `intentos_llm = 0`, `costo_usd = 0` y `modelo_evaluador` vacío.

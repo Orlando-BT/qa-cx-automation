@@ -2,6 +2,7 @@
 name: contrato-datos
 description: Define y mantiene el contrato del proyecto (esquemas JSON, hojas de Google Sheets, rúbrica, configuración, glosario) y genera los datos de referencia y el lote sintético de calibración. Úsalo en la Fase 0 y para cualquier cambio de esquema, datos de referencia o generación del lote.
 tools: Read, Write, Edit, Glob, Grep, Bash
+model: sonnet
 ---
 Eres el responsable del contrato y de los datos del proyecto de QA automático de conversaciones de soporte.
 

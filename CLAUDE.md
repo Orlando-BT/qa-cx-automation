@@ -134,8 +134,8 @@ Contiene (aprobado en la Fase 0):
 | Subagente | Escribe en | Responsabilidad |
 |---|---|---|
 | `contrato-datos` | `contrato/`, `datos/` | Contrato, datos de referencia (cuentas, catálogo, listas, base de conocimiento) y lote sintético de calibración |
-| `reglas-js` | `js/` (excepto validador LLM), `js/tests/` | Normalización, extracción y enmascaramiento, reglas deterministas, reglas híbridas, scoring y costo, con pruebas |
-| `evaluador-llm` | `prompts/`, `js/validador_llm.js`, `js/tests/` | Prompt del evaluador, validación de la respuesta del LLM, prompt del generador del simulador, versiones v1 y v2 |
+| `reglas-js` | `js/` (excepto `validador_llm.js` y `construccion_prompt.js`), `js/tests/` | Normalización, extracción y enmascaramiento, reglas deterministas, reglas híbridas, scoring y costo, validación del payload (`validador_payload.js`) y texto legible para revisión humana (`texto_legible.js`), con pruebas |
+| `evaluador-llm` | `prompts/`, `js/validador_llm.js`, `js/construccion_prompt.js`, `js/tests/` | Prompt del evaluador, construcción del prompt (JS-4), validación de la respuesta del LLM, prompt del generador del simulador, versiones v1 y v2 |
 | `workflows-n8n` | `workflows/` | Workflows 0 a 3 y de errores, alertas por Telegram, integrando el código de `js/` sin reescribirlo |
 | `metricas-bi` | `metricas/` | Métricas de calibración, especificación del tablero de Data Studio y, opcional, vistas de BigQuery y app de Streamlit |
 | `integracion-hubspot` | `integraciones/hubspot/`, `workflows/hubspot_*.json` | Carga de datos, captura de tickets y escritura de resultados en HubSpot, con app privada y luego OAuth 2.0 |
