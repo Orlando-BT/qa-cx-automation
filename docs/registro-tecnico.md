@@ -196,6 +196,12 @@ Estado: el código JS, los prompts y las pruebas existen; los workflows (Fase 2)
 - Una salida ambigua (varios `final_answer`, ninguno, varios bloques sin fase o varias partes) se trata como falla de API (`tipo_error = fallo_api`), sin reintento y sin pasar por JS-5.
 - El diagnóstico de la causa raíz se hizo sin guardar el contenido de las respuestas.
 
+**Silencio final: alcance del SUPUESTO (aclaración de redacción, posterior al commit de cierre 7ced75a)**
+- En `contrato/rubrica.md` sección 3.10, la marca SUPUESTO del párrafo del silencio final cubre solo la viñeta de `recapitulacion.cierre_inactividad`; el texto queda "(SUPUESTO: solo esta viñeta)".
+- `cierre.despedida` = `no_cumple` no es supuesto: sale directo de su propia regla ("`no_aplica` cuando: Nunca").
+- El dueño confirmó la lectura actual: recordatorio sin cierre = `no_cumple`.
+- Cambio solo de redacción, autorizado por el dueño dentro de v1: no cambia código, pruebas ni notas.
+
 Por qué: se prefirió corregir ahora, con v1 sin resultados guardados, a subir versión sin motivo. Alternativa descartada: crear `_v2` de reglas o prompt antes de tener métricas, lo que habría mezclado cambios de diseño con cambios motivados por fallas medidas.
 
 ### 2. Prueba B (solo agregados)
@@ -228,6 +234,10 @@ Se corrió el evaluador con salida estructurada `json_schema` estricta. Por regl
 - Que el LLM juzgue de quién es un RFC, con evidencia.
 - Medir los "críticos solo-LLM", sobre todo `critico.confidencialidad`.
 - D3: separar la clasificación de tema de la evaluación.
+
+### 4b. Backlog para la Fase 4 (métricas)
+
+- Medir cuántas conversaciones fallan a la vez `cierre.despedida` y `recapitulacion.cierre_inactividad` por la misma omisión (recordatorio sin cierre al final) y comparar con la calificación humana del dueño, para decidir si esa doble penalización se mantiene.
 
 ### 5. Pruebas
 

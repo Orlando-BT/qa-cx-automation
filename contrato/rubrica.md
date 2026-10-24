@@ -326,7 +326,7 @@ Son dos situaciones distintas y la rúbrica las trata de forma distinta.
 
 Si la conversación termina con un mensaje del agente que no es despedida ni cierre por inactividad (por ejemplo, una pregunta sin respuesta del cliente y sin recordatorio), **no** es `critico.abandono`. Ese silencio final no se mide para `recapitulacion.recordatorio_inactividad`, porque no hay referencia de tiempo. Lo castigan, según corresponda:
 - `cierre.despedida` = `no_cumple`, porque los últimos mensajes del agente no traen despedida ni cierre por inactividad;
-- `recapitulacion.cierre_inactividad` = `no_cumple` si el agente ya había enviado un recordatorio y nunca cerró. SUPUESTO.
+- `recapitulacion.cierre_inactividad` = `no_cumple` si el agente ya había enviado un recordatorio y nunca cerró (SUPUESTO: solo esta viñeta).
 
 **Coherencia de la regla de silencio con la tabla:**
 
