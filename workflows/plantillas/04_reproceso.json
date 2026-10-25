@@ -1,0 +1,1015 @@
+{
+  "name": "04 Reproceso",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 30
+            }
+          ]
+        }
+      },
+      "id": "e1d9df33-3bc5-4356-8e42-1f1c43113daf",
+      "name": "Programado (reproceso_intervalo_min)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "f79dc23e-7611-4e70-83ef-e12a52ff2a9c",
+      "name": "Ejecutar reproceso a mano",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "documentId": {
+          "__rl": true,
+          "value": "<ID_LIBRO_SHEETS>",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "config",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "c85528d1-3836-4dd7-8bdd-736762c44b10",
+      "name": "Leer hoja config",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        240,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Google Sheets QA"
+        }
+      },
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/normalizacion.js\n// PEGAMENTO: pegamento/config_todos.js\n"
+      },
+      "id": "5e954bc8-aee6-45a8-8efb-c02be4e161fd",
+      "name": "Config cargada",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "documentId": {
+          "__rl": true,
+          "value": "<ID_LIBRO_SHEETS>",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "conversaciones",
+          "mode": "name"
+        },
+        "options": {},
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "estado",
+              "lookupValue": "reproceso"
+            },
+            {
+              "lookupColumn": "estado",
+              "lookupValue": "en_evaluacion"
+            }
+          ]
+        },
+        "combineFilters": "OR"
+      },
+      "id": "63b4a330-ddfb-44a0-8355-d1a11e1649d1",
+      "name": "Leer conversaciones en reproceso o en evaluación",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        720,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Google Sheets QA"
+        }
+      },
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/ingesta.js\n// PEGAMENTO: pegamento/decidir_reproceso.js\n",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "eca76710-78fb-405c-833a-9ce45ec5d284",
+      "name": "Decidir reproceso",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "145170a5-b459-479f-8ed8-99a0992c12d3",
+                    "leftValue": "={{ $json.accion }}",
+                    "rightValue": "reenviar",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "reenviar"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "fc944ca5-f007-498f-8318-2968353b5dbd",
+                    "leftValue": "={{ $json.accion }}",
+                    "rightValue": "marcar_atascada",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "marcar_atascada"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "860b05bf-a3cd-4ee7-830e-b2674e581802",
+                    "leftValue": "={{ $json.accion }}",
+                    "rightValue": "pasar_a_error",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "pasar_a_error"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "9fe1f3b8-3168-4746-8e9b-d88ed879521b",
+                    "leftValue": "={{ $json.accion }}",
+                    "rightValue": "ignorar",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ignorar"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "429ddfc6-e4a3-4716-84fb-7f0b2eab78d6",
+      "name": "Según decisión de reproceso",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        1200,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ { llave_dedup: $json.llave_dedup } }}",
+        "options": {}
+      },
+      "id": "9092dbaa-71e2-4ceb-8395-bcbef84db9bb",
+      "name": "Datos para evaluación",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1440,
+        -180
+      ]
+    },
+    {
+      "parameters": {
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "value": "<ID_WORKFLOW_EVALUACION>",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "6d5e3ecb-1bf3-40fb-8a3a-8f2c86a8cdc8",
+      "name": "Evaluar conversación",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1680,
+        -180
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/alertas.js\n// PEGAMENTO: pegamento/cierre_lote_reproceso.js\n"
+      },
+      "id": "3123b3b5-cf8d-4661-8a57-71a4fa660628",
+      "name": "Cierre del lote",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1920,
+        -180
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.config.telegram_destinatario }}",
+        "text": "={{ $json.texto }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "a3f0854a-1e3f-4e0f-8249-88e04f209692",
+      "name": "Telegram: cierre del lote",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2160,
+        -180
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "telegramApi": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Telegram bot QA"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/alertas.js\n// PEGAMENTO: pegamento/fila_alertas_cierre_lote.js\n",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "db4d21b9-f0d6-4980-8647-fb35529b5cd5",
+      "name": "Fila alertas (cierre del lote)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2400,
+        -180
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "<ID_LIBRO_SHEETS>",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "alertas",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "cellFormat": "RAW",
+          "handlingExtraData": "ignoreIt"
+        }
+      },
+      "id": "abca8acb-7197-4627-8d56-ad745d16d15d",
+      "name": "Escribir alertas (cierre del lote)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2640,
+        -180
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Google Sheets QA"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ $json.actualizacion }}",
+        "options": {}
+      },
+      "id": "4550dc39-2df7-40b5-8e57-f064f97c62ab",
+      "name": "Actualización a reproceso (atascada)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1440,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "<ID_LIBRO_SHEETS>",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "conversaciones",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "llave_dedup"
+          ],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "cellFormat": "RAW",
+          "handlingExtraData": "ignoreIt"
+        }
+      },
+      "id": "5776416c-f8cc-460a-8999-cebd4e3934e3",
+      "name": "Pasar atascada a reproceso",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1680,
+        180
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Google Sheets QA"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ $json.actualizacion }}",
+        "options": {}
+      },
+      "id": "5820a664-6466-4d59-800c-7b6906d617f7",
+      "name": "Actualización a error",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1440,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "<ID_LIBRO_SHEETS>",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "conversaciones",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "llave_dedup"
+          ],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "cellFormat": "RAW",
+          "handlingExtraData": "ignoreIt"
+        }
+      },
+      "id": "b9de8f60-4505-47f5-8321-c6c9767d214d",
+      "name": "Pasar conversación a error",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1680,
+        540
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Google Sheets QA"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "6a3b8abb-e9d9-43b1-80d9-b909b640e650",
+      "name": "Sin cambios",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1440,
+        900
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/registro_errores.js\n// PEGAMENTO: pegamento/cadena_fila_log_errores.js\n",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "8e9a8a04-98f5-42ff-858a-f2117885d2bf",
+      "name": "Fila log_errores",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1440,
+        1260
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "<ID_LIBRO_SHEETS>",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "log_errores",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "cellFormat": "RAW",
+          "handlingExtraData": "ignoreIt"
+        }
+      },
+      "id": "4b316b74-88db-4d56-848c-f3eb77e3b63b",
+      "name": "Escribir log_errores",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1680,
+        1260
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Google Sheets QA"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "5c17c5b2-2b89-4863-8528-6dac35a6bf98",
+              "leftValue": "={{ $('Fila log_errores').item.json.aux_error.enviar_alerta }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "de10f9d3-090f-4fe7-8db8-2d4fc14a0238",
+      "name": "¿Enviar alerta operativa?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1920,
+        1260
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/alertas.js\n// PEGAMENTO: pegamento/cadena_armar_alerta_operativa.js\n",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "23373b4c-e10f-452a-8ee3-727f36fff6f8",
+      "name": "Armar alerta operativa",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2160,
+        1260
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.config.telegram_destinatario }}",
+        "text": "={{ $json.texto }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "9095468f-edee-4811-8c91-c7912938aba4",
+      "name": "Telegram: alerta operativa",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2400,
+        1260
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "telegramApi": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Telegram bot QA"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/alertas.js\n// PEGAMENTO: pegamento/cadena_fila_alertas_operativa.js\n",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "97b6ce9d-c1b3-4efd-82b0-5aea8bfed748",
+      "name": "Fila alertas (operativa)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2640,
+        1260
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "<ID_LIBRO_SHEETS>",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "alertas",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "cellFormat": "RAW",
+          "handlingExtraData": "ignoreIt"
+        }
+      },
+      "id": "b17c1adb-08b0-4cc4-86bc-66a675e0c433",
+      "name": "Escribir alertas (operativa)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2880,
+        1260
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Google Sheets QA"
+        }
+      },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Programado (reproceso_intervalo_min)": {
+      "main": [
+        [
+          {
+            "node": "Leer hoja config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ejecutar reproceso a mano": {
+      "main": [
+        [
+          {
+            "node": "Leer hoja config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer hoja config": {
+      "main": [
+        [
+          {
+            "node": "Config cargada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config cargada": {
+      "main": [
+        [
+          {
+            "node": "Leer conversaciones en reproceso o en evaluación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer conversaciones en reproceso o en evaluación": {
+      "main": [
+        [
+          {
+            "node": "Decidir reproceso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decidir reproceso": {
+      "main": [
+        [
+          {
+            "node": "Según decisión de reproceso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Según decisión de reproceso": {
+      "main": [
+        [
+          {
+            "node": "Datos para evaluación",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Actualización a reproceso (atascada)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fila log_errores",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Actualización a error",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fila log_errores",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Sin cambios",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Datos para evaluación": {
+      "main": [
+        [
+          {
+            "node": "Evaluar conversación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evaluar conversación": {
+      "main": [
+        [
+          {
+            "node": "Cierre del lote",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cierre del lote": {
+      "main": [
+        [
+          {
+            "node": "Telegram: cierre del lote",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram: cierre del lote": {
+      "main": [
+        [
+          {
+            "node": "Fila alertas (cierre del lote)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fila alertas (cierre del lote)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fila alertas (cierre del lote)": {
+      "main": [
+        [
+          {
+            "node": "Escribir alertas (cierre del lote)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Actualización a reproceso (atascada)": {
+      "main": [
+        [
+          {
+            "node": "Pasar atascada a reproceso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pasar atascada a reproceso": {
+      "main": [
+        [
+          {
+            "node": "Datos para evaluación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Actualización a error": {
+      "main": [
+        [
+          {
+            "node": "Pasar conversación a error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fila log_errores": {
+      "main": [
+        [
+          {
+            "node": "Escribir log_errores",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Escribir log_errores": {
+      "main": [
+        [
+          {
+            "node": "¿Enviar alerta operativa?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Enviar alerta operativa?": {
+      "main": [
+        [
+          {
+            "node": "Armar alerta operativa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar alerta operativa": {
+      "main": [
+        [
+          {
+            "node": "Telegram: alerta operativa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram: alerta operativa": {
+      "main": [
+        [
+          {
+            "node": "Fila alertas (operativa)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fila alertas (operativa)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fila alertas (operativa)": {
+      "main": [
+        [
+          {
+            "node": "Escribir alertas (operativa)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "errorWorkflow": "<ID_WORKFLOW_ERRORES>"
+  }
+}

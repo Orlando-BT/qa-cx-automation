@@ -1088,6 +1088,7 @@
     "tokens_entrada": 5000,
     "tokens_salida": 900,
     "intentos_llm": 1,
+    "anomalias_llm": [],
     "costo_usd": 0.00095
   },
   "marcas_tiempo": {

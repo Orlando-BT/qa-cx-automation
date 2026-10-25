@@ -170,6 +170,7 @@
         "tokens_entrada",
         "tokens_salida",
         "intentos_llm",
+        "anomalias_llm",
         "costo_usd"
       ],
       "properties": {
@@ -187,6 +188,19 @@
           "type": "integer",
           "minimum": 0,
           "description": "1 intento original + reenvíos por respuesta inválida (máximo según config.reintentos_validacion_llm). 0 si sin_mensajes_agente."
+        },
+        "anomalias_llm": {
+          "type": "array",
+          "uniqueItems": true,
+          "description": "Anomalías del evaluador durante esta evaluación, aunque se hayan recuperado. Vacío si ninguna o si sin_mensajes_agente. Se guarda en evaluaciones.anomalias_llm.",
+          "items": {
+            "type": "string",
+            "enum": [
+              "incompleta",
+              "refusal",
+              "commentary"
+            ]
+          }
         },
         "costo_usd": {
           "type": [

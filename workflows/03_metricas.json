@@ -1,0 +1,388 @@
+{
+  "name": "03 Métricas",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "797d2fa9-05af-4f44-8225-e7e1a18fb591",
+      "name": "Calcular métricas a mano",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2621e6f7-31d0-4fd8-8360-4056a1afb753",
+              "name": "lote",
+              "value": "calibracion_v1",
+              "type": "string"
+            },
+            {
+              "id": "7fc903a9-8b47-4368-8316-858a434806da",
+              "name": "version_reglas",
+              "value": "reglas_ce_v1",
+              "type": "string"
+            },
+            {
+              "id": "259f5acc-8675-4ee7-85bb-503d8138f846",
+              "name": "version_prompt",
+              "value": "evaluador_ce_v1",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "94403ab4-1bff-4c1e-8d07-468798b5e88f",
+      "name": "Parámetros de métricas",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "documentId": {
+          "__rl": true,
+          "value": "<ID_LIBRO_SHEETS>",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "revision_humana",
+          "mode": "name"
+        },
+        "options": {},
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "lote",
+              "lookupValue": "={{ $('Parámetros de métricas').first().json.lote }}"
+            },
+            {
+              "lookupColumn": "estado_revision",
+              "lookupValue": "calificada"
+            }
+          ]
+        },
+        "combineFilters": "AND"
+      },
+      "id": "a99fa295-656b-4a22-8091-ed257f1d193c",
+      "name": "Leer revisión humana calificada",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        480,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Google Sheets QA"
+        }
+      },
+      "executeOnce": true,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a1852dbb-3343-4b01-8b35-f8bafa133c00",
+              "leftValue": "={{ !!$json.conversation_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "c51f7740-cc30-45d9-82eb-45b63640e68b",
+      "name": "¿Hay filas calificadas?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        720,
+        0
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "e366aad5-8c1e-4f8b-8fe0-fd5247992f64",
+      "name": "Sin datos calificados (fin sin alerta)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        960,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "documentId": {
+          "__rl": true,
+          "value": "<ID_LIBRO_SHEETS>",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "evaluaciones",
+          "mode": "name"
+        },
+        "options": {},
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "lote",
+              "lookupValue": "={{ $('Parámetros de métricas').first().json.lote }}"
+            },
+            {
+              "lookupColumn": "version_reglas",
+              "lookupValue": "={{ $('Parámetros de métricas').first().json.version_reglas }}"
+            },
+            {
+              "lookupColumn": "version_prompt",
+              "lookupValue": "={{ $('Parámetros de métricas').first().json.version_prompt }}"
+            }
+          ]
+        },
+        "combineFilters": "AND"
+      },
+      "id": "7fa2923b-cc5e-4632-8e01-2dcd80e34ab7",
+      "name": "Leer evaluaciones del lote",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        960,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Google Sheets QA"
+        }
+      },
+      "executeOnce": true,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "documentId": {
+          "__rl": true,
+          "value": "<ID_LIBRO_SHEETS>",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "escenarios",
+          "mode": "name"
+        },
+        "options": {},
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "lote",
+              "lookupValue": "={{ $('Parámetros de métricas').first().json.lote }}"
+            }
+          ]
+        },
+        "combineFilters": "AND"
+      },
+      "id": "63b078ca-4aa9-4659-8530-c5eebab9b7d7",
+      "name": "Leer escenarios del lote",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1200,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Google Sheets QA"
+        }
+      },
+      "executeOnce": true,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {},
+      "id": "8522d80f-efef-4e09-8774-7f0d739eeaae",
+      "name": "Calcular métricas (pendiente Fase 4)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1440,
+        0
+      ],
+      "notes": "Fase 4 (metricas-bi): aquí va el nodo Code con las fórmulas de metricas/ y la alerta de calibración (armarAlertaCalibracion de js/alertas.js)."
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "<ID_LIBRO_SHEETS>",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "metricas",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "cellFormat": "RAW",
+          "handlingExtraData": "ignoreIt"
+        }
+      },
+      "id": "58df7bb9-8a7d-4bc8-8c58-6dac316d8cf0",
+      "name": "Escribir metricas",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1680,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Google Sheets QA"
+        }
+      },
+      "disabled": true
+    }
+  ],
+  "connections": {
+    "Calcular métricas a mano": {
+      "main": [
+        [
+          {
+            "node": "Parámetros de métricas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parámetros de métricas": {
+      "main": [
+        [
+          {
+            "node": "Leer revisión humana calificada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer revisión humana calificada": {
+      "main": [
+        [
+          {
+            "node": "¿Hay filas calificadas?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Hay filas calificadas?": {
+      "main": [
+        [
+          {
+            "node": "Leer evaluaciones del lote",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Sin datos calificados (fin sin alerta)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer evaluaciones del lote": {
+      "main": [
+        [
+          {
+            "node": "Leer escenarios del lote",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer escenarios del lote": {
+      "main": [
+        [
+          {
+            "node": "Calcular métricas (pendiente Fase 4)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calcular métricas (pendiente Fase 4)": {
+      "main": [
+        [
+          {
+            "node": "Escribir metricas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "errorWorkflow": "<ID_WORKFLOW_ERRORES>"
+  }
+}

@@ -53,6 +53,23 @@ test('config: datos/config.csv carga con los valores de contrato/config.md', () 
   }
 });
 
+test('config Fase 2: las claves nuevas de tipo entero cargan como número entero desde datos/config.csv', () => {
+  const c = configCE();
+  const esperados = {
+    max_tokens_evaluador: 8000,
+    max_tokens_generador: 8000,
+    reproceso_max_intentos: 3,
+    reproceso_intervalo_min: 30,
+    reintentos_conexion_api: 3,
+    espera_entre_reintentos_ms: 5000,
+    espera_maxima_reintento_ms: 60000,
+  };
+  for (const [clave, valor] of Object.entries(esperados)) {
+    assert.strictEqual(c[clave], valor, clave);
+    assert.ok(Number.isInteger(c[clave]), `${clave} debe ser entero`);
+  }
+});
+
 test('timestamps a segundos y diferencias', () => {
   assert.equal(timestampASegundos('2026-10-21T10:01:00') - timestampASegundos('2026-10-21T10:00:00'), 60);
   assert.equal(timestampASegundos('2026-10-22T00:00:00') - timestampASegundos('2026-10-21T23:59:59'), 1);

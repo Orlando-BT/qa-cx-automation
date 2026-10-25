@@ -1,6 +1,6 @@
 # Configuración (contrato)
 
-Claves de la hoja `config` de Google Sheets. El código lee estos valores en tiempo de ejecución; ninguna regla, umbral, tiempo o precio se escribe fijo en el código. Estado: Fase 0 aprobada; cambios de Fase 1 aprobados por el dueño el 23-oct-2026.
+Claves de la hoja `config` de Google Sheets. El código lee estos valores en tiempo de ejecución; ninguna regla, umbral, tiempo o precio se escribe fijo en el código. Estado: Fase 0 aprobada; cambios de Fase 1 aprobados por el dueño el 23-oct-2026; cambios de Fase 2 aprobados el 24-oct-2026.
 
 Convenciones:
 - `tipo` usa la enumeración `tipo_dato_config` del glosario: `entero`, `decimal`, `texto`, `booleano` (`si`/`no`), `lista` (valores separados por `|`).
@@ -24,7 +24,12 @@ Cómo se elige la rúbrica:
 |---|---|---|---|---|---|
 | `version_reglas` | `ce` | `reglas_ce_v1` | texto | Rúbrica CE y versión de reglas JS, configuración y listas de ámbito `ce`. Cambiar cualquier regla o umbral de evaluación implica subir la versión. | no |
 | `version_prompt` | `ce` | `evaluador_ce_v1` | texto | Versión del prompt del evaluador CE. | no |
-| `version_prompt_generador` | `ce` | `generador_ce_v1` | texto | Versión del prompt del generador del simulador para CE. | no |
+| `version_prompt_generador` | `ce` | `generador_ce_v2` | texto | Versión del prompt del generador del simulador para CE. `generador_ce_v1` queda intacto; v2 agrega marcadores para la tipificación errónea sorteada y para la variante sin crítico de `identidad.datos_coinciden`. | no (decisión del dueño) |
+| `esfuerzo_generador` | `ce` | `medium` | texto | Esfuerzo de razonamiento del generador (`output_config.effort`); `medium` es el valor por defecto de `claude-haiku-5-5`. El razonamiento se cobra como salida y cuenta dentro de `max_tokens_generador`; bajar a `low` si las respuestas se cortan por `max_tokens`. Valores permitidos: `low\|medium\|high\|xhigh\|max`. | si (valor por defecto del proveedor, a medir con el lote demo) |
+| `generador_fallas_regular` | `ce` | `2` | entero | Cuántos subelementos complementarios, de secciones distintas, sortea JS (W0) para calidad `regular` cuando el formulario no los trae. Se descartan las combinaciones incompatibles (`rubrica.md` sección 8). | si |
+| `generador_fallas_mala` | `ce` | `2` | entero | Cuántos subelementos clave sortea JS (W0) para calidad `mala`, además del crítico si hay. Se descartan las combinaciones incompatibles (`rubrica.md` sección 8). | si |
+| `horario_atencion_chat` | `ce` | `lun-vie 08:00-20:00\|sab 09:00-14:00` | lista | Horario del chat, igual al de KB-08 (`datos/base_conocimiento.md`). JS sortea `FECHA_HORA_INICIO` del simulador dentro de él, en `zona_horaria`. Formato de cada elemento (separados por `\|`): `<dias> HH:MM-HH:MM`, donde `<dias>` es un día o un rango con guion, con días abreviados `lun`, `mar`, `mie`, `jue`, `vie`, `sab`, `dom` (ejemplos: `sab`, `lun-vie`), y las horas van en 24 h, inicio y fin con guion. Un día que no aparece está cerrado. | no (sale de KB-08) |
+| `simulador_dias_atras` | `ce` | `30` | entero | La fecha sorteada del simulador cae entre hoy menos N días y ahora, nunca en el futuro. | si |
 | `version_reglas` | `sales` | `sin_rubrica` | texto | La rúbrica de Sales llega en Fase 5b. | no (decisión del dueño) |
 | `version_prompt` | `sales` | `sin_rubrica` | texto | Sin prompt de evaluador de Sales. | no (decisión del dueño) |
 | `version_prompt_generador` | `sales` | `sin_rubrica` | texto | Sin prompt de generador de Sales. | no (decisión del dueño) |
@@ -35,10 +40,11 @@ Cómo se elige la rúbrica:
 | Clave | Valor por defecto | Tipo | Descripción | Supuesto |
 |---|---|---|---|---|
 | `marca` | `Contamix` | texto | Marca ficticia del software contable. Se busca en `apertura.marca`, `cierre.marca` y `critico.comentarios_negativos_marca`. | no (decisión del dueño) |
-| `zona_horaria` | `America/Mexico_City` | texto | Zona de los timestamps locales de los mensajes y de las marcas de tiempo del sistema. | si |
+| `zona_horaria` | `America/Mexico_City` | texto | Zona de los timestamps locales de los mensajes y de las marcas de tiempo del sistema. También la usa el sorteo de fecha y hora del simulador. | no (decisión del dueño, 24-oct-2026) |
 | `canales_habilitados` | `chat` | lista | Canales aceptados por Ingesta. | no |
 | `lote_por_defecto` | `demo` | texto | Lote asignado si el webhook no recibe `?lote=`. | no (decisión del dueño) |
 | `evaluar_al_ingerir_calibracion` | `no` | booleano | Si Ingesta llama a Evaluación al recibir una conversación con `?lote=calibracion_*`. Con `no`, la guarda como `pendiente` y se evalúa después con el disparador manual de W1 (ver sección 13). Las de `demo` siempre se evalúan al ingerir. Sustituye a la clave del borrador anterior que controlaba el envío del simulador: ahora el simulador siempre envía a Ingesta y esta clave decide si se evalúa. | no (decisión del dueño) |
+| `simulador_max_conversaciones` | `5` | entero | Máximo de conversaciones por ejecución del simulador (ámbito `todos`). W0 rechaza cantidades mayores antes de llamar a la API. | si |
 
 ## 2. Scoring (ámbito `ce`)
 
@@ -131,20 +137,30 @@ Regla (`rubrica.md`, `critico.confidencialidad`): tras una validación exitosa, 
 | Clave | Valor por defecto | Tipo | Descripción | Supuesto |
 |---|---|---|---|---|
 | `modelo_evaluador` | `gpt-6-luna` | texto | Modelo económico de OpenAI con salida estructurada estricta. Verificado con la prueba A del 23-oct-2026 (aceptó `llm_output.schema.json` en modo estricto). | no |
-| `modelo_generador` | `por_verificar` | texto | Modelo económico de Anthropic para el simulador. ID exacto por verificar en la documentación oficial. | si |
+| `modelo_generador` | `claude-haiku-5-5` | texto | Modelo económico de Anthropic para el simulador. Verificado el 24-oct-2026 en platform.claude.com/docs/en/about-claude/models/overview; proveedor (Anthropic) distinto al evaluador (OpenAI). | no (decisión del dueño) |
 | `llm_temperatura` | `0` | decimal | Temperatura del evaluador. No aplica a `gpt-6-luna`: no se envía (la prueba A del 23-oct-2026 mostró que ese modelo rechaza `temperature`). La fila se conserva para modelos que sí la acepten. | no |
 | `llm_esfuerzo_razonamiento` | `none` | texto | Esfuerzo de razonamiento que se envía al evaluador (`reasoning.effort`). Fijado con la prueba A del 23-oct-2026: `gpt-6-luna` rechaza `temperature`, así que se usa el esfuerzo mínimo aceptado (`none`) y no se envía `llm_temperatura`. | no |
 | `claves_esquema_excluidas_evaluador` |  | lista | Claves del esquema de salida (`llm_output.schema.json`) que JS-4 quita antes de enviarlo a OpenAI. Vacía por defecto (celda vacía). Solo se llena con lo que demuestre una prueba real; la prueba A del 23-oct-2026 aceptó el esquema tal cual, así que queda vacía. | no |
 | `max_tokens_generador` | `8000` | entero | Máximo de tokens de salida por llamada al generador del simulador (Claude). | si |
+| `max_tokens_evaluador` | `8000` | entero | Tope de tokens de salida por llamada al evaluador (`max_output_tokens`). Valor igual al usado en la prueba B; se mantiene hasta resolver el bloque commentary en v2. No cambia `reglas_ce_v1` ni `evaluador_ce_v1`. | no (decisión del dueño) |
+| `anthropic_version_api` | `2026-10-21` | texto | Valor del encabezado `anthropic-version` en las llamadas del simulador a la Messages API; versión vigente en platform.claude.com/docs/en/api/versioning (consultada 24-oct-2026). Con esta versión la API rechaza `temperature`, `top_p` y `top_k`. | no (decisión del dueño) |
 
 ## 9. Reintentos (ámbito `todos`)
 
 | Clave | Valor por defecto | Tipo | Descripción | Supuesto |
 |---|---|---|---|---|
 | `reintentos_validacion_llm` | `2` | entero | Reenvíos a OpenAI con el error explicado cuando la respuesta no pasa JS-5. | no |
+| `reintentos_respuesta_incompleta` | `1` | entero | Reintentos inmediatos (misma petición, sin mensaje de error) cuando la respuesta del evaluador llega incompleta (p. ej. cortada por `max_output_tokens`). Contador propio: no consume `reintentos_validacion_llm`. Si se vuelve a cortar, `respuesta_llm_invalida` con alerta, sin reproceso. | no (decisión del dueño) |
 | `reintentos_conexion_api` | `3` | entero | Reintentos automáticos del nodo ante fallas de conexión (OpenAI, Claude). | si |
 | `espera_entre_reintentos_ms` | `5000` | entero | Espera entre reintentos de conexión. | si |
 | `reintentos_generacion` | `1` | entero | Reintentos del simulador si la conversación generada no pasa la validación de estructura. | no |
+| `reproceso_max_intentos` | `3` | entero | Reenvíos máximos del workflow de reproceso a Evaluación por conversación en estado `reproceso`. W4 reenvía si `intentos` ≤ este valor (1 evaluación original + hasta este número de reenvíos); si no, pasa a `error` con alerta operativa. Nunca se borra. | si (solo el valor; el mecanismo es decisión del dueño) |
+| `reproceso_intervalo_min` | `30` | entero | Minutos entre corridas programadas del workflow de reproceso. | si (solo el valor; el mecanismo es decisión del dueño) |
+| `espera_maxima_reintento_ms` | `60000` | entero | Tope de la espera antes de un reintento por HTTP 429/5xx. Si `Retry-After` pide más, no se espera: la conversación va a la cola de reproceso como `fallo_api`. | si (solo el valor; el mecanismo es decisión del dueño) |
+| `tiempo_maximo_peticion_llm_ms` | `180000` | entero | Tiempo máximo de cada petición HTTP a OpenAI o Claude antes de tratarla como timeout, que `clasificacion_http` reintenta como falla de red. Igual al usado en la prueba B (`TIEMPO_MAXIMO_MS` de `prompts/verificacion/verificar_openai.mjs`). | si |
+| `evaluacion_tiempo_maximo_min` | `90` | entero | Una conversación en `en_evaluacion` con `actualizado_en` más viejo que esto se considera atascada y W4 la pasa a `reproceso`. Regla del dueño: debe ser mayor que el peor caso de duración de W2 más margen. Peor caso con los valores actuales: llamadas LLM = 1 + `reintentos_respuesta_incompleta` + `reintentos_validacion_llm` = 4; cada llamada ≤ (`reintentos_conexion_api` + 1) × `tiempo_maximo_peticion_llm_ms` + `reintentos_conexion_api` × `espera_maxima_reintento_ms` = 4 × 180 s + 3 × 60 s = 900 s; total 3600 s = 60 min. 90 min deja 50 % de margen. Una prueba de `reglas-js` lo comprueba con los valores de config. | si (el valor; la regla es del dueño) |
+
+Nota (decisión del dueño, 24-oct-2026): los reintentos de conexión (`reintentos_conexion_api`, `espera_entre_reintentos_ms`) aplican solo a HTTP 429 y 5xx (y fallas de red o timeout), con espera, respetando `Retry-After` si llega. Cualquier otro 4xx no se reintenta y la conversación va a la cola de reproceso como `fallo_api`.
 
 ## 10. Costos (ámbito `todos`)
 
@@ -154,8 +170,8 @@ Los precios se expresan en USD por millón de tokens.
 |---|---|---|---|---|
 | `precio_entrada_usd_millon_evaluador` | `0.10` | decimal | Precio de tokens de entrada de `gpt-6-luna`. Verificado el 22-oct-2026 en developers.openai.com/api/docs/pricing. | no |
 | `precio_salida_usd_millon_evaluador` | `0.50` | decimal | Precio de tokens de salida de `gpt-6-luna`. Verificado el 22-oct-2026 en developers.openai.com/api/docs/pricing. | no |
-| `precio_entrada_usd_millon_generador` | `por_verificar` | decimal | Precio de tokens de entrada del modelo generador. | si |
-| `precio_salida_usd_millon_generador` | `por_verificar` | decimal | Precio de tokens de salida del modelo generador. | si |
+| `precio_entrada_usd_millon_generador` | `0.10` | decimal | Precio de tokens de entrada de `claude-haiku-5-5`. Verificado el 24-oct-2026 en platform.claude.com/docs/en/about-claude/pricing, tramo de prompts de hasta 100,000 tokens (por encima: 0.50); el generador no llega a ese tamaño. | no |
+| `precio_salida_usd_millon_generador` | `0.50` | decimal | Precio de tokens de salida de `claude-haiku-5-5`. Verificado el 24-oct-2026 en platform.claude.com/docs/en/about-claude/pricing, tramo de prompts de hasta 100,000 tokens (por encima: 2.50); el generador no llega a ese tamaño. | no |
 | `costo_estimado_por_evaluacion_usd` | `0.005` | decimal | PROVISIONAL (23-oct-2026), a recalcular con las 24 conversaciones de `calibracion_v1` en la Fase 4. Costo esperado de una evaluación; base de la alerta de costo relativo. Base de cálculo: prueba B real (gpt-6-luna, 0.10/0.50 USD por millón, 5 evaluaciones en 3 corridas): ~0.002 sin bloque commentary, ~0.005 con commentary. | no (decisión D4) |
 | `multiplicador_alerta_costo` | `2` | decimal | Alerta de costo si `costo_usd > multiplicador × costo_estimado_por_evaluacion_usd`. | no (decisión D4) |
 | `tope_costo_lote_usd` | `0.25` | decimal | PROVISIONAL (23-oct-2026), a recalcular con las 24 conversaciones de `calibracion_v1` en la Fase 4. Alerta de costo si el costo acumulado de un lote supera este tope. Base de cálculo: 24 × 0.005 = 0.12, con margen 2× para reintentos. | no (decisión D4) |
@@ -219,5 +235,13 @@ Modo de las alertas de calidad: **se decide por el lote de la conversación**.
   - `payload.schema.json` usa `propertyNames` e `if/then/else`. Son válidos en JSON Schema draft 2020-12, pero **no** son aptos para la salida estructurada del generador. El prompt del generador necesitará un esquema simplificado o validar después con JS (W0, paso 4).
   - El prompt del evaluador debe indicar qué mensajes citar en un `no_cumple` por omisión (cuando lo que falta es una acción del agente; por ejemplo, citar los mensajes del cierre o del tramo donde debía ocurrir). Así se cumple la regla 9 de JS-5 (`rubrica.md` 6.1), que exige `mensajes` no vacío.
 - **Backlog Fase 5: número de caso como dato alternativo de identidad (requiere casos previos por cuenta, p. ej. desde HubSpot).** Hoy está RESERVADO e inactivo: no está en `identidad_datos_comparables`, no hay columnas ni hojas nuevas, y no cuenta para `identidad_min_datos_correctos` (`rubrica.md` sección 4). Activarlo exige un cambio de contrato aprobado por el dueño: casos previos por cuenta, una clave de lista y la regla de comparación.
+- **Versión del generador (decisión del dueño, 24-oct-2026):** cada escenario guarda la versión del generador que lo produjo (`escenarios.version_prompt_generador`). `calibracion_v1` no salió del simulador (`no_aplica`) y no se afecta. El evaluador sigue en `evaluador_ce_v1`.
+- **Cola de reproceso (decisión del dueño, 24-oct-2026):** W2 revisa `falla_api` antes que `valido`. Con `falla_api` registra `log_errores` (`tipo_error = fallo_api`), deja la conversación en `reproceso` y envía alerta operativa. El workflow de reproceso (W4; programado cada `reproceso_intervalo_min` y manual) la reenvía a W2, hasta `reproceso_max_intentos`. Ninguna conversación se pierde.
+- **Manejo de respuestas del evaluador (decisión del dueño, 24-oct-2026; cambia respecto de Fase 1):**
+  - Respuesta incompleta: 1 reintento inmediato (`reintentos_respuesta_incompleta`); si se vuelve a cortar, `tipo_error = respuesta_llm_invalida` con alerta operativa, sin reproceso.
+  - Refusal del modelo: la conversación pasa a `error` con alerta operativa para revisión manual, sin cola de reproceso; `tipo_error = respuesta_llm_invalida` con causa `refusal`.
+  - Ambos casos se cuentan como anomalías para la métrica de v2.
+  - `fallo_api` (cola de reproceso) queda para salida ambigua, cuerpo inválido y fallas HTTP.
+  - En Fase 1, ambos casos consumían reintentos de validación de JS-5.
 - **Cambios y versiones:** cambiar una clave de ámbito `ce` (secciones 2 a 7) cambia el comportamiento de las reglas. Por eso se sube `version_reglas` de `ce`, y las métricas siempre se comparan dentro de la misma versión y del mismo lote.
 - **Cambios de Fase 1 antes de la primera evaluación; `reglas_ce_v1` se congela al cerrar la Fase 1.** Como todavía no se ha evaluado ninguna conversación, los cambios aprobados el 23-oct-2026 (validación de identidad con `identidad_min_datos_correctos`, minutos fuera de los plazos de seguimiento, `numero_en_palabras`, RFC genéricos y exclusión de datos de terceros en `pide_datos_identidad`) se incorporan a `reglas_ce_v1` sin subir la versión. Cualquier cambio posterior al cierre de la Fase 1 sube la versión.

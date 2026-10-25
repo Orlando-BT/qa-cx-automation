@@ -1,0 +1,136 @@
+{
+  "name": "PRUEBA ensamblado (fixture, no importar)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "6f0f6a3e-0000-4000-8000-000000000001",
+      "name": "Disparador manual de prueba",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "6f0f6a3e-0000-4000-8000-0000000000a1", "name": "plantilla_evaluador", "value": "", "type": "string" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6f0f6a3e-0000-4000-8000-000000000002",
+      "name": "Plantilla evaluador",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [220, -200],
+      "notes": "RELLENO plantilla_evaluador <- prompts/evaluador_ce_v1.md"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "6f0f6a3e-0000-4000-8000-0000000000a2", "name": "esquema_llm", "value": "", "type": "object" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6f0f6a3e-0000-4000-8000-000000000003",
+      "name": "Esquema LLM",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [220, -60],
+      "notes": "RELLENO esquema_llm <- contrato/llm_output.schema.json"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "6f0f6a3e-0000-4000-8000-0000000000a3", "name": "plantilla_generador", "value": "", "type": "string" },
+            { "id": "6f0f6a3e-0000-4000-8000-0000000000a4", "name": "esquema_generador", "value": "", "type": "object" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6f0f6a3e-0000-4000-8000-000000000004",
+      "name": "Plantilla y esquema generador",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [220, 80],
+      "notes": "RELLENO plantilla_generador <- prompts/generador_ce_v1.md\nRELLENO esquema_generador <- prompts/generador_payload_salida.schema.json"
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/reglas.js\n// PEGAMENTO: pegamento/js3_reglas_deterministas.js\n",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "6f0f6a3e-0000-4000-8000-000000000005",
+      "name": "JS-3 Reglas deterministas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/clasificacion_http.js\n// PEGAMENTO: pegamento/clasificar_respuesta_openai.js\n",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "6f0f6a3e-0000-4000-8000-000000000006",
+      "name": "Clasificar respuesta OpenAI",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [660, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/normalizacion.js\n// FUENTE: js/costo.js\n// PEGAMENTO: pegamento/config_cargada_ingesta.js\n"
+      },
+      "id": "6f0f6a3e-0000-4000-8000-000000000007",
+      "name": "Config cargada",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [880, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "<URL_WEBHOOK_INGESTA>",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "6f0f6a3e-0000-4000-8000-000000000008",
+      "name": "HTTP de prueba",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [1100, 0],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "httpHeaderAuth": { "id": "<ASIGNAR_EN_N8N>", "name": "OpenAI (Authorization Bearer)" }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "documentId": { "__rl": true, "value": "<ID_LIBRO_SHEETS>", "mode": "id" },
+        "sheetName": { "__rl": true, "value": "config", "mode": "name" },
+        "options": {}
+      },
+      "id": "6f0f6a3e-0000-4000-8000-000000000009",
+      "name": "Leer hoja config",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [1320, 0],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "googleSheetsOAuth2Api": { "id": "<ASIGNAR_EN_N8N>", "name": "Google Sheets QA" }
+      }
+    }
+  ],
+  "connections": {},
+  "settings": { "executionOrder": "v1", "errorWorkflow": "<ID_WORKFLOW_ERRORES>" }
+}

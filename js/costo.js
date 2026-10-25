@@ -45,23 +45,30 @@ function extraerUsoOpenAI(respuesta) {
 }
 
 /**
- * Consumo de una evaluación. `intentos` = una entrada por llamada al LLM (la original más
+ * Consumo de una evaluación (tokens, intentos, anomalías del LLM y costo). `intentos` (el arreglo `uso_llm` del contexto; `intentos_llm` es el número) = una entrada por llamada al LLM (la original más
  * cada reenvío por respuesta inválida), cada una con {tokens_entrada, tokens_salida}.
  */
-function calcularConsumo({ intentos, sin_mensajes_agente: sinAgente, config }) {
-  if (sinAgente) return { tokens_entrada: 0, tokens_salida: 0, intentos_llm: 0, costo_usd: 0 };
+function calcularConsumo({ intentos, sin_mensajes_agente: sinAgente, config, anomalias_llm: anomalias = [], estructura_salida_llm: estructura = null }) {
+  if (sinAgente) return { tokens_entrada: 0, tokens_salida: 0, intentos_llm: 0, anomalias_llm: [], costo_usd: 0 };
   const tokensEntrada = intentos.reduce((a, i) => a + (i.tokens_entrada || 0), 0);
   const tokensSalida = intentos.reduce((a, i) => a + (i.tokens_salida || 0), 0);
   return {
     tokens_entrada: tokensEntrada,
     tokens_salida: tokensSalida,
     intentos_llm: intentos.length,
+    // Anomalías del evaluador (columna evaluaciones.anomalias_llm se DERIVA de este campo).
+    anomalias_llm: normalizarAnomaliasLlm({ anomalias_llm: anomalias, estructura_salida_llm: estructura }),
     costo_usd: calcularCostoTokens(tokensEntrada, tokensSalida, config.precio_entrada_usd_millon_evaluador, config.precio_salida_usd_millon_evaluador),
   };
 }
 
-/** Costo de generación del simulador (W0). null → celda vacía en escenarios.costo_generacion_usd. */
+/**
+ * Costo de generación del simulador (W0). null → celda vacía en escenarios.costo_generacion_usd.
+ * Si los tokens son null o no vienen (la API no los mandó) el costo es DESCONOCIDO (null), no 0:
+ * un 0 sería un dato falso.
+ */
 function calcularCostoGeneracion(tokensEntrada, tokensSalida, config) {
+  if (!esNumero(tokensEntrada) || !esNumero(tokensSalida)) return null;
   return calcularCostoTokens(tokensEntrada, tokensSalida, config.precio_entrada_usd_millon_generador, config.precio_salida_usd_millon_generador);
 }
 
@@ -135,7 +142,29 @@ function finalizarEvaluacion(evaluacion, consumo, evaluadoEn) {
 const siNo = (b) => (b ? 'si' : 'no');
 const vacioSiNulo = (v) => (v === null || v === undefined ? '' : v);
 
-/** Fila de la hoja `evaluaciones` (29 columnas, en orden). */
+/** Orden fijo de las anomalías de la columna `anomalias_llm` (sheets.md, hoja evaluaciones). */
+const ORDEN_ANOMALIAS_LLM = ['incompleta', 'refusal', 'commentary'];
+
+/**
+ * Anomalías de las llamadas al LLM, normalizadas para la columna `anomalias_llm`.
+ *  - `anomalias_llm`: arreglo que deja procesarRespuestaEvaluador ('incompleta' / 'refusal').
+ *  - `estructura_salida_llm.anomalias`: si trae `fase_commentary_ignorada`, el modelo mandó un
+ *    comentario intermedio que se ignoró -> 'commentary'.
+ * Sin duplicados y en el orden fijo incompleta, refusal, commentary. Sin LLM
+ * (`sin_mensajes_agente`) devuelve [].
+ */
+function normalizarAnomaliasLlm({ anomalias_llm: anomalias = [], estructura_salida_llm: estructura = null, sin_mensajes_agente: sinAgente = false } = {}) {
+  if (sinAgente) return [];
+  const encontradas = new Set(Array.isArray(anomalias) ? anomalias : []);
+  const deEstructura = estructura && Array.isArray(estructura.anomalias) ? estructura.anomalias : [];
+  if (deEstructura.includes('fase_commentary_ignorada')) encontradas.add('commentary');
+  return ORDEN_ANOMALIAS_LLM.filter((a) => encontradas.has(a));
+}
+
+/**
+ * Fila de la hoja `evaluaciones` (30 columnas, en orden). La columna `anomalias_llm` se deriva de
+ * `e.consumo.anomalias_llm` (nunca se calcula por separado), unida con `|`.
+ */
 function filaEvaluaciones(e) {
   return {
     id_evaluacion: e.id_evaluacion,
@@ -167,6 +196,7 @@ function filaEvaluaciones(e) {
     iniciado_en: e.marcas_tiempo.iniciado_en,
     evaluado_en: e.marcas_tiempo.evaluado_en,
     evaluacion_json: JSON.stringify(e),
+    anomalias_llm: e.sin_mensajes_agente ? '' : (e.consumo.anomalias_llm || []).join('|'),
   };
 }
 
@@ -213,6 +243,38 @@ function filasDetalleCriterios(e) {
   return filas;
 }
 
+// ---------------------------------------------------------------------------
+// Escritura idempotente de los resultados de W2
+// ---------------------------------------------------------------------------
+
+/**
+ * Qué falta escribir en `evaluaciones` y `detalle_criterios` (regla del dueño: una sola fila por
+ * `llave_dedup` en evaluaciones y una sola por `id_evaluacion` + `id_criterio` en detalle_criterios).
+ * Así una doble ejecución no duplica nada y una escritura parcial anterior se completa con lo que
+ * falta.
+ *
+ * El `id_evaluacion` se DERIVA de la llave (EVAL-<conversation_id>-<version_reglas>-<version_prompt>);
+ * si la evaluación trae otro, es un error del flujo y se detiene.
+ *
+ * filasEvaluacionesExistentes / filasDetalleExistentes: filas ya leídas de Sheets (basta con las de
+ * esta llave o este id_evaluacion; se comparan como texto).
+ * Devuelve { escribir_evaluacion, filas_evaluacion: [fila]|[], filas_detalle: [solo las que faltan] }.
+ */
+function planificarEscrituraResultados({ evaluacion, filasEvaluacionesExistentes = [], filasDetalleExistentes = [] }) {
+  const idEsperado = `EVAL-${String(evaluacion.llave_dedup).split('|').join('-')}`;
+  if (evaluacion.id_evaluacion !== idEsperado) {
+    throw new Error(`id_evaluacion no corresponde a la llave_dedup (esperado ${idEsperado}, llegó ${evaluacion.id_evaluacion})`);
+  }
+  const yaHayEvaluacion = filasEvaluacionesExistentes.some((f) => String(f.llave_dedup) === String(evaluacion.llave_dedup));
+  const existentes = new Set(filasDetalleExistentes.map((f) => `${f.id_evaluacion}|${f.id_criterio}`));
+  const faltantes = filasDetalleCriterios(evaluacion).filter((f) => !existentes.has(`${f.id_evaluacion}|${f.id_criterio}`));
+  return {
+    escribir_evaluacion: !yaHayEvaluacion,
+    filas_evaluacion: yaHayEvaluacion ? [] : [filaEvaluaciones(evaluacion)],
+    filas_detalle: faltantes,
+  };
+}
+
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     calcularCostoTokens,
@@ -223,8 +285,10 @@ if (typeof module !== 'undefined' && module.exports) {
     evaluarAlertaCostoLote,
     marcaTiempoSistema,
     finalizarEvaluacion,
+    normalizarAnomaliasLlm,
     filaEvaluaciones,
     filasDetalleCriterios,
+    planificarEscrituraResultados,
   };
 }
 
@@ -233,12 +297,15 @@ if (typeof module !== 'undefined' && module.exports) {
  * Pega TODO este archivo y, debajo, este bloque sin comentar.
  *
  * const contexto = $json;
- * // contexto.intentos_llm: [{tokens_entrada, tokens_salida}] acumulado por JS-5 en cada
+ * // Convención: `intentos_llm` es un NÚMERO (cuántos intentos); `uso_llm` es el arreglo
+ * // [{tokens_entrada, tokens_salida}], una entrada por intento, acumulado por JS-5 en cada
  * // llamada (usa extraerUsoOpenAI(respuesta) sobre cada respuesta de OpenAI).
  * const consumo = calcularConsumo({
- *   intentos: contexto.intentos_llm || [],
+ *   intentos: contexto.uso_llm || [],
  *   sin_mensajes_agente: contexto.evaluacion.sin_mensajes_agente,
  *   config: contexto.config,
+ *   anomalias_llm: contexto.anomalias_llm,                 // etiquetas incompleta/refusal de JS-5
+ *   estructura_salida_llm: contexto.estructura_salida_llm, // aporta la anomalía commentary
  * });
  * const evaluadoEn = marcaTiempoSistema(new Date(), contexto.config.zona_horaria);
  * const evaluacion = finalizarEvaluacion(contexto.evaluacion, consumo, evaluadoEn);

@@ -1,0 +1,2362 @@
+{
+  "name": "00 Simulador",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Simulador de conversaciones (QA CX)",
+        "formDescription": "Todos los campos son opcionales. La verdad del escenario se guarda en la hoja escenarios y nunca viaja a Ingesta.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "tema",
+              "fieldName": "tema",
+              "fieldType": "text",
+              "requiredField": false,
+              "placeholder": "Tema del catálogo (vacío = al azar)"
+            },
+            {
+              "fieldLabel": "calidad_solicitada",
+              "fieldName": "calidad_solicitada",
+              "fieldType": "dropdown",
+              "requiredField": false,
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "aleatoria"
+                  },
+                  {
+                    "option": "buena"
+                  },
+                  {
+                    "option": "regular"
+                  },
+                  {
+                    "option": "mala"
+                  }
+                ]
+              }
+            },
+            {
+              "fieldLabel": "error_critico",
+              "fieldName": "error_critico",
+              "fieldType": "text",
+              "requiredField": false,
+              "placeholder": "IDs critico.* separados por | (vacío = ninguno)"
+            },
+            {
+              "fieldLabel": "criterios_que_deben_fallar",
+              "fieldName": "criterios_que_deben_fallar",
+              "fieldType": "text",
+              "requiredField": false,
+              "placeholder": "IDs de subelementos separados por | (vacío = los sortea JS)"
+            },
+            {
+              "fieldLabel": "casos_dificiles",
+              "fieldName": "casos_dificiles",
+              "fieldType": "text",
+              "requiredField": false,
+              "placeholder": "Valores de caso_dificil separados por |"
+            },
+            {
+              "fieldLabel": "cantidad",
+              "fieldName": "cantidad",
+              "fieldType": "number",
+              "requiredField": false,
+              "placeholder": "Máximo: simulador_max_conversaciones"
+            },
+            {
+              "fieldLabel": "lote",
+              "fieldName": "lote",
+              "fieldType": "text",
+              "requiredField": false,
+              "placeholder": "demo (calibracion_v1 está congelado)"
+            },
+            {
+              "fieldLabel": "tipo_interaccion",
+              "fieldName": "tipo_interaccion",
+              "fieldType": "dropdown",
+              "requiredField": false,
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "ce"
+                  },
+                  {
+                    "option": "sales"
+                  }
+                ]
+              }
+            },
+            {
+              "fieldLabel": "semilla_sorteo",
+              "fieldName": "semilla_sorteo",
+              "fieldType": "number",
+              "requiredField": false,
+              "placeholder": "Vacío = semilla nueva"
+            }
+          ]
+        },
+        "responseMode": "onReceived",
+        "options": {
+          "path": "qa-simulador"
+        }
+      },
+      "id": "3407a50d-73a4-4099-86a4-ee05bfa1f096",
+      "name": "Formulario del simulador",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "47e86d71-ea9b-440a-8e02-69054fe1ae51"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b2fcc0fb-f10c-4784-84ff-b9e4b9678e55",
+              "name": "url_webhook_ingesta",
+              "value": "<URL_WEBHOOK_INGESTA>",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6589adc6-a172-4ebf-8991-014b6d9e6237",
+      "name": "URL de Ingesta",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        0
+      ],
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "documentId": {
+          "__rl": true,
+          "value": "<ID_LIBRO_SHEETS>",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "config",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "6b8fea5b-342c-46b9-8764-89d45495fc28",
+      "name": "Leer hoja config",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        480,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Google Sheets QA"
+        }
+      },
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "documentId": {
+          "__rl": true,
+          "value": "<ID_LIBRO_SHEETS>",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "catalogo_temas",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "94328db2-3e60-4afe-8e35-ece4085a7b99",
+      "name": "Leer hoja catalogo_temas",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        720,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Google Sheets QA"
+        }
+      },
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "documentId": {
+          "__rl": true,
+          "value": "<ID_LIBRO_SHEETS>",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "cuentas",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "fcf93bdc-fe4b-4152-811d-a381bc0d38d3",
+      "name": "Leer hoja cuentas",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        960,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Google Sheets QA"
+        }
+      },
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "documentId": {
+          "__rl": true,
+          "value": "<ID_LIBRO_SHEETS>",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "base_conocimiento",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "5a7aa020-efc3-48a4-8a01-9982f5a4dbd8",
+      "name": "Leer hoja base_conocimiento",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1200,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Google Sheets QA"
+        }
+      },
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "documentId": {
+          "__rl": true,
+          "value": "<ID_LIBRO_SHEETS>",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "listas",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "443fd9d5-1659-474a-85ee-7e422d3723ab",
+      "name": "Leer hoja listas",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1440,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Google Sheets QA"
+        }
+      },
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "documentId": {
+          "__rl": true,
+          "value": "<ID_LIBRO_SHEETS>",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "escenarios",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "ce7bea3a-ae7d-4f4b-8cc6-bff8b2946b06",
+      "name": "Leer hoja escenarios",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1680,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Google Sheets QA"
+        }
+      },
+      "executeOnce": true,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "documentId": {
+          "__rl": true,
+          "value": "<ID_LIBRO_SHEETS>",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "conversaciones",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "c1303776-8073-4666-8ed2-4269675d0691",
+      "name": "Leer hoja conversaciones",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1920,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Google Sheets QA"
+        }
+      },
+      "executeOnce": true,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "documentId": {
+          "__rl": true,
+          "value": "<ID_LIBRO_SHEETS>",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "revision_humana",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "f77daeee-b2b7-47d5-820b-de5555ff1a04",
+      "name": "Leer hoja revision_humana",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2160,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Google Sheets QA"
+        }
+      },
+      "executeOnce": true,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8b9c8103-9d3c-4e87-87ea-7f27094c4706",
+              "name": "plantilla_generador",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2f68aea8-8d7b-4d56-8b85-dab1c1819191",
+      "name": "Plantilla generador",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2400,
+        0
+      ],
+      "executeOnce": true,
+      "notes": "RELLENO plantilla_generador <- prompts/generador_ce_v2.md"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3d90f165-6046-4867-8bc2-6d3e0b1c211a",
+              "name": "esquema_generador",
+              "value": "",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "dfe26ff8-8c9e-487d-898c-0ce6cc2fc6e1",
+      "name": "Esquema generador",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2640,
+        0
+      ],
+      "executeOnce": true,
+      "notes": "RELLENO esquema_generador <- prompts/generador_payload_salida.schema.json"
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/normalizacion.js\n// PEGAMENTO: pegamento/config_general_simulador.js\n"
+      },
+      "id": "149499b8-1fcb-4c71-837e-266fef5a0f60",
+      "name": "Config general",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2880,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/simulador.js\n// PEGAMENTO: pegamento/validar_formulario.js\n"
+      },
+      "id": "1e081e59-af89-4b05-862e-baee4e7ac56e",
+      "name": "Validar formulario",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3120,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "00575812-afed-47b9-8417-561c2912965e",
+              "leftValue": "={{ $json.valido }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "5ab89eef-f757-455d-8e00-43ec966f02e2",
+      "name": "¿Formulario válido?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3360,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/normalizacion.js\n// PEGAMENTO: pegamento/config_cargada_simulador.js\n"
+      },
+      "id": "5bd5dcdd-db3b-4b8f-8db2-8e60603c6846",
+      "name": "Config cargada",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3600,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/simulador.js\n// PEGAMENTO: pegamento/completar_escenario.js\n"
+      },
+      "id": "81769ef3-ea46-4b9f-8525-bf9f443ac71d",
+      "name": "Completar escenario",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3840,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "b846d543-5c9f-4509-8450-57f2e6a0b8cd",
+              "leftValue": "={{ $json.valido }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "51fdddfd-8d86-4e9f-8f62-74a66a8cebff",
+      "name": "¿Escenarios válidos?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        4080,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "completion",
+        "respondWith": "text",
+        "completionTitle": "Formulario rechazado",
+        "completionMessage": "={{ $json.errores.join(' | ') }}"
+      },
+      "id": "b8821439-7674-431b-8349-3fd614b8832c",
+      "name": "Formulario rechazado",
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 1,
+      "position": [
+        3600,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/registro_errores.js\n// PEGAMENTO: pegamento/error_formulario.js\n",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "0594496d-2273-4069-8d3b-5b63d7b7fa66",
+      "name": "Error de formulario",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3600,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/registro_errores.js\n// PEGAMENTO: pegamento/cadena_fila_log_errores.js\n",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "9aadffa6-2629-4e94-807c-9fb9204cb14b",
+      "name": "Fila log_errores (formulario)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3840,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "<ID_LIBRO_SHEETS>",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "log_errores",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "cellFormat": "RAW",
+          "handlingExtraData": "ignoreIt"
+        }
+      },
+      "id": "9d6226cb-5efd-4c10-85a7-6ae6384db47a",
+      "name": "Escribir log_errores (formulario)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        4080,
+        540
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Google Sheets QA"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "completion",
+        "respondWith": "text",
+        "completionTitle": "Simulación en curso",
+        "completionMessage": "={{ 'Se generarán ' + $json.escenarios.length + ' conversación(es). El resultado queda en las hojas escenarios, revision_humana y conversaciones.' }}"
+      },
+      "id": "6f488f30-6a5b-4325-8296-284e760beb75",
+      "name": "Simulación en curso",
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 1,
+      "position": [
+        4320,
+        -360
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "escenarios",
+        "include": "noOtherFields",
+        "options": {}
+      },
+      "id": "6fc70099-f50e-4857-8b06-48c6d97cc049",
+      "name": "Separar escenarios",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        4320,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "36dd6e52-20a2-4f42-8629-595a6cbe4d10",
+      "name": "Una conversación a la vez",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        4560,
+        0
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "e567a190-d7e1-4a43-886e-af36eb412d5c",
+      "name": "Fin del simulador",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        4800,
+        -360
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/construccion_prompt.js\n// PEGAMENTO: pegamento/valores_generador.js\n",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "00d037ea-831f-455f-8275-a7385e102f1d",
+      "name": "Valores del generador",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4800,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/construccion_prompt.js\n// PEGAMENTO: pegamento/construir_peticion_generador.js\n",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "3894d08b-a308-44a0-88bf-bddbb021aacb",
+      "name": "Construir petición generador",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5040,
+        0
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "f3c9f438-abc6-4c9c-8f58-84af2f48f1ff",
+      "name": "Preparar llamada Claude",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        5280,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "={{ $json.config.anthropic_version_api }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.peticion_claude) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": "={{ $json.config.tiempo_maximo_peticion_llm_ms }}"
+        }
+      },
+      "id": "85f3869b-7901-4a40-8a27-cd52bbb8bfa8",
+      "name": "Claude: generar conversación",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        5520,
+        0
+      ],
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Anthropic (x-api-key)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/clasificacion_http.js\n// PEGAMENTO: pegamento/clasificar_respuesta_claude.js\n",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "5d509005-f743-4d07-87cf-92d4b869f946",
+      "name": "Clasificar respuesta Claude",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5760,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "781d6831-6ed4-45be-885e-84a9a491a477",
+                    "leftValue": "={{ $json.clasificacion_http.accion }}",
+                    "rightValue": "continuar",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "continuar"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "cfd6055f-d42b-4279-84ad-887fd2f44168",
+                    "leftValue": "={{ $json.clasificacion_http.accion }}",
+                    "rightValue": "reintentar",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "reintentar"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "4ac69f4b-594a-4320-8d61-0d0e7f353cce",
+                    "leftValue": "={{ $json.clasificacion_http.accion }}",
+                    "rightValue": "falla_api",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "falla_api"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b4ee7937-3f5a-47bf-831e-145cada1f64a",
+      "name": "Según respuesta HTTP",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        6000,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "resume": "timeInterval",
+        "amount": "={{ $json.clasificacion_http.espera_ms / 1000 }}",
+        "unit": "seconds"
+      },
+      "id": "2b418015-cb88-4ccb-8bf8-ae4b554948e9",
+      "name": "Esperar antes de reintentar",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        6000,
+        360
+      ],
+      "webhookId": "a8a23554-17d1-45e5-8690-ad9e602bc3f5"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "25b71dc6-2bc3-4a2a-8898-76f65fb0fa62",
+              "name": "intento_conexion",
+              "value": "={{ $json.clasificacion_http.siguiente_intento }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {},
+        "includeOtherFields": true
+      },
+      "id": "a6863a0c-a814-4d24-84cb-6eb840beba54",
+      "name": "Contar reintento de conexión",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        5760,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/registro_errores.js\n// PEGAMENTO: pegamento/error_api_generador.js\n",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "e7c9ea0b-5558-49c1-8198-7719b9a7c177",
+      "name": "Error de API del generador",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6240,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/construccion_prompt.js\n// PEGAMENTO: pegamento/leer_respuesta_generador.js\n",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "9ba031ec-c72c-4914-8358-07ee5ae47f7d",
+      "name": "Leer respuesta generador",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/validador_payload.js\n// PEGAMENTO: pegamento/validar_generacion.js\n",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "2c322523-734b-4361-8400-7a8a91d54808",
+      "name": "Validar generación",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "685c3946-e347-4f7a-82de-596bb7a581e7",
+              "leftValue": "={{ $json.valido }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "cf2bfc3b-3cdd-4059-868c-8953f4607761",
+      "name": "¿Payload generado válido?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        6720,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/normalizacion.js\n// PEGAMENTO: pegamento/verificacion_js1.js\n",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "b5084293-3008-488c-87b3-8ddf2ed98c0e",
+      "name": "Verificación: JS-1 Normalización",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6960,
+        -180
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/enmascaramiento.js\n// PEGAMENTO: pegamento/verificacion_js2.js\n",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "d74ea2f1-4dad-4969-88de-b69a8d664eb2",
+      "name": "Verificación: JS-2 Extracción y enmascaramiento",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7200,
+        -180
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/reglas.js\n// PEGAMENTO: pegamento/verificacion_js3.js\n",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "3086e2ff-f885-42c9-8634-fac6e9862b40",
+      "name": "Verificación: JS-3 Reglas deterministas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7440,
+        -180
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/simulador.js\n// FUENTE: js/reglas_hibridas.js\n// PEGAMENTO: pegamento/verificar_escenario.js\n",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "2b543d71-563a-4014-8eef-ea40f187bee9",
+      "name": "Verificar escenario generado",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7680,
+        -180
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/simulador.js\n// PEGAMENTO: pegamento/decidir_intento_generacion.js\n",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "ef8e811c-47e5-4cb8-81ee-2d49eb61fae5",
+      "name": "Decidir intento de generación",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7920,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "b3f77b09-2818-4990-8024-33a7d63486de",
+                    "leftValue": "={{ $json.decision.accion }}",
+                    "rightValue": "continuar",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "continuar"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "1aeb0c88-45d1-4246-8855-ff332463e5e1",
+                    "leftValue": "={{ $json.decision.accion }}",
+                    "rightValue": "reintentar",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "reintentar"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "52606f6a-5ec1-4c67-8b5a-941c347118d5",
+                    "leftValue": "={{ $json.decision.accion }}",
+                    "rightValue": "generacion_invalida",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "generacion_invalida"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d41111e3-e4f8-476a-800e-b119c6280fa8",
+      "name": "Según intento de generación",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        8160,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "89703101-ff10-4efa-8713-8bfa67b2cce7",
+              "name": "intento_generacion",
+              "value": "={{ $json.decision.siguiente_intento }}",
+              "type": "number"
+            },
+            {
+              "id": "e2dbce30-5a8d-4fcc-82a3-933d7919542c",
+              "name": "intento_conexion",
+              "value": 0,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {},
+        "includeOtherFields": true,
+        "include": "except",
+        "excludeFields": "decision,verificacion,lectura_generador,payload,valido,errores,respuesta_http,clasificacion_http,texto_generado,salida_generador"
+      },
+      "id": "6b4c3b90-7235-4339-8c95-1564c6544875",
+      "name": "Contar reintento de generación",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        8160,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/registro_errores.js\n// PEGAMENTO: pegamento/error_generacion.js\n",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "2082f1e3-30fd-4296-84d2-b70333a4f7f8",
+      "name": "Error de generación",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        8400,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/simulador.js\n// FUENTE: js/costo.js\n// PEGAMENTO: pegamento/fila_escenarios.js\n",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "1d092299-44e4-497b-87de-abf28a65f539",
+      "name": "Fila de escenarios",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        8400,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "<ID_LIBRO_SHEETS>",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "escenarios",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "cellFormat": "RAW",
+          "handlingExtraData": "ignoreIt"
+        }
+      },
+      "id": "8846c6c6-4189-4fff-8b92-916c7101cd15",
+      "name": "Escribir escenarios",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        8640,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Google Sheets QA"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/simulador.js\n// FUENTE: js/texto_legible.js\n// PEGAMENTO: pegamento/fila_revision_humana.js\n",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "b030f0be-e91b-40b9-8546-22c274fac3d1",
+      "name": "Fila de revisión humana",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        8880,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "<ID_LIBRO_SHEETS>",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "revision_humana",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "cellFormat": "RAW",
+          "handlingExtraData": "ignoreIt"
+        }
+      },
+      "id": "33350f4c-4594-4c7c-8b1a-f40d5e5bfb96",
+      "name": "Escribir revision_humana",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        9120,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Google Sheets QA"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/simulador.js\n// PEGAMENTO: pegamento/envio_ingesta.js\n",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "fe50c043-a0e0-481c-8a64-0068b7d22978",
+      "name": "Envío a Ingesta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        9360,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.url }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "88992978-7a79-4cd4-8313-b659e6c352cf",
+      "name": "POST a Ingesta",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        9600,
+        0
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/registro_errores.js\n// PEGAMENTO: pegamento/error_sheets_simulador.js\n",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "97ba1e73-a133-4397-843e-4d377fa7c5ff",
+      "name": "Error de Sheets del simulador",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        8880,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/registro_errores.js\n// PEGAMENTO: pegamento/error_post_ingesta.js\n",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "e47f1b0a-b7c0-4c00-8cf6-324c5278325b",
+      "name": "Error al enviar a Ingesta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        9600,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/registro_errores.js\n// PEGAMENTO: pegamento/cadena_fila_log_errores.js\n",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "7cf6a563-d847-4e8a-8692-c813e55ac650",
+      "name": "Fila log_errores",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6480,
+        1080
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "<ID_LIBRO_SHEETS>",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "log_errores",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "cellFormat": "RAW",
+          "handlingExtraData": "ignoreIt"
+        }
+      },
+      "id": "f785e210-61e5-4358-81bc-c20dc0d52e5e",
+      "name": "Escribir log_errores",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        6720,
+        1080
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Google Sheets QA"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "071ab7f1-8999-4ab3-8c8e-ccb1abc951eb",
+              "leftValue": "={{ $('Fila log_errores').item.json.aux_error.enviar_alerta }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "8b544fea-8fdb-43fc-8077-3aa6bdaef5ea",
+      "name": "¿Enviar alerta operativa?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        6960,
+        1080
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/alertas.js\n// PEGAMENTO: pegamento/cadena_armar_alerta_operativa.js\n",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "5d0e521a-2b21-4532-8634-ad21399f18d2",
+      "name": "Armar alerta operativa",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7200,
+        1080
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.config.telegram_destinatario }}",
+        "text": "={{ $json.texto }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "2185bc0e-4246-4397-893e-9a261522f1bb",
+      "name": "Telegram: alerta operativa",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        7440,
+        1080
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "telegramApi": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Telegram bot QA"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/alertas.js\n// PEGAMENTO: pegamento/cadena_fila_alertas_operativa.js\n",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "38a6bc0c-9634-4d1d-89a9-ac66a9d7d574",
+      "name": "Fila alertas (operativa)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7680,
+        1080
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "<ID_LIBRO_SHEETS>",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "alertas",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "cellFormat": "RAW",
+          "handlingExtraData": "ignoreIt"
+        }
+      },
+      "id": "c8bdb04f-a9db-4c97-822f-45db9106a6c4",
+      "name": "Escribir alertas (operativa)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        7920,
+        1080
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Google Sheets QA"
+        }
+      },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Formulario del simulador": {
+      "main": [
+        [
+          {
+            "node": "URL de Ingesta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "URL de Ingesta": {
+      "main": [
+        [
+          {
+            "node": "Leer hoja config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer hoja config": {
+      "main": [
+        [
+          {
+            "node": "Leer hoja catalogo_temas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer hoja catalogo_temas": {
+      "main": [
+        [
+          {
+            "node": "Leer hoja cuentas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer hoja cuentas": {
+      "main": [
+        [
+          {
+            "node": "Leer hoja base_conocimiento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer hoja base_conocimiento": {
+      "main": [
+        [
+          {
+            "node": "Leer hoja listas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer hoja listas": {
+      "main": [
+        [
+          {
+            "node": "Leer hoja escenarios",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer hoja escenarios": {
+      "main": [
+        [
+          {
+            "node": "Leer hoja conversaciones",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer hoja conversaciones": {
+      "main": [
+        [
+          {
+            "node": "Leer hoja revision_humana",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer hoja revision_humana": {
+      "main": [
+        [
+          {
+            "node": "Plantilla generador",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Plantilla generador": {
+      "main": [
+        [
+          {
+            "node": "Esquema generador",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esquema generador": {
+      "main": [
+        [
+          {
+            "node": "Config general",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config general": {
+      "main": [
+        [
+          {
+            "node": "Validar formulario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar formulario": {
+      "main": [
+        [
+          {
+            "node": "¿Formulario válido?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Formulario válido?": {
+      "main": [
+        [
+          {
+            "node": "Config cargada",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Formulario rechazado",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Error de formulario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config cargada": {
+      "main": [
+        [
+          {
+            "node": "Completar escenario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Completar escenario": {
+      "main": [
+        [
+          {
+            "node": "¿Escenarios válidos?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Escenarios válidos?": {
+      "main": [
+        [
+          {
+            "node": "Simulación en curso",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Separar escenarios",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Formulario rechazado",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Error de formulario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error de formulario": {
+      "main": [
+        [
+          {
+            "node": "Fila log_errores (formulario)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fila log_errores (formulario)": {
+      "main": [
+        [
+          {
+            "node": "Escribir log_errores (formulario)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Separar escenarios": {
+      "main": [
+        [
+          {
+            "node": "Una conversación a la vez",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Una conversación a la vez": {
+      "main": [
+        [
+          {
+            "node": "Fin del simulador",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Valores del generador",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valores del generador": {
+      "main": [
+        [
+          {
+            "node": "Construir petición generador",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construir petición generador": {
+      "main": [
+        [
+          {
+            "node": "Preparar llamada Claude",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar llamada Claude": {
+      "main": [
+        [
+          {
+            "node": "Claude: generar conversación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude: generar conversación": {
+      "main": [
+        [
+          {
+            "node": "Clasificar respuesta Claude",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Clasificar respuesta Claude",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clasificar respuesta Claude": {
+      "main": [
+        [
+          {
+            "node": "Según respuesta HTTP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Según respuesta HTTP": {
+      "main": [
+        [
+          {
+            "node": "Leer respuesta generador",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Esperar antes de reintentar",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error de API del generador",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar antes de reintentar": {
+      "main": [
+        [
+          {
+            "node": "Contar reintento de conexión",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contar reintento de conexión": {
+      "main": [
+        [
+          {
+            "node": "Preparar llamada Claude",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer respuesta generador": {
+      "main": [
+        [
+          {
+            "node": "Validar generación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar generación": {
+      "main": [
+        [
+          {
+            "node": "¿Payload generado válido?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Payload generado válido?": {
+      "main": [
+        [
+          {
+            "node": "Verificación: JS-1 Normalización",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Decidir intento de generación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verificación: JS-1 Normalización": {
+      "main": [
+        [
+          {
+            "node": "Verificación: JS-2 Extracción y enmascaramiento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verificación: JS-2 Extracción y enmascaramiento": {
+      "main": [
+        [
+          {
+            "node": "Verificación: JS-3 Reglas deterministas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verificación: JS-3 Reglas deterministas": {
+      "main": [
+        [
+          {
+            "node": "Verificar escenario generado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verificar escenario generado": {
+      "main": [
+        [
+          {
+            "node": "Decidir intento de generación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decidir intento de generación": {
+      "main": [
+        [
+          {
+            "node": "Según intento de generación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Según intento de generación": {
+      "main": [
+        [
+          {
+            "node": "Fila de escenarios",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Contar reintento de generación",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error de generación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contar reintento de generación": {
+      "main": [
+        [
+          {
+            "node": "Preparar llamada Claude",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fila de escenarios": {
+      "main": [
+        [
+          {
+            "node": "Escribir escenarios",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Escribir escenarios": {
+      "main": [
+        [
+          {
+            "node": "Fila de revisión humana",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error de Sheets del simulador",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fila de revisión humana": {
+      "main": [
+        [
+          {
+            "node": "Escribir revision_humana",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Escribir revision_humana": {
+      "main": [
+        [
+          {
+            "node": "Envío a Ingesta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error de Sheets del simulador",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Envío a Ingesta": {
+      "main": [
+        [
+          {
+            "node": "POST a Ingesta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST a Ingesta": {
+      "main": [
+        [
+          {
+            "node": "Una conversación a la vez",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error al enviar a Ingesta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error de API del generador": {
+      "main": [
+        [
+          {
+            "node": "Fila log_errores",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error de generación": {
+      "main": [
+        [
+          {
+            "node": "Fila log_errores",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error de Sheets del simulador": {
+      "main": [
+        [
+          {
+            "node": "Fila log_errores",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error al enviar a Ingesta": {
+      "main": [
+        [
+          {
+            "node": "Fila log_errores",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fila log_errores": {
+      "main": [
+        [
+          {
+            "node": "Escribir log_errores",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Escribir log_errores": {
+      "main": [
+        [
+          {
+            "node": "¿Enviar alerta operativa?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Enviar alerta operativa?": {
+      "main": [
+        [
+          {
+            "node": "Armar alerta operativa",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Una conversación a la vez",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar alerta operativa": {
+      "main": [
+        [
+          {
+            "node": "Telegram: alerta operativa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram: alerta operativa": {
+      "main": [
+        [
+          {
+            "node": "Fila alertas (operativa)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fila alertas (operativa)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fila alertas (operativa)": {
+      "main": [
+        [
+          {
+            "node": "Escribir alertas (operativa)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Escribir alertas (operativa)": {
+      "main": [
+        [
+          {
+            "node": "Una conversación a la vez",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "errorWorkflow": "<ID_WORKFLOW_ERRORES>"
+  }
+}

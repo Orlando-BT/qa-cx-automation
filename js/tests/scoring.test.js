@@ -172,3 +172,18 @@ test('evaluación completa de la conversación buena: todas las secciones cumple
   assert.equal(s.find((x) => x.id_seccion === 'ayuda_adicional').resultado, 'no_aplica');
   assert.equal(calcularNotaBase(s, config), 100);
 });
+
+test('el error de JS-7 sin secciones aplicables empieza con su tipo entre corchetes y WE lo reconoce; otros errores de JS-7 son fallo_nodo', () => {
+  const { analizarErrorTrigger } = require('../registro_errores');
+  let mensaje;
+  try {
+    calcularResultado(secciones(Object.fromEntries(['apertura', 'empatia', 'diagnostico', 'solucion', 'comunicacion', 'recapitulacion', 'ayuda_adicional', 'cierre'].map((s) => [s, 'no_aplica']))), [], config);
+  } catch (e) {
+    mensaje = e.message;
+    assert.equal(e.tipo_error, 'evaluacion_sin_secciones_aplicables');
+  }
+  assert.match(mensaje, /^\[evaluacion_sin_secciones_aplicables\] /);
+  const entrada = (m) => ({ execution: { error: { message: m, node: { name: 'JS-7 Scoring', type: 'n8n-nodes-base.code' } } }, workflow: { name: '02 Evaluación' } });
+  assert.equal(analizarErrorTrigger(entrada(mensaje)).tipo_error, 'evaluacion_sin_secciones_aplicables');
+  assert.equal(analizarErrorTrigger(entrada('JS-7: falta el criterio apertura.saludo')).tipo_error, 'fallo_nodo');
+});

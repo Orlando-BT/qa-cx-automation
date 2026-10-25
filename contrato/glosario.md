@@ -2,7 +2,7 @@
 
 Fuente de verdad de nombres de campos, columnas y valores permitidos. Ningún archivo del proyecto (código JS, prompts, workflows, métricas) puede usar un nombre o un valor que no esté aquí o en los demás archivos de `contrato/`. Si falta algo, se reporta al orquestador; el contrato solo cambia con aprobación del dueño.
 
-Estado: Fase 0 aprobada; cambios de Fase 1 aprobados por el dueño el 23-oct-2026.
+Estado: Fase 0 aprobada; cambios de Fase 1 aprobados por el dueño el 23-oct-2026; cambios de Fase 2 aprobados el 24-oct-2026.
 
 La carpeta `contrato/ejemplos/` contiene ejemplos que cumplen los esquemas: payload, salida del LLM, evaluación y evaluación sin mensajes del agente. Son **ilustrativos y ficticios**: no son datos del lote de calibración ni deben usarse como tales.
 
@@ -117,7 +117,7 @@ Derivación determinista a partir del ID:
 | `estado_caso` | `abierto`, `en_seguimiento`, `cerrado`, `sin_caso` | payload. `sin_caso` si y solo si `numero_caso` es `null` (SUPUESTO). |
 | `campo_capturado` | `presente`, `ausente` | `metadatos_caso.campos_capturados` |
 | `lote` | `demo`, `calibracion_v1`, `calibracion_v2`, ... | parámetro `?lote=`, hojas |
-| `estado_conversacion` | `pendiente`, `en_evaluacion`, `evaluada`, `error` | `conversaciones.estado` |
+| `estado_conversacion` | `pendiente`, `en_evaluacion`, `evaluada`, `reproceso`, `error` | `conversaciones.estado` |
 | `estado_revision` | `pendiente`, `calificada` | `revision_humana.estado_revision` |
 | `resultado_subelemento` | `cumple`, `no_cumple`, `no_aplica` | subelementos de sección y de identidad (sistema y humano) |
 | `resultado_seccion` | `cumple`, `parcial`, `no_cumple`, `no_aplica` | secciones (sistema y humano) |
@@ -135,8 +135,9 @@ Derivación determinista a partir del ID:
 | `tipo_alerta` | `operativa`, `calidad`, `costo`, `calibracion` | `alertas` |
 | `modo_envio` | `inmediato`, `resumen_lote` | `alertas` |
 | `estado_envio` | `enviada`, `fallida` | `alertas` |
-| `tipo_error` | `payload_invalido`, `tipo_interaccion_sin_rubrica`, `evaluacion_sin_secciones_aplicables`, `respuesta_llm_invalida`, `fallo_nodo`, `fallo_api`, `fallo_sheets`, `fallo_telegram`, `generacion_invalida` | `log_errores` |
-| `workflow` | `simulador`, `ingesta`, `evaluacion`, `errores`, `metricas` | `log_errores`, `alertas` |
+| `tipo_error` | `payload_invalido`, `tipo_interaccion_sin_rubrica`, `evaluacion_sin_secciones_aplicables`, `respuesta_llm_invalida`, `fallo_nodo`, `fallo_api`, `fallo_sheets`, `fallo_telegram`, `generacion_invalida`, `formulario_invalido` | `log_errores`. `formulario_invalido` = rechazo del formulario del simulador (lote congelado, cantidad sobre el máximo, subelemento o caso difícil inexistente, combinación incompatible); se registra sin alerta de Telegram y el formulario muestra el motivo. |
+| `anomalia_llm` | `incompleta`, `refusal`, `commentary` | `evaluaciones.anomalias_llm` (lista separada por `|`; vacía si ninguna) |
+| `workflow` | `simulador`, `ingesta`, `evaluacion`, `errores`, `metricas`, `reproceso` | `log_errores`, `alertas` |
 | `generado_por` | `simulador`, `contrato-datos` | `escenarios` |
 | `tipo_dato_config` | `entero`, `decimal`, `texto`, `booleano`, `lista` | `config.tipo` |
 | `tipo_lista` | `frase_criterio`, `termino_prohibido`, `frase_negativa`, `vicio_lenguaje`, `palabra_altisonante`, `sigla_permitida` | `listas.tipo_lista` |

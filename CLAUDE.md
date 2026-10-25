@@ -67,6 +67,9 @@ Disparador adicional manual para el lote de calibración: recibe lote y versión
 ### Workflow de errores
 Error Trigger que registra en `log_errores` el workflow, nodo, mensaje de error y conversación afectada, y envía alerta operativa por Telegram. Los nodos críticos (OpenAI, Claude, Sheets, Telegram) tienen activada la salida de error para no detener todo el lote.
 
+### Workflow 4: Reproceso
+Disparador programado (`reproceso_intervalo_min`) y manual. Toma las conversaciones en estado `reproceso` (falla de API después de los reintentos con espera de HTTP 429 y 5xx, o salida ambigua del LLM) y las reenvía una por una a Evaluación. Al superar `reproceso_max_intentos` las deja en `error` con alerta operativa. Nunca borra filas: ninguna conversación se pierde. En W2, la revisión de `falla_api` va antes que la de `valido`.
+
 ### Workflow 3: Métricas de calibración
 Disparador manual. Lee `evaluaciones`, `revision_humana` (solo filas calificadas) y `escenarios` de un lote de calibración, calcula las métricas, las guarda en `metricas` con la versión evaluada y envía alerta de calibración si el acuerdo cae bajo el umbral.
 
@@ -159,7 +162,7 @@ Cada fase: plan del orquestador, mi aprobación, subagentes, revisión de `revis
 ### Fase 2: Workflows de n8n
 - `workflows-n8n`: Ingesta, Evaluación, Errores, Simulador y Métricas, más alertas por Telegram, con instrucciones de importación y de credenciales que debo crear.
 - Si tengo configurado un MCP de n8n para validar nodos, el subagente lo usa para verificar que los nodos existan en mi versión.
-- Criterio de terminado: yo importo los workflows, cargo credenciales y el lote completo pasa por el flujo sin errores.
+- Criterio de terminado: yo importo los workflows, cargo credenciales y el lote `demo` del simulador más los casos de prueba (payload de ejemplo, inválidos, duplicado, `sales`, sin agente, `fallo_api` forzado y reproceso) pasan por el flujo sin errores. `calibracion_v1` solo se ingesta como `pendiente`, sin evaluar, y se evalúa en la Fase 4 después de mi calificación a ciegas. Su verdad de escenarios no se carga en Google Sheets hasta terminar la Fase 3.
 
 ### Fase 3: Calibración (la hago yo)
 - Califico a ciegas el lote en `revision_humana`, sin abrir `evaluaciones` ni `escenarios`.

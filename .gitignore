@@ -3,3 +3,6 @@
 credentials*.json
 *.secret*
 .streamlit/secrets.toml
+
+# Valores locales de n8n (ID del libro, URL del webhook); nunca al repo
+workflows/_local/

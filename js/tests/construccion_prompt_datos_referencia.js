@@ -110,6 +110,7 @@ const CONFIG_EJEMPLO = {
   llm_temperatura: '0',
   version_prompt: 'evaluador_ce_v1',
   reintentos_validacion_llm: '2',
+  max_tokens_evaluador: '8000', // texto crudo de Sheets; JS-1 lo convierte a número
 };
 
 module.exports = {

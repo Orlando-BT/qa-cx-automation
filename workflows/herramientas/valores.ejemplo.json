@@ -1,0 +1,15 @@
+{
+  "_instrucciones": "Copia este archivo a workflows/_local/valores.json (carpeta ignorada por git), reemplaza cada marcador por el valor real de tu instancia y corre: node workflows/herramientas/ensamblar.mjs --local. Nunca pongas valores reales en este archivo ni fuera de workflows/_local/.",
+  "marcadores": {
+    "<ID_LIBRO_SHEETS>": "<ID_LIBRO_SHEETS>",
+    "<URL_WEBHOOK_INGESTA>": "<URL_WEBHOOK_INGESTA>",
+    "<ID_WORKFLOW_EVALUACION>": "<ID_WORKFLOW_EVALUACION>",
+    "<ID_WORKFLOW_ERRORES>": "<ID_WORKFLOW_ERRORES>"
+  },
+  "credenciales": {
+    "OpenAI (Authorization Bearer)": "<ASIGNAR_EN_N8N>",
+    "Anthropic (x-api-key)": "<ASIGNAR_EN_N8N>",
+    "Google Sheets QA": "<ASIGNAR_EN_N8N>",
+    "Telegram bot QA": "<ASIGNAR_EN_N8N>"
+  }
+}

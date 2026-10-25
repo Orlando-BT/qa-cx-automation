@@ -498,7 +498,9 @@ Correspondencia entre la salida del LLM y la rúbrica:
 
 ### 6.1 Reglas de coherencia de JS-5
 
-JS-5 rechaza la respuesta del LLM y la reenvía con el error explicado (máximo `config.reintentos_validacion_llm`) si no se cumple alguna de estas reglas:
+JS-5 rechaza la respuesta del LLM y la reenvía con el error explicado (máximo `config.reintentos_validacion_llm`) si no se cumple alguna de estas reglas. Las respuestas incompletas (cortadas) y los refusal no pasan por este reenvío: ver `config.md` sección 13 ("Manejo de respuestas del evaluador"); las incompletas usan `config.reintentos_respuesta_incompleta`.
+
+Reglas:
 
 1. **Estructura:** cumple `llm_output.schema.json`. `tema.valor` existe en `catalogo_temas` (filas activas del `tipo_interaccion` de la conversación **unidas** a las de `todos`). Cada `id_articulo` existe en `base_conocimiento` (mismo criterio: tipo ∪ `todos`).
 2. **Números de mensaje:** todos existen en la conversación. En `errores_ortografia`, `criticos_posibles`, `mensajes_atencion` y `primer_mensaje_info_cuenta` deben ser mensajes del agente; `solicitudes_cliente[].mensaje_n` debe ser del cliente.
@@ -515,3 +517,47 @@ JS-5 rechaza la respuesta del LLM y la reenvía con el error explicado (máximo 
 
 - **D3 (base de conocimiento):** en v1 el LLM recibe toda la base de conocimiento en una sola llamada junto con la evaluación. Separar la clasificación del tema y la evaluación en dos llamadas queda como **hipótesis para v2**, a validar con las métricas de calibración (acuerdo en `recapitulacion.tipificacion` y costo por evaluación).
 - Los subelementos [LLM] no se convierten a [JS] aunque se puedan aproximar con frases; si una regla resulta verificable con listas o timestamps, se propone moverla a JS en una versión nueva de reglas (`version_reglas`).
+
+## 8. Simulador: combinaciones incompatibles
+
+**Alcance:** esta sección solo la usa el sorteo de W0 (`js/simulador.js`). Ninguna regla de evaluación (JS-3, JS-6, JS-7) la lee ni cambia resultados.
+
+Contenido revisado por el dueño el 24-oct-2026. Lo usa el sorteo de W0 (JS) cuando el formulario no trae las fallas: descarta las combinaciones de un error crítico con subelementos que no pueden pedirse como falla junto con él. Los subelementos de esta tabla son los **identificados con su ID** en la sección 3 y en la sección 4 (identidad).
+
+**Regla general (decisión del dueño):**
+- No se sortean subelementos `informativo` (hoy solo `diagnostico.numero_preguntas`).
+- No se sortean subelementos que la regla "`no_aplica` cuando" deja inaplicables en la conversación que resulta de ese crítico.
+- No se sortean subelementos que el crítico ya implica (serían una falla redundante) ni los que lo contradicen.
+
+**Motivos:** `implicado` = el crítico ya hace fallar ese subelemento; `inaplicable` = su regla `no_aplica` lo anula con ese crítico; `contradice` = la conducta que pide el crítico impide esa falla. Si el motivo no sale literal de la rúbrica, la fila va marcada SUPUESTO.
+
+| Crítico | Subelementos que NO se piden como falla junto con él | Motivo | Fuente / SUPUESTO |
+|---|---|---|---|
+| `critico.no_toma_a_tiempo` | `apertura.toma_a_tiempo` | implicado: el crítico es `apertura.toma_a_tiempo = no_cumple`. | Literal (3.1, sección 5). |
+| `critico.no_genera_caso` | `recapitulacion.informa_numero_caso`, `recapitulacion.numero_caso_coincide` | inaplicable: `numero_caso` es `null`. | Literal (3.6). |
+| `critico.no_genera_caso` | `recapitulacion.uso_solucion_seguimiento` | inaplicable: es `no_aplica` si `estado_caso` es `sin_caso`. | Literal (3.6), dado `estado_caso = sin_caso`. |
+| `critico.no_genera_caso` | `solucion.seguimiento_en_plazo` | inaplicable: es `no_aplica` si `estado_caso` es `cerrado` o `sin_caso`. | Literal (3.4), dado `estado_caso = sin_caso`. |
+| `critico.no_genera_caso` | `ayuda_adicional.encuesta` | inaplicable: es `no_aplica` si `estado_caso` no es `cerrado`. | Literal (3.7), dado `estado_caso = sin_caso`. |
+| `critico.abandono` | `cierre.despedida` | implicado: sin despedida previa no hay excepción, y los últimos mensajes del agente no traen despedida. | Literal (3.10, caso 2; sección 5). |
+| `critico.abandono` | `recapitulacion.cierre_inactividad` | contradice: un cierre por inactividad previo es excepción de `critico.abandono`, y si el cliente responde después del recordatorio el subelemento es `no_aplica`. | Literal (3.6, 3.10, sección 5). |
+| `critico.palabras_altisonantes` | (ninguno) | La rúbrica no liga este crítico a ningún subelemento. | Literal (sección 5). |
+| `critico.validacion_identidad` | `identidad.pide_datos`, `identidad.datos_coinciden`, `identidad.orden_validacion` | implicado: si alguno falla por dar información de la cuenta, se activa el crítico; no se piden aparte. | Literal (sección 4). |
+| `critico.confidencialidad` | (ninguno) | La rúbrica no liga este crítico a ningún subelemento. | Literal (sección 5). |
+| `critico.tipificacion_incorrecta` | `recapitulacion.tipificacion` | implicado: el crítico es `recapitulacion.tipificacion = no_cumple`. | Literal (3.6, sección 5). |
+| `critico.informacion_incorrecta` | `solucion.informacion_correcta` | implicado: la información incorrecta con impacto ya hace fallar este subelemento. | Literal (sección 5: la información incorrecta sin impacto "solo afecta" `solucion.informacion_correcta`). |
+| `critico.promesa_no_autorizada` | (ninguno) | La rúbrica no liga este crítico a ningún subelemento. | Literal (sección 5). |
+| `critico.negacion_servicio` | `diagnostico.solicitudes_atendidas` | implicado: negarse a atender deja la solicitud sin atender (`atendida = false`). | SUPUESTO. |
+| `critico.negacion_servicio` | `diagnostico.solicitudes_detectadas` | contradice: negarse a atender una solicitud supone haberla reconocido. | SUPUESTO. |
+| `critico.mala_actitud` | `empatia.cordialidad` | implicado: trato despectivo o sarcástico contradice "trato amable y respetuoso". | SUPUESTO. |
+| `critico.comentarios_negativos_marca` | (ninguno) | La rúbrica no liga este crítico a ningún subelemento. | Literal (sección 5). |
+
+Nota sobre `critico.no_genera_caso`: las tres filas son literales dado `estado_caso = sin_caso`. Que un `numero_caso` `null` implique `sin_caso` es el SUPUESTO del glosario (`estado_caso`), no de esta sección. `ayuda_adicional.encuesta_caso_cerrado` **no** se excluye: con `sin_caso` no es `no_aplica` (3.7 solo la anula si el estado es `cerrado` o si termina por inactividad), así que puede fallar.
+
+**Regla del simulador para `critico.tipificacion_incorrecta` (decisión del dueño):** cuando el escenario lleva este crítico, la tipificación del agente es siempre una categoría que **existe** en `catalogo_temas` y es distinta de la correcta para el tema. Por eso `solucion.campos_obligatorios` no queda anulado y se puede sortear sin restricción.
+
+**Combinaciones en sentido contrario (para el sorteo de fallas sin crítico). Todas SUPUESTO:**
+- `solucion.informacion_correcta` pedido como falla sin `critico.informacion_incorrecta`: la información incorrecta no debe tener impacto (sección 5), o se activaría el crítico.
+- `identidad.pide_datos` y `identidad.orden_validacion` pedidos como falla activan `critico.validacion_identidad`; `identidad.datos_coinciden` también, salvo que el agente no revele información (sección 4). No pueden pedirse en una conversación donde el crítico deba estar ausente.
+- **Excepción para calidad `regular` (decisión del dueño):** sí se puede sortear `identidad.datos_coinciden` en su variante sin crítico: el cliente no alcanza `identidad_min_datos_correctos`, el agente no declina y no revela información de la cuenta (sección 4). El resto de `identidad.*` sigue bloqueado para `regular`.
+- `recapitulacion.tipificacion` pedido como falla activa `critico.tipificacion_incorrecta`; `apertura.toma_a_tiempo` activa `critico.no_toma_a_tiempo` (3.1).
+- Pares que no pueden fallar juntos porque solo uno aplica: `solucion.escala_cuando_requiere` y `solucion.no_escala_innecesario` (3.4: exactamente uno aplica); `ayuda_adicional.encuesta` y `ayuda_adicional.encuesta_caso_cerrado` (3.7: según `estado_caso` sea o no `cerrado`).

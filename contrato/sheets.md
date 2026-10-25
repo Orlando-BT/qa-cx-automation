@@ -1,6 +1,6 @@
 # Libro de Google Sheets (contrato)
 
-Cada hoja con sus columnas exactas **en orden**, tipo de dato, descripción y quién la escribe. La fila 1 de cada hoja contiene exactamente los nombres de columna aquí listados. Estado: borrador de Fase 0.
+Cada hoja con sus columnas exactas **en orden**, tipo de dato, descripción y quién la escribe. La fila 1 de cada hoja contiene exactamente los nombres de columna aquí listados. Estado: Fase 0 aprobada; cambios de Fase 2 aprobados por el dueño el 24-oct-2026.
 
 ## Convenciones
 
@@ -13,7 +13,7 @@ Cada hoja con sus columnas exactas **en orden**, tipo de dato, descripción y qu
   - `enum(x)`: enumeración `x` de `glosario.md`.
   - Marcadores especiales (`no_medido`, `no_aplica` como marcador, `por_verificar`, `pendiente_fase_1`, `sin_rubrica`): solo donde el tipo de la columna los menciona (ver glosario, sección 1).
 - **Escritores:**
-  - `W0 Simulador`, `W1 Ingesta` (webhook o disparador manual), `W2 Evaluación`, `W3 Métricas`, `WE Errores`: workflows de n8n.
+  - `W0 Simulador`, `W1 Ingesta` (webhook o disparador manual), `W2 Evaluación`, `W3 Métricas`, `W4 Reproceso`, `WE Errores`: workflows de n8n.
   - `manual: dueño`: lo escribe solo el dueño.
   - `carga inicial`: se importa desde `datos/` (CSV preparado por `contrato-datos`).
 - Una celda vacía significa "sin valor" (equivale a `null`).
@@ -32,13 +32,13 @@ Cada hoja con sus columnas exactas **en orden**, tipo de dato, descripción y qu
 | `catalogo_temas` | tipificación válida | carga inicial; manual: dueño | W2, W0 |
 | `base_conocimiento` | artículo | carga inicial; manual: dueño | W2, W0 |
 | `cuentas` | cuenta | carga inicial; manual: dueño | W0, W1, W2 |
-| `conversaciones` | conversación por versión (llave_dedup) | W1 (webhook y disparador manual), W2 | W1, W2 |
+| `conversaciones` | conversación por versión (llave_dedup) | W1 (webhook y disparador manual), W2, W4, WE (solo `estado` y `actualizado_en`, paso a `reproceso`) | W1, W2, W4, WE |
 | `escenarios` | conversación generada | W0; carga inicial (`calibracion_v1`) | W3 |
 | `revision_humana` | conversación generada (rúbrica `ce`) | W0; carga inicial (`calibracion_v1`); manual: dueño (calificación) | W3 |
 | `evaluaciones` | evaluación | W2 | W3 |
 | `detalle_criterios` | sección o criterio de una evaluación | W2 | W3 |
-| `log_errores` | error | W0, W1, W2, W3, WE | dueño |
-| `alertas` | alerta enviada | W0, W1, W2, W3, WE | dueño |
+| `log_errores` | error | W0, W1, W2, W3, W4, WE | dueño |
+| `alertas` | alerta enviada | W0, W1, W2, W3, W4, WE | dueño |
 | `metricas` | valor de métrica | W3 | dueño, tablero |
 
 ---
@@ -117,13 +117,15 @@ Una fila por `llave_dedup`. Quién escribe:
 - **W1 por webhook:**
   1. Valida el payload.
   2. Si el `tipo_interaccion` no tiene rúbrica (`version_reglas = sin_rubrica`), no inserta: solo escribe `log_errores` con `tipo_interaccion_sin_rubrica` (SUPUESTO). Limitación: esas conversaciones no quedan guardadas y deben reenviarse cuando exista la rúbrica (Fase 5b).
-  3. Si ya existe la `llave_dedup` con `estado` distinto de `error`, no inserta y responde como duplicado. Si existe con `estado = error`, la reutiliza: la pone en `pendiente` e incrementa `intentos` (SUPUESTO).
+  3. Si ya existe la `llave_dedup` con `estado` distinto de `error` (incluido `reproceso`: ya está en la cola), no inserta y responde como duplicado. Si existe con `estado = error`, la reutiliza: la pone en `pendiente` e incrementa `intentos` (SUPUESTO).
   4. Inserta como `pendiente`.
   5. Llama a Evaluación, salvo que `lote` sea `calibracion_*` y `config.evaluar_al_ingerir_calibracion = no`.
 - **W1 por disparador manual** (parámetros: `lote`, `version_reglas`, `version_prompt`):
   - Por cada `conversation_id` del lote sin fila con la nueva `llave_dedup`, crea una fila `pendiente` copiando los datos de la conversación (columnas 2 a 14) de una fila existente.
   - Luego pasa a W2, una por una, las filas `pendiente` del lote con esa versión.
-- **W2:** cambia `estado`, `intentos`, `actualizado_en` e `id_evaluacion`.
+- **W2:** cambia `estado`, `intentos`, `actualizado_en` e `id_evaluacion`. Puede poner `estado = reproceso` (falla de API tras reintentos o salida ambigua).
+- **WE Errores:** si identifica la conversación de una falla de W2, pone `estado = reproceso` (escribe `estado` y `actualizado_en`, solo para ese paso).
+- **W4 Reproceso:** además de las filas `reproceso`, toma las filas `en_evaluacion` atascadas, es decir, con `actualizado_en` más viejo que `config.evaluacion_tiempo_maximo_min`: las pasa a `reproceso`, registra `log_errores` con `tipo_error = fallo_nodo` y les aplica el mismo límite `config.reproceso_max_intentos`. Para las filas `reproceso`: Si `intentos` ≤ `config.reproceso_max_intentos`, las pasa a W2 una por una (W2 pone `en_evaluacion` e incrementa `intentos`). Si no, las pone en `error` (escribe `estado` y `actualizado_en`), registra `log_errores` y envía alerta operativa. Con el valor 3: 1 evaluación original + hasta 3 reenvíos. W4 no pone `en_evaluacion` ni incrementa `intentos`. Nunca borra filas.
 
 | # | Columna | Tipo | Descripción | Escribe |
 |---|---|---|---|---|
@@ -143,10 +145,10 @@ Una fila por `llave_dedup`. Quién escribe:
 | 14 | `total_mensajes` | entero | Número de mensajes. | W1 |
 | 15 | `version_reglas` | texto | Versión de reglas (rúbrica) con la que se evaluará. | W1 |
 | 16 | `version_prompt` | texto | Versión de prompt con la que se evaluará. | W1 |
-| 17 | `estado` | enum(estado_conversacion) | `pendiente` al insertar; W2 cambia a `en_evaluacion`, `evaluada` o `error`. | W1, W2 |
+| 17 | `estado` | enum(estado_conversacion) | `pendiente` al insertar; W2 cambia a `en_evaluacion`, `evaluada`, `reproceso` o `error`; W4 solo escribe `en_evaluacion` (atascada) → `reproceso` y `reproceso` → `error`; WE solo escribe el paso a `reproceso`. | W1, W2, W4, WE |
 | 18 | `intentos` | entero | Número de veces que entró a evaluación. | W1, W2 |
 | 19 | `recibido_en` | fecha_hora | Recepción en el webhook (en filas creadas por el disparador manual, copia de la fila origen). | W1 |
-| 20 | `actualizado_en` | fecha_hora | Último cambio de `estado`. | W1, W2 |
+| 20 | `actualizado_en` | fecha_hora | Último cambio de `estado` (W4 solo en los pasos `en_evaluacion` atascada → `reproceso` y `reproceso` → `error`; WE solo en el paso a `reproceso`). | W1, W2, W4, WE |
 | 21 | `id_evaluacion` | texto | Vacío hasta que W2 termina. | W2 |
 
 ## `escenarios`
@@ -164,7 +166,7 @@ Una fila por `llave_dedup`. Quién escribe:
 | 7 | `tema_esperado` | texto | Tema del catálogo. | W0; carga inicial |
 | 8 | `tipificacion_esperada` | texto | Tipificación correcta para el tema. | W0; carga inicial |
 | 9 | `errores_criticos_inyectados` | lista | IDs `critico.*` inyectados; vacío si ninguno. | W0; carga inicial |
-| 10 | `criterios_que_deben_fallar` | lista | IDs de subelementos (sección o identidad) que el escenario hace fallar. | W0; carga inicial |
+| 10 | `criterios_que_deben_fallar` | lista | IDs de subelementos (sección o identidad) que el escenario hace fallar. Guarda los finales: los del formulario o los sorteados por JS. | W0; carga inicial |
 | 11 | `casos_dificiles` | lista | Valores de enum(caso_dificil); vacío si ninguno. | W0; carga inicial |
 | 12 | `descripcion_escenario` | texto | Descripción breve de lo que debe ocurrir. | W0; carga inicial |
 | 13 | `cuenta_id` | texto | Cuenta elegida. | W0; carga inicial |
@@ -174,6 +176,7 @@ Una fila por `llave_dedup`. Quién escribe:
 | 17 | `tokens_salida` | entero o `no_medido` | Tokens de salida; `no_medido` en `calibracion_v1`. | W0; carga inicial |
 | 18 | `costo_generacion_usd` | decimal o `no_medido` | Costo de generación. `no_medido` en `calibracion_v1`; vacío si W0 generó con precios del generador en `por_verificar`. | W0; carga inicial |
 | 19 | `generado_en` | fecha_hora | Momento de generación. | W0; carga inicial |
+| 20 | `semilla_sorteo` | entero | Semilla del generador aleatorio de W0 con la que se sortearon calidad, tema, tipificación, cuenta, criterios y fecha; permite reproducir el escenario. Vacía en la carga inicial de `calibracion_v1`. | W0 |
 
 ## `revision_humana`
 
@@ -252,7 +255,7 @@ Formatos de las columnas legibles:
 
 ## `evaluaciones`
 
-Una fila por evaluación completa (ver `evaluacion.schema.json`). Genérica: el resultado por sección está en `detalle_criterios` (filas con `tipo_criterio = seccion`).
+Una fila por evaluación completa (ver `evaluacion.schema.json`). Genérica: el resultado por sección está en `detalle_criterios` (filas con `tipo_criterio = seccion`). Una sola fila por `llave_dedup` (conversación + versión de reglas + versión de prompt): una doble ejecución no genera dos filas.
 
 | # | Columna | Tipo | Descripción | Escribe |
 |---|---|---|---|---|
@@ -285,10 +288,11 @@ Una fila por evaluación completa (ver `evaluacion.schema.json`). Genérica: el 
 | 27 | `iniciado_en` | fecha_hora | | W2 |
 | 28 | `evaluado_en` | fecha_hora | | W2 |
 | 29 | `evaluacion_json` | json | Objeto completo según `evaluacion.schema.json`. | W2 |
+| 30 | `anomalias_llm` | lista de enum(anomalia_llm) | Anomalías del evaluador durante esa evaluación, aunque se haya recuperado: `incompleta`, `refusal`, `commentary`; vacía si ninguna. Se deriva de `evaluacion_json.consumo.anomalias_llm` (unido con `|`), nunca por separado. Insumo de la métrica de v2 (Fase 4). | W2 |
 
 ## `detalle_criterios`
 
-Una fila por sección (`tipo_criterio = seccion`) y una por cada elemento de `criterios` de la evaluación. Con `reglas_ce_v1` son 77 filas por evaluación: 8 secciones, 54 subelementos, 3 de identidad y 12 críticos. Un criterio se identifica con `version_reglas` + `id_criterio`.
+Una fila por sección (`tipo_criterio = seccion`) y una por cada elemento de `criterios` de la evaluación. Con `reglas_ce_v1` son 77 filas por evaluación: 8 secciones, 54 subelementos, 3 de identidad y 12 críticos. Un criterio se identifica con `version_reglas` + `id_criterio`. Una sola fila por `llave_dedup` + `id_criterio`: una doble ejecución no genera filas duplicadas. La columna `id_evaluacion` se deriva 1:1 de la `llave_dedup` (glosario), así que la unicidad se verifica con (`id_evaluacion`, `id_criterio`) sin columna nueva.
 
 | # | Columna | Tipo | Descripción | Escribe |
 |---|---|---|---|---|
@@ -314,17 +318,17 @@ Una fila por sección (`tipo_criterio = seccion`) y una por cada elemento de `cr
 
 | # | Columna | Tipo | Descripción | Escribe |
 |---|---|---|---|---|
-| 1 | `id_error` | texto | `ERR-AAAAMMDD-HHMMSS-nnn`. | W0, W1, W2, W3, WE |
-| 2 | `ocurrido_en` | fecha_hora | | W0, W1, W2, W3, WE |
-| 3 | `workflow` | enum(workflow) | | W0, W1, W2, W3, WE |
-| 4 | `nodo` | texto | Nombre del nodo de n8n. | W0, W1, W2, W3, WE |
-| 5 | `tipo_error` | enum(tipo_error) | | W0, W1, W2, W3, WE |
-| 6 | `mensaje_error` | texto | Mensaje legible, sin datos personales ni credenciales. | W0, W1, W2, W3, WE |
-| 7 | `conversation_id` | texto | Vacío si no aplica. | W0, W1, W2, W3, WE |
-| 8 | `lote` | enum(lote) | Vacío si no aplica. | W0, W1, W2, W3, WE |
-| 9 | `tipo_interaccion` | enum(tipo_interaccion) | Vacío si no aplica. | W0, W1, W2, W3, WE |
-| 10 | `detalle_json` | json | Detalle técnico (por ejemplo, errores de validación). Sin datos personales sin enmascarar ni credenciales. | W0, W1, W2, W3, WE |
-| 11 | `alerta_enviada` | booleano | Si se envió alerta operativa. | W0, W1, W2, W3, WE |
+| 1 | `id_error` | texto | `ERR-AAAAMMDD-HHMMSS-nnn`. | W0, W1, W2, W3, W4, WE |
+| 2 | `ocurrido_en` | fecha_hora | | W0, W1, W2, W3, W4, WE |
+| 3 | `workflow` | enum(workflow) | | W0, W1, W2, W3, W4, WE |
+| 4 | `nodo` | texto | Nombre del nodo de n8n. | W0, W1, W2, W3, W4, WE |
+| 5 | `tipo_error` | enum(tipo_error) | | W0, W1, W2, W3, W4, WE |
+| 6 | `mensaje_error` | texto | Mensaje legible, sin datos personales ni credenciales. | W0, W1, W2, W3, W4, WE |
+| 7 | `conversation_id` | texto | Vacío si no aplica. | W0, W1, W2, W3, W4, WE |
+| 8 | `lote` | enum(lote) | Vacío si no aplica. | W0, W1, W2, W3, W4, WE |
+| 9 | `tipo_interaccion` | enum(tipo_interaccion) | Vacío si no aplica. | W0, W1, W2, W3, W4, WE |
+| 10 | `detalle_json` | json | Detalle técnico (por ejemplo, errores de validación). Sin datos personales sin enmascarar ni credenciales. | W0, W1, W2, W3, W4, WE |
+| 11 | `alerta_enviada` | booleano | Si se envió alerta operativa. | W0, W1, W2, W3, W4, WE |
 
 ## `alertas`
 
@@ -332,13 +336,13 @@ Toda alerta enviada (o intentada) se registra aquí. El modo de las alertas de c
 
 | # | Columna | Tipo | Descripción | Escribe |
 |---|---|---|---|---|
-| 1 | `id_alerta` | texto | `ALR-AAAAMMDD-HHMMSS-nnn`. | W0, W1, W2, W3, WE |
-| 2 | `enviada_en` | fecha_hora | | W0, W1, W2, W3, WE |
-| 3 | `tipo_alerta` | enum(tipo_alerta) | | W0, W1, W2, W3, WE |
-| 4 | `modo_envio` | enum(modo_envio) | | W0, W1, W2, W3, WE |
-| 5 | `workflow` | enum(workflow) | | W0, W1, W2, W3, WE |
-| 6 | `conversation_id` | texto | Vacío en alertas de lote o de calibración. | W0, W1, W2, W3, WE |
-| 7 | `lote` | enum(lote) | Vacío si no aplica. | W0, W1, W2, W3, WE |
+| 1 | `id_alerta` | texto | `ALR-AAAAMMDD-HHMMSS-nnn`. | W0, W1, W2, W3, W4, WE |
+| 2 | `enviada_en` | fecha_hora | | W0, W1, W2, W3, W4, WE |
+| 3 | `tipo_alerta` | enum(tipo_alerta) | | W0, W1, W2, W3, W4, WE |
+| 4 | `modo_envio` | enum(modo_envio) | | W0, W1, W2, W3, W4, WE |
+| 5 | `workflow` | enum(workflow) | | W0, W1, W2, W3, W4, WE |
+| 6 | `conversation_id` | texto | Vacío en alertas de lote o de calibración. | W0, W1, W2, W3, W4, WE |
+| 7 | `lote` | enum(lote) | Vacío si no aplica. | W0, W1, W2, W3, W4, WE |
 | 8 | `agente` | texto | En alertas de calidad. | W2 |
 | 9 | `id_criterio` | texto | Error crítico (`critico.*`) en alertas de calidad; vacío en las demás. | W2 |
 | 10 | `nombre_metrica` | enum(nombre_metrica) | Métrica en alertas de calibración; vacío en las demás. | W3 |
@@ -346,9 +350,9 @@ Toda alerta enviada (o intentada) se registra aquí. El modo de las alertas de c
 | 12 | `evidencia` | texto | Evidencia enmascarada. | W2 |
 | 13 | `valor_observado` | decimal | Costo o métrica observada (alertas de costo y calibración). | W2, W3 |
 | 14 | `umbral` | decimal | Umbral de config que se superó. | W2, W3 |
-| 15 | `texto_enviado` | texto | Texto enviado por Telegram. | W0, W1, W2, W3, WE |
-| 16 | `destinatario` | texto | Valor de `config.telegram_destinatario`. | W0, W1, W2, W3, WE |
-| 17 | `estado_envio` | enum(estado_envio) | | W0, W1, W2, W3, WE |
+| 15 | `texto_enviado` | texto | Texto enviado por Telegram. | W0, W1, W2, W3, W4, WE |
+| 16 | `destinatario` | texto | Valor de `config.telegram_destinatario`. | W0, W1, W2, W3, W4, WE |
+| 17 | `estado_envio` | enum(estado_envio) | | W0, W1, W2, W3, W4, WE |
 
 ## `metricas`
 

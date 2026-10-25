@@ -248,6 +248,20 @@ function leerListaConfig(valor) {
     .filter((v) => v !== '');
 }
 
+// Lee una clave de config de tipo "entero" que debe ser > 0. JS-1
+// (normalizacion.js) ya la entrega como número; si llega como texto crudo de
+// Sheets ("8000"), se acepta solo si son dígitos. "8000.5", "0", "", null o
+// ausente -> error explícito con el nombre de la clave.
+function leerEnteroPositivo(valor, nombre) {
+  let n = NaN;
+  if (typeof valor === 'number') n = valor;
+  else if (typeof valor === 'string' && /^\s*\d+\s*$/.test(valor)) n = Number(valor);
+  if (!Number.isInteger(n) || n < 1) {
+    throw new Error(`${nombre} debe ser un entero positivo y vale ${JSON.stringify(valor)}.`);
+  }
+  return n;
+}
+
 // -----------------------------------------------------------------------------
 // 5. Parámetros de muestreo
 // -----------------------------------------------------------------------------
@@ -287,8 +301,22 @@ function parametrosMuestreo(config, opciones = {}) {
 // opciones = {   // todas opcionales; en producción basta con config
 //   claves_esquema_no_aceptadas, // si se da, sustituye a config.claves_esquema_excluidas_evaluador
 //   esfuerzo_razonamiento,       // si se da, sustituye a config.llm_esfuerzo_razonamiento
-//   max_tokens_salida,           // opcional; si no se da, no se envía tope
+//   max_tokens_salida,           // si se da, sustituye al VALOR de config.max_tokens_evaluador
 // }
+//
+// Tope de salida (Fase 2, 24-oct-2026; contrato/config.md sección 8):
+//   - SIEMPRE se envía max_output_tokens. Sale de config.max_tokens_evaluador
+//     (entero, 8000). Si la clave falta o no es un entero positivo, se lanza un
+//     error explícito: sin tope, una respuesta desbocada (por ejemplo, con el
+//     bloque commentary) no tendría límite de costo.
+//   - Decisión: opciones.max_tokens_salida se CONSERVA como override solo para
+//     pruebas y para prompts/verificacion/verificar_openai.mjs (pruebas A y B).
+//     Aun con override, config.max_tokens_evaluador se valida igual: así una
+//     hoja config sin la clave falla también en las pruebas y no solo en n8n.
+//     En producción (nodo de n8n) no se pasa.
+//   - Esto NO cambia el texto del prompt: evaluador_ce_v1 no sube de versión.
+//     El valor 8000 es el mismo tope que se usó en la prueba B, así que las
+//     evaluaciones de v1 se hacen con las mismas condiciones que se midieron.
 // Devuelve el objeto que el nodo HTTP Request envía como cuerpo JSON a
 // POST https://api.openai.com/v1/responses.
 function construirPeticion(datos, opciones = {}) {
@@ -331,7 +359,9 @@ function construirPeticion(datos, opciones = {}) {
     store: false, // no guardar la conversación en OpenAI
     ...parametrosMuestreo(config, opciones),
   };
-  if (opciones.max_tokens_salida) cuerpo.max_output_tokens = Number(opciones.max_tokens_salida);
+  const topeConfig = leerEnteroPositivo(config.max_tokens_evaluador, 'config.max_tokens_evaluador');
+  cuerpo.max_output_tokens =
+    opciones.max_tokens_salida !== undefined ? leerEnteroPositivo(opciones.max_tokens_salida, 'opciones.max_tokens_salida') : topeConfig;
   return cuerpo;
 }
 
@@ -349,6 +379,331 @@ function agregarReintento(cuerpo, textoRespuestaAnterior, mensajeErrores) {
   return nuevo;
 }
 
+// -----------------------------------------------------------------------------
+// 8. Generador del simulador (Workflow 0, pasos 3 y 4) — Anthropic Messages API
+// -----------------------------------------------------------------------------
+// Fuente verificada el 24-oct-2026 (documentación oficial):
+//   - platform.claude.com/docs/en/build-with-claude/structured-outputs.md
+//     * claude-haiku-5-5 está en la lista de modelos con salida estructurada.
+//     * La salida estructurada va en output_config.format = { type: "json_schema",
+//       schema }. El parámetro output_format está OBSOLETO (sin el encabezado
+//       beta structured-outputs-2025-11-13 devuelve 400): no se usa.
+//     * Objetos con additionalProperties: false; no se admiten minimum/maximum,
+//       minLength/maxLength ni minItems > 1 (400). El prefill es incompatible
+//       con la salida JSON: no se manda ningún mensaje "assistant".
+//     * stop_reason "refusal" (HTTP 200, se cobra) o "max_tokens": la salida
+//       puede no cumplir el esquema.
+//   - platform.claude.com/docs/en/api/messages.md y api/versioning.md
+//     * Con anthropic-version 2026-10-21, temperature, top_p y top_k fueron
+//       eliminados: enviarlos da 400 en todos los modelos. No se envían.
+//     * max_tokens es obligatorio. Sale de config.max_tokens_generador.
+//     * output_config admite effort y format en el mismo objeto (OutputConfig:
+//       effort low|medium|high|xhigh|max, format json_schema). Según
+//       build-with-claude/effort.md, claude-haiku-5-5 acepta los cinco niveles
+//       y su valor por defecto es medium. Sale de config.esfuerzo_generador
+//       (decisión del dueño, 24-oct-2026). thinking NO se envía: queda el
+//       razonamiento adaptativo por defecto, cuya profundidad controla effort.
+//     * El texto está en content[] -> bloque type "text". claude-haiku-5-5
+//       tiene razonamiento adaptativo encendido por defecto (docs
+//       build-with-claude/thinking.md): pueden llegar bloques type "thinking"
+//       antes del texto; se ignoran. Sus tokens se cobran como salida y cuentan
+//       dentro de max_tokens.
+//     * usage.input_tokens / output_tokens. El total de entrada es
+//       input_tokens + cache_creation_input_tokens + cache_read_input_tokens.
+//       output_tokens ya incluye los tokens de razonamiento.
+//
+// Encabezados del nodo HTTP Request (los fija workflows-n8n, no van en el cuerpo):
+//   POST https://api.anthropic.com/v1/messages
+//   x-api-key: <credencial de n8n>  (la API también acepta Authorization: Bearer)
+//   anthropic-version: config.anthropic_version_api (2026-10-21; ver api/versioning.md)
+//   content-type: application/json
+//
+// La versión del prompt sale de config.version_prompt_generador (generador_ce_v2
+// desde el 24-oct-2026; generador_ce_v1 sigue funcionando si config apunta a
+// ella). leerPlantilla() detiene el nodo si el texto pegado no es de esa versión.
+// Solo se envían los bloques INSTRUCCIONES (system) y ENTRADA (único mensaje user).
+
+// Valores de output_config.effort que documenta la Messages API (OutputConfig).
+const ESFUERZOS_GENERADOR = ['low', 'medium', 'high', 'xhigh', 'max'];
+
+// datos = {
+//   plantilla, // texto completo de prompts/generador_ce_vN.md (N según config)
+//   esquema,   // prompts/generador_payload_salida.schema.json (objeto)
+//   valores,   // { CONVERSATION_ID: ..., CUENTA: ..., ... } todos los marcadores <<...>>
+//              // de la plantilla (13 en v1; 15 en v2, ver valoresExtrasGenerador)
+//   config,    // claves ya resueltas para el tipo (modelo_generador,
+//              // version_prompt_generador, max_tokens_generador, esfuerzo_generador)
+// }
+// Devuelve el cuerpo JSON para POST https://api.anthropic.com/v1/messages.
+function construirPeticionGenerador(datos) {
+  const { plantilla, esquema, valores, config } = datos || {};
+  if (!config) throw new Error('Falta config.');
+  const modelo = config.modelo_generador;
+  if (!modelo || modelo === 'por_verificar') {
+    throw new Error('config.modelo_generador no está definido (sigue en por_verificar): no se puede llamar al generador.');
+  }
+  const version = config.version_prompt_generador;
+  if (!version || version === 'sin_rubrica') {
+    throw new Error(`config.version_prompt_generador no tiene un prompt de generador: ${JSON.stringify(version)}.`);
+  }
+  const maxTokens = leerEnteroPositivo(config.max_tokens_generador, 'config.max_tokens_generador');
+  const esfuerzo = config.esfuerzo_generador;
+  if (!ESFUERZOS_GENERADOR.includes(esfuerzo)) {
+    throw new Error(`config.esfuerzo_generador debe ser uno de ${ESFUERZOS_GENERADOR.join('|')} y vale ${JSON.stringify(esfuerzo)}.`);
+  }
+  if (!esquema || typeof esquema !== 'object' || Array.isArray(esquema)) throw new Error('Falta el esquema de salida del generador.');
+  if (!valores || typeof valores !== 'object') throw new Error('Faltan los valores de los marcadores del generador.');
+
+  const { instrucciones, plantilla_entrada } = leerPlantilla(plantilla, version);
+  const entrada = llenarPlantillaEntrada(plantilla_entrada, valores);
+
+  // Sin temperature, top_p, top_k ni thinking (razonamiento adaptativo por defecto).
+  return {
+    model: String(modelo),
+    max_tokens: maxTokens,
+    system: instrucciones,
+    messages: [{ role: 'user', content: entrada }],
+    output_config: {
+      effort: esfuerzo,
+      format: {
+        type: 'json_schema',
+        schema: JSON.parse(JSON.stringify(esquema)), // copia: el original no cambia
+      },
+    },
+  };
+}
+
+// Marcadores nuevos de generador_ce_v2 a partir de extras de completarEscenario
+// (js/simulador.js, reglas-js):
+//   TIPIFICACION_AGENTE = extras.tipificacion_agente_prevista; si es null (sin
+//                         critico.tipificacion_incorrecta), la tipificación esperada.
+//   VARIANTE_IDENTIDAD  = 'datos_coinciden_sin_critico' si
+//                         extras.variante_datos_coinciden_sin_critico es true; si no, 'ninguna'.
+// Así el pegamento de W0 no decide nada: solo une estos valores con los demás.
+function valoresExtrasGenerador(extras, tipificacionEsperada) {
+  if (!extras || typeof extras !== 'object') throw new Error('Faltan los extras de completarEscenario.');
+  if (typeof tipificacionEsperada !== 'string' || tipificacionEsperada.trim() === '') throw new Error('Falta la tipificación esperada.');
+  const prevista = extras.tipificacion_agente_prevista;
+  if (prevista !== null && prevista !== undefined && (typeof prevista !== 'string' || prevista.trim() === '')) {
+    throw new Error(`extras.tipificacion_agente_prevista debe ser texto o null y vale ${JSON.stringify(prevista)}.`);
+  }
+  const variante = extras.variante_datos_coinciden_sin_critico;
+  if (typeof variante !== 'boolean') {
+    throw new Error(`extras.variante_datos_coinciden_sin_critico debe ser booleano y vale ${JSON.stringify(variante)}.`);
+  }
+  return {
+    TIPIFICACION_AGENTE: prevista === null || prevista === undefined ? tipificacionEsperada : prevista,
+    VARIANTE_IDENTIDAD: variante ? 'datos_coinciden_sin_critico' : 'ninguna',
+  };
+}
+
+// Valores de TODOS los marcadores del prompt del generador (13 de v1 + 2 de v2),
+// con los formatos de la tabla "Marcadores que llena W0" de
+// prompts/generador_ce_v2.md. Entrada: la salida de completarEscenario
+// (js/simulador.js, reglas-js) más las hojas de referencia.
+//   escenario  { conversation_id, calidad_esperada, tema_esperado, tipificacion_esperada,
+//                errores_criticos_inyectados[], criterios_que_deben_fallar[], casos_dificiles[] }
+//   extras     { fecha_hora_inicio, tipificacion_agente_prevista|null, variante_datos_coinciden_sin_critico }
+//   cuenta     fila de la hoja cuentas
+//   catalogo_temas, base_conocimiento, listas: filas de las hojas
+//   config     claves ya resueltas (JS-1: listas como arreglo, booleanos true/false)
+//   tipo_interaccion  "ce"
+// Listas vacías -> "ninguno". Un dato obligatorio que falta -> error explícito
+// (mejor detener W0 que mandar un prompt incompleto al modelo).
+const CAMPOS_CUENTA_GENERADOR = ['cuenta_id', 'titular', 'razon_social', 'rfc', 'correo', 'telefono', 'giro', 'tamano'];
+const TIPOS_LISTA_GENERADOR = ['frase_criterio', 'termino_prohibido', 'frase_negativa', 'vicio_lenguaje', 'palabra_altisonante'];
+const CLAVES_CONFIG_GENERADOR = [
+  'marca', 'chat_primera_respuesta_seg', 'chat_umbral_espera_seg', 'chat_retomar_espera_seg', 'chat_espera_maxima_seg',
+  'chat_recordatorio_inactividad_seg', 'chat_cierre_inactividad_seg', 'seguimiento_plazo_max_horas_habiles',
+  'apertura_mensajes_agente', 'apertura_privacidad_mensajes_agente', 'cierre_mensajes_agente', 'identidad_min_datos_correctos',
+  'campana_vigente_activa', 'canales_oficiales_correos', 'canales_oficiales_telefonos', 'rfc_genericos_permitidos',
+  'enmascarado_correo_visibles_inicio', 'enmascarado_telefono_visibles_final', 'enmascarado_rfc_visibles_final',
+];
+const CALIDADES_GENERADOR = ['buena', 'regular', 'mala'];
+
+const textoObligatorio = (valor, nombre) => {
+  if (valor === undefined || valor === null || String(valor).trim() === '') throw new Error(`Falta ${nombre} para el prompt del generador.`);
+  return String(valor).trim();
+};
+// Arreglo (de completarEscenario) o texto "a|b" (celda de Sheets) -> "a, b" o "ninguno".
+const listaOninguno = (valor) => {
+  const l = leerListaConfig(valor);
+  return l.length ? l.join(', ') : 'ninguno';
+};
+// Valor de config para el prompt: booleanos como si/no (como en Sheets) y listas con ", ".
+const valorConfigTexto = (v) => (v === true ? 'si' : v === false ? 'no' : Array.isArray(v) ? (v.length ? v.join(', ') : 'ninguno') : String(v));
+
+// Catálogo para el GENERADOR: necesita tipificaciones y campos obligatorios, a
+// diferencia de formatearCatalogo() (evaluador), que solo muestra temas. Usa los
+// mismos filtros (filtrarPorTipo + esActivo). campos_obligatorios se separan con
+// ", " para no confundirse con el separador " | " de columnas.
+function formatearCatalogoGenerador(catalogoTemas, tipoInteraccion) {
+  const filas = filtrarPorTipo(catalogoTemas, tipoInteraccion).filter(esActivo);
+  if (filas.length === 0) throw new Error(`No hay temas activos en catalogo_temas para tipo_interaccion ${tipoInteraccion}.`);
+  return filas
+    .map((f) => [f.tema, f.tipificacion_valida, f.requiere_escalamiento, leerListaConfig(f.campos_obligatorios).join(', ') || 'ninguno', f.id_articulo || '(sin artículo)'].join(' | '))
+    .join('\n');
+}
+
+// Frases de referencia: una línea por clave_lista (orden de aparición), solo filas
+// activas del tipo ∪ todos y de los tipos de lista del generador. Las expresiones
+// regulares se marcan con "(regex)".
+function formatearFrasesReferencia(listas, tipoInteraccion) {
+  const porClave = new Map();
+  for (const f of filtrarPorTipo(listas, tipoInteraccion)) {
+    if (!esActivo(f) || !TIPOS_LISTA_GENERADOR.includes(f.tipo_lista)) continue;
+    const valor = f.es_regex === 'si' || f.es_regex === true ? `${f.valor} (regex)` : String(f.valor);
+    if (!porClave.has(f.clave_lista)) porClave.set(f.clave_lista, []);
+    porClave.get(f.clave_lista).push(valor);
+  }
+  if (porClave.size === 0) throw new Error(`No hay frases activas en listas para tipo_interaccion ${tipoInteraccion}.`);
+  return [...porClave].map(([clave, valores]) => `${clave}: ${valores.join(' | ')}`).join('\n');
+}
+
+function valoresGenerador({ escenario, extras, cuenta, catalogo_temas, base_conocimiento, listas, config, tipo_interaccion } = {}) {
+  if (!escenario || typeof escenario !== 'object') throw new Error('Falta el escenario (completarEscenario).');
+  if (!cuenta || typeof cuenta !== 'object') throw new Error('Falta la cuenta elegida.');
+  if (!config || typeof config !== 'object') throw new Error('Falta config.');
+  const tipo = textoObligatorio(tipo_interaccion, 'tipo_interaccion');
+  const calidad = textoObligatorio(escenario.calidad_esperada, 'escenario.calidad_esperada');
+  if (!CALIDADES_GENERADOR.includes(calidad)) throw new Error(`escenario.calidad_esperada debe ser buena, regular o mala (ya resuelta) y vale ${JSON.stringify(calidad)}.`);
+  const tipificacionEsperada = textoObligatorio(escenario.tipificacion_esperada, 'escenario.tipificacion_esperada');
+
+  const lineasCuenta = CAMPOS_CUENTA_GENERADOR.map((c) => `${c}: ${textoObligatorio(cuenta[c], `cuenta.${c}`)}`);
+  const lineasConfig = CLAVES_CONFIG_GENERADOR.map((c) => {
+    if (config[c] === undefined || config[c] === null) throw new Error(`Falta config.${c} para el prompt del generador.`);
+    return `${c}: ${valorConfigTexto(config[c])}`;
+  });
+
+  return {
+    CONVERSATION_ID: textoObligatorio(escenario.conversation_id, 'escenario.conversation_id'),
+    CUENTA: lineasCuenta.join('\n'),
+    FECHA_HORA_INICIO: textoObligatorio(extras && extras.fecha_hora_inicio, 'extras.fecha_hora_inicio'),
+    TEMA_ESPERADO: textoObligatorio(escenario.tema_esperado, 'escenario.tema_esperado'),
+    TIPIFICACION_ESPERADA: tipificacionEsperada,
+    CALIDAD_ESPERADA: calidad,
+    ERRORES_CRITICOS_INYECTADOS: listaOninguno(escenario.errores_criticos_inyectados),
+    CRITERIOS_QUE_DEBEN_FALLAR: listaOninguno(escenario.criterios_que_deben_fallar),
+    CASOS_DIFICILES: listaOninguno(escenario.casos_dificiles),
+    CATALOGO_TEMAS: formatearCatalogoGenerador(catalogo_temas, tipo),
+    BASE_CONOCIMIENTO: formatearBaseConocimiento(base_conocimiento, tipo),
+    FRASES_REFERENCIA: formatearFrasesReferencia(listas, tipo),
+    PARAMETROS_CONFIG: lineasConfig.join('\n'),
+    ...valoresExtrasGenerador(extras, tipificacionEsperada),
+  };
+}
+
+// Etiqueta corta de la API (minúsculas, dígitos y guion bajo). Cualquier otra
+// cosa se reemplaza por "otro" para no copiar texto libre a Sheets o Telegram.
+const etiquetaCorta = (x) => (typeof x === 'string' && /^[a-z0-9_]{1,40}$/.test(x) ? x : x === undefined || x === null ? null : 'otro');
+const numeroONull = (x) => (typeof x === 'number' && Number.isFinite(x) && x >= 0 ? x : null);
+
+// Lee la respuesta de la Messages API (cuerpo JSON con HTTP 200).
+// Devuelve:
+//   texto               texto del ÚNICO bloque type "text" ('' si no hay uno solo)
+//   salida              JSON.parse(texto), o null si no parsea o no es objeto
+//   completa            true solo si stop_reason = end_turn, hay un solo bloque
+//                       de texto y el texto es un objeto JSON
+//   motivo              null si completa; si no, una etiqueta fija:
+//                         max_tokens           cortada por max_tokens
+//                         refusal              el modelo se negó (ver categoria_rechazo)
+//                         stop_reason_<x>      otro stop_reason inesperado
+//                         sin_texto            ningún bloque type "text"
+//                         varios_bloques_texto dos o más bloques "text" (no se concatenan)
+//                         json_invalido        el texto no es un objeto JSON
+//   stop_reason         etiqueta de la API
+//   categoria_rechazo   stop_details.category si hubo refusal (etiqueta corta) o null
+//   tokens_entrada      input_tokens + cache_creation_input_tokens + cache_read_input_tokens
+//   tokens_salida       output_tokens (incluye razonamiento; es lo que se cobra)
+//   tokens_razonamiento usage.output_tokens_details.thinking_tokens o null (informativo)
+//   bloques_por_tipo    { thinking: 1, text: 1, ... } para diagnóstico
+// tokens_* son null si la API no los mandó (W0 deja vacío el costo en ese caso).
+// No valida el payload: eso lo hace validador_payload.js (reglas-js) con
+// validarGeneracion(salida, ...), en el paso 4 de W0.
+function leerRespuestaGenerador(respuestaApi) {
+  const r = respuestaApi && typeof respuestaApi === 'object' ? respuestaApi : {};
+  const bloques = Array.isArray(r.content) ? r.content : [];
+  const bloques_por_tipo = {};
+  for (const b of bloques) {
+    const tipo = etiquetaCorta(b && b.type) || 'sin_tipo';
+    bloques_por_tipo[tipo] = (bloques_por_tipo[tipo] || 0) + 1;
+  }
+  const textos = bloques.filter((b) => b && b.type === 'text');
+  const texto = textos.length === 1 ? String(textos[0].text ?? '') : '';
+
+  let salida = null;
+  if (texto !== '') {
+    try {
+      const x = JSON.parse(texto);
+      if (x && typeof x === 'object' && !Array.isArray(x)) salida = x;
+    } catch (_) {
+      salida = null;
+    }
+  }
+
+  const stop_reason = etiquetaCorta(r.stop_reason);
+  let motivo = null;
+  if (stop_reason === 'max_tokens') motivo = 'max_tokens';
+  else if (stop_reason === 'refusal') motivo = 'refusal';
+  else if (stop_reason !== 'end_turn') motivo = `stop_reason_${stop_reason || 'ausente'}`;
+  else if (textos.length === 0) motivo = 'sin_texto';
+  else if (textos.length > 1) motivo = 'varios_bloques_texto';
+  else if (salida === null) motivo = 'json_invalido';
+
+  const u = r.usage && typeof r.usage === 'object' ? r.usage : {};
+  const entrada = numeroONull(u.input_tokens);
+  const tokens_entrada =
+    entrada === null ? null : entrada + (numeroONull(u.cache_creation_input_tokens) || 0) + (numeroONull(u.cache_read_input_tokens) || 0);
+  const detalles = u.output_tokens_details && typeof u.output_tokens_details === 'object' ? u.output_tokens_details : {};
+
+  return {
+    texto,
+    salida,
+    completa: motivo === null,
+    motivo,
+    stop_reason,
+    categoria_rechazo: stop_reason === 'refusal' ? etiquetaCorta(r.stop_details && r.stop_details.category) : null,
+    tokens_entrada,
+    tokens_salida: numeroONull(u.output_tokens),
+    tokens_razonamiento: numeroONull(detalles.thinking_tokens),
+    bloques_por_tipo,
+  };
+}
+
+// Prepara el siguiente intento tras accion = 'reintentar_validacion' de
+// procesarRespuestaEvaluador (js/validador_llm.js): agrega el turno del modelo
+// y los errores, y sube intentos_llm en 1. Devuelve solo los campos nuevos.
+function prepararReintento(item) {
+  if (!item || !item.peticion_openai) throw new Error('Falta item.peticion_openai.');
+  if (!Number.isInteger(item.intentos_llm) || item.intentos_llm < 1) {
+    throw new Error(`item.intentos_llm debe ser un entero >= 1 y vale ${JSON.stringify(item.intentos_llm)}.`);
+  }
+  if (typeof item.mensaje_reintento !== 'string' || item.mensaje_reintento === '') throw new Error('Falta item.mensaje_reintento.');
+  return {
+    peticion_openai: agregarReintento(item.peticion_openai, item.texto_respuesta_llm, item.mensaje_reintento),
+    intentos_llm: item.intentos_llm + 1,
+  };
+}
+
+// Prepara el reintento inmediato tras accion = 'reintentar_incompleta' de
+// procesarRespuestaEvaluador: la MISMA petición, sin turnos nuevos (decisión del
+// dueño, 24-oct-2026: el corte por commentary es intermitente). Sube
+// intentos_llm (cuenta como llamada) e intentos_incompleta (contador propio,
+// que no consume reintentos_validacion_llm). Devuelve solo los campos nuevos.
+function prepararReintentoIncompleta(item) {
+  if (!item || !item.peticion_openai) throw new Error('Falta item.peticion_openai.');
+  if (!Number.isInteger(item.intentos_llm) || item.intentos_llm < 1) {
+    throw new Error(`item.intentos_llm debe ser un entero >= 1 y vale ${JSON.stringify(item.intentos_llm)}.`);
+  }
+  const previas = item.intentos_incompleta === undefined || item.intentos_incompleta === null ? 0 : item.intentos_incompleta;
+  if (!Number.isInteger(previas) || previas < 0) throw new Error(`item.intentos_incompleta debe ser un entero >= 0 y vale ${JSON.stringify(item.intentos_incompleta)}.`);
+  return {
+    peticion_openai: JSON.parse(JSON.stringify(item.peticion_openai)),
+    intentos_llm: item.intentos_llm + 1,
+    intentos_incompleta: previas + 1,
+  };
+}
+
 const exportados = {
   extraerBloque,
   leerPlantilla,
@@ -359,9 +714,18 @@ const exportados = {
   llenarPlantillaEntrada,
   limpiarEsquema,
   leerListaConfig,
+  leerEnteroPositivo,
   parametrosMuestreo,
   construirPeticion,
   agregarReintento,
+  prepararReintento,
+  prepararReintentoIncompleta,
+  construirPeticionGenerador,
+  valoresExtrasGenerador,
+  formatearCatalogoGenerador,
+  formatearFrasesReferencia,
+  valoresGenerador,
+  leerRespuestaGenerador,
 };
 if (typeof module !== 'undefined' && module.exports) module.exports = exportados;
 
@@ -403,14 +767,60 @@ if (typeof module !== 'undefined' && module.exports) module.exports = exportados
 //     tipo_interaccion: item.payload.tipo_interaccion,
 //     config: item.config,                               // JS-1: claves ya resueltas y convertidas
 //   },
-//   // Sin opciones: el esfuerzo de razonamiento (llm_esfuerzo_razonamiento)
-//   // y las claves a quitar del esquema (claves_esquema_excluidas_evaluador)
-//   // salen de config.
+//   // Sin opciones: el esfuerzo de razonamiento (llm_esfuerzo_razonamiento),
+//   // las claves a quitar del esquema (claves_esquema_excluidas_evaluador) y el
+//   // tope max_output_tokens (max_tokens_evaluador, 8000) salen de config.
+//   // Si falta max_tokens_evaluador en la hoja config, el nodo se detiene.
 // );
 // return { json: { ...item, peticion_openai: cuerpo, intentos_llm: 1 } };
 //
-// Reintento (nodo Code después de JS-5 cuando valido = false):
+// Reintento (nodo Code después de JS-5 cuando accion = reintentar_validacion):
+// return { json: { ...$input.item.json, ...prepararReintento($input.item.json) } };
+// Reintento inmediato (accion = reintentar_incompleta):
+// return { json: { ...$input.item.json, ...prepararReintentoIncompleta($input.item.json) } };
+// =============================================================================
+
+// =============================================================================
+// BLOQUE PARA LOS NODOS CODE DEL WORKFLOW 0 (Simulador) — generador
+// -----------------------------------------------------------------------------
+// Se pegan las funciones de este archivo (igual que arriba). La plantilla
+// prompts/generador_ce_v2.md (la de config.version_prompt_generador) va en un nodo Set "Plantilla generador" (campo
+// plantilla_generador, modo FIJO) y el esquema
+// prompts/generador_payload_salida.schema.json en un nodo Set "Esquema
+// generador" (campo JSON esquema_generador). Los nombres de nodos y de campos
+// nuevos (peticion_claude, valores_generador, texto_generado, ...) son de
+// ejemplo: no son campos del contrato y los fija workflows-n8n.
+//
+// Paso 3a, nodo Code "Construir petición generador", antes del HTTP Request.
+// item trae { escenario, extras, cuenta } de completarEscenario (paso 2) y config.
 // const item = $input.item.json;
-// const nueva = agregarReintento(item.peticion_openai, item.texto_respuesta_llm, item.mensaje_reintento);
-// return { json: { ...item, peticion_openai: nueva, intentos_llm: item.intentos_llm + 1 } };
+// const valores = valoresGenerador({
+//   escenario: item.escenario,
+//   extras: item.extras,
+//   cuenta: item.cuenta,
+//   catalogo_temas: $('Leer hoja catalogo_temas').all().map((i) => i.json),
+//   base_conocimiento: $('Leer hoja base_conocimiento').all().map((i) => i.json),
+//   listas: $('Leer hoja listas').all().map((i) => i.json),
+//   config: item.config,
+//   tipo_interaccion: item.escenario.tipo_interaccion,
+// });
+// const cuerpo = construirPeticionGenerador({
+//   plantilla: $('Plantilla generador').first().json.plantilla_generador,
+//   esquema: $('Esquema generador').first().json.esquema_generador,
+//   valores,                          // los 15 marcadores de generador_ce_v2
+//   config: item.config,              // modelo_generador, version_prompt_generador, max_tokens_generador, esfuerzo_generador
+// });
+// // Encabezados del HTTP Request: x-api-key (credencial de n8n) y
+// // anthropic-version = config.anthropic_version_api (no lo usa este código).
+// return { json: { ...item, peticion_claude: cuerpo } };
+//
+// Paso 3b, nodo Code después del HTTP Request (respuesta HTTP 200 en $json):
+// const lectura = leerRespuestaGenerador($input.item.json);
+// // lectura.completa = false (max_tokens, refusal, json_invalido, ...) cuenta
+// // como generación fallida: aplica config.reintentos_generacion.
+// // lectura.tokens_entrada / tokens_salida van a escenarios.tokens_entrada /
+// // tokens_salida y al cálculo de costo_generacion_usd (costo.js, reglas-js).
+// // lectura.salida es lo que recibe validarGeneracion() de validador_payload.js.
+// const previo = $('Construir petición generador').item.json;
+// return { json: { ...previo, texto_generado: lectura.texto, salida_generador: lectura.salida, lectura_generador: lectura } };
 // =============================================================================

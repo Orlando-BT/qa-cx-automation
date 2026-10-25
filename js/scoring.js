@@ -267,7 +267,7 @@ function calcularCalidad(notaFinal, tieneCritico, config) {
 function calcularResultado(secciones, criterios, config) {
   const notaBase = calcularNotaBase(secciones, config);
   if (notaBase === null) {
-    const error = new Error('evaluacion_sin_secciones_aplicables: todas las secciones quedaron no_aplica');
+    const error = new Error('[evaluacion_sin_secciones_aplicables] todas las secciones quedaron no_aplica');
     error.tipo_error = 'evaluacion_sin_secciones_aplicables';
     throw error;
   }
@@ -356,7 +356,8 @@ if (typeof module !== 'undefined' && module.exports) {
  * BLOQUE PARA n8n (nodo Code "JS-7 Scoring", modo "Run Once for Each Item")
  * Pega TODO este archivo y, debajo, este bloque sin comentar.
  * Activa "On Error → Continue (using error output)": si todas las secciones quedan
- * no_aplica se lanza un error con tipo_error = evaluacion_sin_secciones_aplicables, que
+ * no_aplica se lanza un error cuyo mensaje empieza con [evaluacion_sin_secciones_aplicables] (y trae
+ * tipo_error con el mismo valor), que
  * el workflow registra en log_errores con alerta operativa (rubrica.md 2.2).
  *
  * const contexto = $json;

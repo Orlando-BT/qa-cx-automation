@@ -1,0 +1,43 @@
+{
+  "conversation_id": "CONV-9003",
+  "canal": "chat",
+  "tipo_interaccion": "ce",
+  "agente": "Laura Méndez",
+  "cuenta_id": "CTA-104",
+  "metadatos_caso": {
+    "tipificacion_agente": "Cancelación de CFDI",
+    "numero_caso": null,
+    "estado_caso": "sin_caso",
+    "escalado": false,
+    "campos_capturados": {
+      "uuid_factura": "presente",
+      "motivo_cancelacion": "presente"
+    }
+  },
+  "mensajes": [
+    {
+      "n": 1,
+      "emisor": "cliente",
+      "timestamp": "2026-10-21T10:02:11",
+      "texto": "Hola, ayer emití una factura con el RFC del receptor mal escrito y necesito cancelarla. Me preocupa que el SAT me multe."
+    },
+    {
+      "n": 2,
+      "emisor": "cliente",
+      "timestamp": "2026-10-21T10:03:38",
+      "texto": "Soy Héctor Villanueva."
+    },
+    {
+      "n": 3,
+      "emisor": "cliente",
+      "timestamp": "2026-10-21T10:05:02",
+      "texto": "Sí, es de 2,300 pesos."
+    },
+    {
+      "n": 4,
+      "emisor": "cliente",
+      "timestamp": "2026-10-21T10:06:20",
+      "texto": "Listo, ya la cancelé. Gracias."
+    }
+  ]
+}

@@ -644,3 +644,226 @@ test('mensajeRaizSinContenido solo deja pasar los mensajes fijos de raíz', () =
   e.tema.valor = 'Tema inventado';
   for (const d of validarRespuestaLlm(e, contexto()).detalle) assert.equal(mensajeRaizSinContenido(d), null);
 });
+
+// --- procesarRespuestaEvaluador: decisión completa de JS-5 (accion) ---------------------------
+// Sin llamadas reales: respuestas de ejemplo con la forma de la API Responses,
+// envueltas como las entrega el HTTP Request de n8n ({ statusCode, body }).
+
+const { procesarRespuestaEvaluador } = require('../validador_llm.js');
+const { extraerUsoOpenAI } = require('../costo.js');
+const { prepararReintento, prepararReintentoIncompleta, agregarReintento } = require('../construccion_prompt.js');
+
+const USO = { input_tokens: 9000, output_tokens: 1500 };
+const http = (body) => ({ statusCode: 200, headers: {}, body });
+const cuerpo = (output, extra = {}) => ({ status: 'completed', output, usage: USO, ...extra });
+const CORTADA = () => cuerpo([msj(undefined, TEXTO_VALIDO.slice(0, 200))], { status: 'incomplete', incomplete_details: { reason: 'max_output_tokens' } });
+const RECHAZO = () => cuerpo([{ type: 'message', content: [{ type: 'refusal', refusal: 'No puedo ayudar con [NOMBRE_1].' }] }]);
+const CONFIG_JS5 = { reintentos_validacion_llm: 2, reintentos_respuesta_incompleta: 1 };
+const itemEval = (extra = {}) => ({
+  intentos_llm: 1,
+  config: CONFIG_JS5,
+  extraccion: { mensajes_enmascarados: CONVERSACION },
+  catalogo: CATALOGO,
+  payload: { tipo_interaccion: 'ce' },
+  resultados_js: { variables: { termina_por_inactividad: false } },
+  ...extra,
+});
+const procesar = (body, extra = {}, otros = {}) =>
+  procesarRespuestaEvaluador({ respuestaHttp: http(body), item: itemEval(extra), esquema: ESQUEMA, base_conocimiento: BASE, extraerUso: extraerUsoOpenAI, ...otros });
+const INVALIDA = (() => {
+  const r = ejemplo();
+  r.tema.valor = 'tema_que_no_existe';
+  return JSON.stringify(r);
+})();
+const sinTextoEnLog = (r) => {
+  const log = JSON.stringify(r.detalle_log);
+  for (const t of ['NOMBRE', 'borrador', 'tema_que_no_existe', 'No puedo']) assert.ok(!log.includes(t), `detalle_log copia texto: ${t}`);
+};
+
+test('accion continuar: respuesta válida, uso acumulado, sin anomalía ni log', () => {
+  const r = procesar(cuerpo([msj(undefined, TEXTO_VALIDO)]), { uso_llm: [{ tokens_entrada: 1, tokens_salida: 2 }] });
+  assert.equal(r.accion, 'continuar');
+  assert.equal(r.valido, true);
+  assert.equal(r.falla_api, false);
+  assert.deepEqual(r.respuesta_llm, JSON.parse(TEXTO_VALIDO));
+  assert.equal(r.mensaje_reintento, null);
+  assert.equal(r.detalle_log, null);
+  assert.equal(r.anomalia, null);
+  assert.deepEqual(r.anomalias_llm, []);
+  assert.equal(r.intentos_llm, 1); // no lo cambia
+  assert.equal(r.intentos_incompleta, 0);
+  assert.deepEqual(r.uso_llm, [{ tokens_entrada: 1, tokens_salida: 2 }, { tokens_entrada: 9000, tokens_salida: 1500 }]);
+});
+
+test('accion continuar con commentary ignorado: toma el final_answer y no es anomalía contable', () => {
+  const r = procesar(cuerpo([msj('commentary', COMENTARIO), msj('final_answer', TEXTO_VALIDO)]));
+  assert.equal(r.accion, 'continuar');
+  assert.deepEqual(r.estructura_salida_llm.anomalias, ['fase_commentary_ignorada']);
+  assert.ok(!JSON.stringify(r.estructura_salida_llm).includes('borrador'));
+  assert.equal(r.anomalia, null);
+  assert.deepEqual(r.uso_llm, [{ tokens_entrada: 9000, tokens_salida: 1500 }]); // uso_llm ausente -> arreglo nuevo
+});
+
+test('accion reintentar_validacion: inválida con intentos de validación <= reintentos_validacion_llm', () => {
+  for (const intentos of [1, 2]) {
+    const r = procesar(cuerpo([msj(undefined, INVALIDA)]), { intentos_llm: intentos });
+    assert.equal(r.accion, 'reintentar_validacion');
+    assert.equal(r.valido, false);
+    assert.equal(r.falla_api, false);
+    assert.match(r.mensaje_reintento, /^Tu respuesta anterior no pasó la validación/);
+    assert.equal(r.texto_respuesta_llm, INVALIDA); // para el turno assistant del reintento
+    assert.ok(r.errores_validacion.length > 0);
+    assert.equal(r.detalle_log, null);
+  }
+  // El reintento inmediato por incompleta no consume reintentos de validación:
+  // intentos_llm 3 con 1 incompleta = 2 de validación -> todavía reintenta.
+  assert.equal(procesar(cuerpo([msj(undefined, INVALIDA)]), { intentos_llm: 3, intentos_incompleta: 1 }).accion, 'reintentar_validacion');
+});
+
+test('accion respuesta_llm_invalida por validación agotada: log sin texto', () => {
+  const r = procesar(cuerpo([msj(undefined, INVALIDA)]), { intentos_llm: 3 });
+  assert.equal(r.accion, 'respuesta_llm_invalida');
+  assert.equal(r.mensaje_reintento, null);
+  assert.equal(r.detalle_log.tipo_error, 'respuesta_llm_invalida');
+  assert.equal(r.detalle_log.causa, 'validacion_agotada');
+  assert.equal(r.detalle_log.intentos_llm, 3);
+  assert.ok(r.detalle_log.reglas.length > 0);
+  assert.ok(r.detalle_log.reglas.every((x) => Object.keys(x).join() === 'regla,ruta'));
+  sinTextoEnLog(r);
+  // Con reintentos_validacion_llm = 0 (texto de Sheets "0") el primer intento inválido ya agota.
+  const cero = procesar(cuerpo([msj(undefined, INVALIDA)]), { config: { ...CONFIG_JS5, reintentos_validacion_llm: '0' } });
+  assert.equal(cero.accion, 'respuesta_llm_invalida');
+});
+
+test('accion rechazo_llm: refusal -> error con revisión manual, anomalía contable y log sin texto', () => {
+  const r = procesar(RECHAZO());
+  assert.equal(r.accion, 'rechazo_llm');
+  assert.equal(r.falla_api, false);
+  assert.equal(r.valido, false);
+  assert.equal(r.mensaje_reintento, null);
+  assert.equal(r.texto_respuesta_llm, null);
+  assert.equal(r.anomalia, 'refusal');
+  assert.deepEqual(r.anomalias_llm, ['refusal']);
+  assert.equal(r.detalle_log.tipo_error, 'respuesta_llm_invalida');
+  assert.equal(r.detalle_log.causa, 'refusal');
+  assert.deepEqual(r.detalle_log.anomalias, ['refusal']);
+  assert.equal(r.uso_llm.length, 1); // la llamada se cobra igual
+  sinTextoEnLog(r);
+  // Refusal junto a un JSON válido: gana el rechazo (no se valida).
+  const mixto = cuerpo([{ type: 'message', content: [{ type: 'output_text', text: TEXTO_VALIDO }, { type: 'refusal', refusal: 'No.' }] }]);
+  assert.equal(procesar(mixto).accion, 'rechazo_llm');
+});
+
+test('accion reintentar_incompleta: primer corte -> misma petición, contador propio y anomalía', () => {
+  const r = procesar(CORTADA());
+  assert.equal(r.accion, 'reintentar_incompleta');
+  assert.equal(r.mensaje_reintento, null); // sin mensaje de error explicado
+  assert.equal(r.texto_respuesta_llm, null);
+  assert.equal(r.detalle_log, null);
+  assert.equal(r.anomalia, 'incompleta');
+  assert.deepEqual(r.anomalias_llm, ['incompleta']);
+  assert.equal(r.estructura_salida_llm.incompleto_por, 'max_output_tokens');
+});
+
+test('incompleta -> reintento inmediato -> completa: continuar y la anomalía queda contada', () => {
+  const peticion = { model: 'gpt-6-luna', input: [{ role: 'user', content: 'conversación' }] };
+  const r1 = procesar(CORTADA());
+  const item2 = { ...itemEval(), ...r1, peticion_openai: peticion };
+  const p = prepararReintentoIncompleta(item2);
+  assert.deepEqual(p.peticion_openai, peticion); // la MISMA petición
+  assert.notEqual(p.peticion_openai, peticion); // copia
+  assert.equal(p.intentos_llm, 2);
+  assert.equal(p.intentos_incompleta, 1);
+  const r2 = procesar(cuerpo([msj(undefined, TEXTO_VALIDO)]), { ...item2, ...p });
+  assert.equal(r2.accion, 'continuar');
+  assert.equal(r2.anomalia, null);
+  assert.deepEqual(r2.anomalias_llm, ['incompleta']); // el corte recuperado se cuenta
+  assert.equal(r2.intentos_llm, 2);
+  assert.equal(r2.uso_llm.length, 2);
+});
+
+test('incompleta -> reintento inmediato -> incompleta: respuesta_llm_invalida con causa incompleta', () => {
+  const peticion = { model: 'gpt-6-luna', input: [{ role: 'user', content: 'conversación' }] };
+  const r1 = procesar(CORTADA());
+  const item2 = { ...itemEval(), ...r1, peticion_openai: peticion };
+  const r2 = procesar(CORTADA(), { ...item2, ...prepararReintentoIncompleta(item2) });
+  assert.equal(r2.accion, 'respuesta_llm_invalida');
+  assert.equal(r2.falla_api, false);
+  assert.equal(r2.detalle_log.tipo_error, 'respuesta_llm_invalida');
+  assert.equal(r2.detalle_log.causa, 'incompleta');
+  assert.deepEqual(r2.detalle_log.anomalias, ['incompleta', 'incompleta']);
+  assert.equal(r2.detalle_log.intentos_llm, 2);
+  sinTextoEnLog(r2);
+  // Con reintentos_respuesta_incompleta = 0 el primer corte ya agota.
+  assert.equal(procesar(CORTADA(), { config: { ...CONFIG_JS5, reintentos_respuesta_incompleta: 0 } }).accion, 'respuesta_llm_invalida');
+});
+
+test('accion falla_api: salida ambigua o cuerpo ilegible (antes que valido)', () => {
+  const r = procesar(cuerpo([msj('final_answer', TEXTO_VALIDO), msj('final_answer', COMENTARIO)]));
+  assert.equal(r.accion, 'falla_api');
+  assert.equal(r.falla_api, true);
+  assert.equal(r.detalle_log.tipo_error, 'fallo_api');
+  assert.equal(r.detalle_log.causa, 'varios_final_answer');
+  assert.equal(r.anomalia, null);
+  sinTextoEnLog(r);
+  for (const malo of ['esto no es JSON', null, [1, 2]]) {
+    const x = procesar(malo);
+    assert.equal(x.accion, 'falla_api');
+    assert.equal(x.detalle_log.causa, 'cuerpo_invalido');
+    assert.deepEqual(x.uso_llm, [{ tokens_entrada: 0, tokens_salida: 0 }]);
+  }
+  // Cuerpo como texto JSON (n8n sin parsear) y cuerpo directo sin envoltorio se leen igual.
+  assert.equal(procesar(JSON.stringify(cuerpo([msj(undefined, TEXTO_VALIDO)]))).accion, 'continuar');
+  const directo = procesarRespuestaEvaluador({ respuestaHttp: cuerpo([msj(undefined, TEXTO_VALIDO)]), item: itemEval(), esquema: ESQUEMA, base_conocimiento: BASE, extraerUso: extraerUsoOpenAI });
+  assert.equal(directo.accion, 'continuar');
+});
+
+test('sin mensajes con status completed se reintenta por validación; sin status no es incompleta', () => {
+  assert.equal(procesar(cuerpo([{ type: 'reasoning', summary: [] }])).accion, 'reintentar_validacion');
+  const sinStatus = cuerpo([msj(undefined, TEXTO_VALIDO)]);
+  delete sinStatus.status;
+  assert.equal(procesar(sinStatus).accion, 'continuar');
+});
+
+test('procesarRespuestaEvaluador lanza ante errores de armado del flujo', () => {
+  const body = cuerpo([msj(undefined, TEXTO_VALIDO)]);
+  assert.throws(() => procesar(body, {}, { extraerUso: undefined }), /extraerUso/);
+  assert.throws(() => procesar(body, { intentos_llm: 0 }), /intentos_llm/);
+  assert.throws(() => procesar(body, { intentos_llm: [] }), /intentos_llm/);
+  assert.throws(() => procesar(body, { intentos_incompleta: 1 }), /intentos_incompleta/); // no puede igualar intentos_llm
+  assert.throws(() => procesar(body, { uso_llm: {} }), /uso_llm/);
+  assert.throws(() => procesar(body, { anomalias_llm: 'x' }), /anomalias_llm/);
+  assert.throws(() => procesar(body, { config: { ...CONFIG_JS5, reintentos_validacion_llm: 'dos' } }), /reintentos_validacion_llm/);
+  assert.throws(() => procesar(body, { config: { reintentos_validacion_llm: 2 } }), /config\.reintentos_respuesta_incompleta/);
+  assert.throws(() => procesar(body, { config: undefined }), /config/);
+  // config explícita tiene precedencia sobre item.config.
+  const r = procesar(cuerpo([msj(undefined, INVALIDA)]), {}, { config: { ...CONFIG_JS5, reintentos_validacion_llm: 0 } });
+  assert.equal(r.accion, 'respuesta_llm_invalida');
+});
+
+test('prepararReintento agrega los turnos y sube intentos_llm en 1', () => {
+  const peticion = { model: 'gpt-6-luna', input: [{ role: 'user', content: 'conversación' }] };
+  const r = procesar(cuerpo([msj(undefined, INVALIDA)]));
+  const item = { ...itemEval(), ...r, peticion_openai: peticion };
+  const p = prepararReintento(item);
+  assert.equal(p.intentos_llm, 2);
+  assert.deepEqual(p.peticion_openai, agregarReintento(peticion, INVALIDA, r.mensaje_reintento));
+  assert.equal(peticion.input.length, 1); // no modifica la original
+  assert.throws(() => prepararReintento({ ...item, mensaje_reintento: null }), /mensaje_reintento/);
+  assert.throws(() => prepararReintento({ ...item, intentos_llm: undefined }), /intentos_llm/);
+  assert.throws(() => prepararReintentoIncompleta({ ...item, intentos_incompleta: -1 }), /intentos_incompleta/);
+});
+
+test('datos/config.csv trae reintentos_respuesta_incompleta = 1 (entero, ámbito todos)', (t) => {
+  const { configCE } = require('./ayudas.js');
+  const c = configCE();
+  if (!('reintentos_respuesta_incompleta' in c)) {
+    t.skip('la clave todavía no está en datos/config.csv (la agrega contrato-datos)');
+    return;
+  }
+  assert.strictEqual(c.reintentos_respuesta_incompleta, 1);
+  // Con la config real: un corte reintenta y el segundo agota.
+  const r1 = procesar(CORTADA(), { config: c });
+  assert.equal(r1.accion, 'reintentar_incompleta');
+  assert.equal(procesar(CORTADA(), { config: c, intentos_llm: 2, intentos_incompleta: 1 }).accion, 'respuesta_llm_invalida');
+});

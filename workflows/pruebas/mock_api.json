@@ -1,0 +1,148 @@
+{
+  "name": "PRUEBA mock API (503 y luego 200)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "qa-mock-openai",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "fd3956f0-d2ea-4261-8614-c09b4b6d2dc2",
+      "name": "Webhook mock",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "8304e230-ec3c-4983-8c48-8aec07cf73dd"
+    },
+    {
+      "parameters": {
+        "jsCode": "const estado = $getWorkflowStaticData('global');\nestado.llamadas = (estado.llamadas || 0) + 1;\nreturn [{ json: { llamada: estado.llamadas, responder_503: estado.llamadas % 2 === 1 } }];\n"
+      },
+      "id": "fa52e308-7e59-4578-8262-e6fba695692b",
+      "name": "Contar llamada (mock)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4c4042b5-3480-452a-819b-5ad34d886547",
+              "leftValue": "={{ $json.responder_503 }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "b1b60387-b6bd-4920-8e02-3cc1a7f79ec1",
+      "name": "¿Responder 503?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{ \"error\": { \"message\": \"mock: servicio no disponible\" } }",
+        "options": {
+          "responseCode": 503
+        }
+      },
+      "id": "6e7fc3cc-f0ab-446e-83bd-5c97d10ef402",
+      "name": "Responder 503",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        720,
+        -180
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"id\":\"resp_mock\",\"object\":\"response\",\"status\":\"completed\",\"model\":\"mock\",\"output\":[{\"type\":\"message\",\"id\":\"msg_mock\",\"status\":\"completed\",\"role\":\"assistant\",\"content\":[{\"type\":\"output_text\",\"text\":\"{\\\"tema\\\":{\\\"valor\\\":\\\"Cancelación de CFDI\\\",\\\"mensajes\\\":[1],\\\"justificacion\\\":\\\"El cliente pide cancelar una factura emitida con el RFC del receptor mal escrito.\\\"},\\\"emocion_cliente\\\":{\\\"emocion\\\":\\\"preocupacion\\\",\\\"mensajes\\\":[1],\\\"justificacion\\\":\\\"El cliente dice que le preocupa que el SAT lo multe.\\\"},\\\"criterios\\\":{\\\"empatia\\\":{\\\"identifica_emocion\\\":{\\\"resultado\\\":\\\"cumple\\\",\\\"mensajes\\\":[4],\\\"justificacion\\\":\\\"El agente reconoce la preocupación del cliente (\\\\\\\"Entiendo tu preocupación\\\\\\\").\\\"},\\\"muestra_empatia\\\":{\\\"resultado\\\":\\\"cumple\\\",\\\"mensajes\\\":[4],\\\"justificacion\\\":\\\"Valida la situación: \\\\\\\"es normal con un error así\\\\\\\".\\\"},\\\"cordialidad\\\":{\\\"resultado\\\":\\\"cumple\\\",\\\"mensajes\\\":[2,4],\\\"justificacion\\\":\\\"Trato amable y respetuoso en toda la conversación.\\\"},\\\"lenguaje_acorde\\\":{\\\"resultado\\\":\\\"no_cumple\\\",\\\"mensajes\\\":[6],\\\"justificacion\\\":\\\"Usa \\\\\\\"Va, sale.\\\\\\\" con un cliente que escribe de forma formal.\\\"},\\\"asertividad\\\":{\\\"resultado\\\":\\\"no_aplica\\\",\\\"mensajes\\\":[],\\\"justificacion\\\":\\\"No hubo nada que negar o limitar.\\\"}},\\\"diagnostico\\\":{\\\"preguntas_necesarias\\\":{\\\"resultado\\\":\\\"cumple\\\",\\\"mensajes\\\":[4],\\\"justificacion\\\":\\\"Pregunta si el total supera 1,000 pesos, dato que decide si el receptor debe aceptar.\\\"},\\\"solicitudes_detectadas\\\":{\\\"resultado\\\":\\\"cumple\\\",\\\"mensajes\\\":[2],\\\"justificacion\\\":\\\"El agente reconoce la cancelación solicitada (\\\\\\\"te ayudo con tu cancelación\\\\\\\").\\\"},\\\"solicitudes_atendidas\\\":{\\\"resultado\\\":\\\"cumple\\\",\\\"mensajes\\\":[6],\\\"justificacion\\\":\\\"Explica cómo cancelar la factura.\\\"}},\\\"solucion\\\":{\\\"informacion_correcta\\\":{\\\"resultado\\\":\\\"cumple\\\",\\\"mensajes\\\":[6],\\\"justificacion\\\":\\\"Los pasos y el motivo 01 coinciden con KB-02.\\\"},\\\"informacion_completa\\\":{\\\"resultado\\\":\\\"no_cumple\\\",\\\"mensajes\\\":[6],\\\"justificacion\\\":\\\"Omite el plazo de 72 horas del receptor para aceptar o rechazar (KB-02).\\\"},\\\"apego_proceso\\\":{\\\"resultado\\\":\\\"cumple\\\",\\\"mensajes\\\":[6],\\\"justificacion\\\":\\\"Respeta el orden: primero la sustituta, luego la cancelación con el motivo 01.\\\"},\\\"ofrece_alternativas\\\":{\\\"resultado\\\":\\\"no_aplica\\\",\\\"mensajes\\\":[],\\\"justificacion\\\":\\\"La solución principal se pudo dar.\\\"}},\\\"comunicacion\\\":{\\\"redaccion\\\":{\\\"resultado\\\":\\\"cumple\\\",\\\"mensajes\\\":[6],\\\"justificacion\\\":\\\"Redacción clara y ordenada.\\\"},\\\"congruencia\\\":{\\\"resultado\\\":\\\"cumple\\\",\\\"mensajes\\\":[6],\\\"justificacion\\\":\\\"Los mensajes son coherentes con lo que pregunta el cliente.\\\"}},\\\"recapitulacion\\\":{\\\"recapitula\\\":{\\\"resultado\\\":\\\"cumple\\\",\\\"mensajes\\\":[8],\\\"justificacion\\\":\\\"Resume la cancelación con el motivo 01 y el siguiente paso del receptor.\\\"}}},\\\"insumos_hibridos\\\":{\\\"situacion_escalamiento\\\":{\\\"situacion_requiere_escalamiento\\\":false,\\\"mensajes\\\":[],\\\"justificacion\\\":\\\"Un rechazo o una cancelación normal no se escalan (KB-02).\\\"},\\\"uso_solucion_seguimiento\\\":{\\\"problema_resuelto_en_conversacion\\\":true,\\\"uso_correcto\\\":true,\\\"mensajes\\\":[8],\\\"justificacion\\\":\\\"El caso queda cerrado y el agente habla de solución.\\\"}},\\\"errores_ortografia\\\":[{\\\"mensaje_n\\\":6,\\\"texto_error\\\":\\\"cancelacion\\\",\\\"correccion\\\":\\\"cancelación\\\",\\\"gravedad\\\":\\\"menor\\\"}],\\\"primer_mensaje_info_cuenta\\\":{\\\"mensaje_n\\\":null,\\\"justificacion\\\":\\\"El agente no revela información de la cuenta del cliente.\\\"},\\\"solicitudes_cliente\\\":[{\\\"descripcion\\\":\\\"Cancelar una factura emitida con el RFC del receptor mal escrito\\\",\\\"mensaje_n\\\":1,\\\"detectada_por_agente\\\":true,\\\"atendida\\\":true,\\\"mensajes_atencion\\\":[6],\\\"justificacion\\\":\\\"El agente explica el proceso de cancelación.\\\"}],\\\"articulos_base_usados\\\":[{\\\"id_articulo\\\":\\\"KB-02\\\",\\\"mensajes\\\":[6],\\\"justificacion\\\":\\\"Pasos de cancelación y motivo 01.\\\"}],\\\"criticos_posibles\\\":{\\\"informacion_incorrecta\\\":{\\\"detectado\\\":false,\\\"mensajes\\\":[],\\\"justificacion\\\":\\\"Sin evidencia en los mensajes del agente.\\\"},\\\"promesa_no_autorizada\\\":{\\\"detectado\\\":true,\\\"mensajes\\\":[6],\\\"justificacion\\\":\\\"Promete un descuento del 20% en la próxima mensualidad que la base de conocimiento no autoriza.\\\"},\\\"negacion_servicio\\\":{\\\"detectado\\\":false,\\\"mensajes\\\":[],\\\"justificacion\\\":\\\"Sin evidencia en los mensajes del agente.\\\"},\\\"mala_actitud\\\":{\\\"detectado\\\":false,\\\"mensajes\\\":[],\\\"justificacion\\\":\\\"Sin evidencia en los mensajes del agente.\\\"},\\\"comentarios_negativos_marca\\\":{\\\"detectado\\\":false,\\\"mensajes\\\":[],\\\"justificacion\\\":\\\"Sin evidencia en los mensajes del agente.\\\"},\\\"confidencialidad\\\":{\\\"detectado\\\":false,\\\"mensajes\\\":[],\\\"justificacion\\\":\\\"Sin evidencia en los mensajes del agente.\\\"}}}\"}]}],\"usage\":{\"input_tokens\":0,\"output_tokens\":0,\"total_tokens\":0}}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "c0d637ec-59a9-4efb-861e-9ae706c6b7e6",
+      "name": "Responder 200",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        720,
+        180
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook mock": {
+      "main": [
+        [
+          {
+            "node": "Contar llamada (mock)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contar llamada (mock)": {
+      "main": [
+        [
+          {
+            "node": "¿Responder 503?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Responder 503?": {
+      "main": [
+        [
+          {
+            "node": "Responder 503",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder 200",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

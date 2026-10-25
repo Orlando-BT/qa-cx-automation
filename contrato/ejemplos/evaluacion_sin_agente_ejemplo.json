@@ -177,6 +177,7 @@
     "tokens_entrada": 0,
     "tokens_salida": 0,
     "intentos_llm": 0,
+    "anomalias_llm": [],
     "costo_usd": 0
   },
   "marcas_tiempo": {

@@ -706,6 +706,221 @@ function extraerTextoSalida(respuestaApi) {
   return { texto, rechazo, estado: (respuestaApi && respuestaApi.status) || null, estructura, falla_estructura };
 }
 
+// -----------------------------------------------------------------------------
+// 8. Procesar la respuesta del evaluador (W2, paso 7): decisión completa
+// -----------------------------------------------------------------------------
+// Junta en una sola función todo lo que necesita el nodo JS-5, para que el
+// pegamento de n8n no tenga lógica: extrae el texto, acumula el uso de tokens,
+// valida y decide la acción siguiente.
+//
+// Entrada:
+//   respuestaHttp      { statusCode, headers, body } del HTTP Request (respuesta
+//                      completa), o directamente el cuerpo de la API Responses.
+//                      Solo llega aquí con HTTP 200 (lo filtra antes
+//                      clasificacion_http.js de reglas-js).
+//   item               contexto del flujo:
+//                        intentos_llm         llamadas al LLM hechas en esta evaluación,
+//                                             contando la actual (JS-4 lo pone en 1; los
+//                                             dos tipos de reintento lo suben). Es el
+//                                             valor de evaluaciones.intentos_llm.
+//                        intentos_incompleta  reintentos inmediatos por respuesta
+//                                             incompleta ya hechos (ausente = 0).
+//                        uso_llm              [{tokens_entrada, tokens_salida}] de las
+//                                             llamadas anteriores (ausente = []).
+//                        anomalias_llm        etiquetas de anomalías de llamadas
+//                                             anteriores (ausente = []).
+//                        extraccion.mensajes_enmascarados, catalogo,
+//                        payload.tipo_interaccion,
+//                        resultados_js.variables.termina_por_inactividad, config.
+//   config             opcional; por defecto item.config. Usa
+//                      reintentos_validacion_llm y reintentos_respuesta_incompleta
+//                      (enteros >= 0; si faltan, error explícito).
+//   esquema            contrato/llm_output.schema.json (nodo Set "Esquema LLM").
+//   base_conocimiento  filas de la hoja base_conocimiento.
+//   extraerUso         función extraerUsoOpenAI de js/costo.js (reglas-js). Se
+//                      recibe como parámetro porque n8n no tiene require: el
+//                      nodo ensambla las dos FUENTES (validador_llm.js y costo.js).
+//
+// Valores de accion (en este orden de decisión):
+//   'falla_api'               cuerpo ilegible o salida ambigua (varios final_answer,
+//                             sin final_answer, varios mensajes sin fase, varias
+//                             partes output_text). Se decide ANTES que valido
+//                             (regla del dueño). log_errores fallo_api + reproceso.
+//   'rechazo_llm'             el modelo se negó (refusal). La conversación queda en
+//                             estado error con alerta operativa para revisión
+//                             manual; NO va a reproceso. tipo_error
+//                             respuesta_llm_invalida, causa refusal.
+//   'reintentar_incompleta'   status distinto de completed (p. ej. incomplete por
+//                             max_output_tokens) y quedan reintentos de
+//                             config.reintentos_respuesta_incompleta: se reenvía la
+//                             MISMA petición, sin mensaje de error (el bloque
+//                             commentary es intermitente). Contador propio
+//                             (intentos_incompleta); no consume reintentos_validacion_llm.
+//   'respuesta_llm_invalida'  (a) incompleta otra vez, sin reintentos inmediatos
+//                             (causa incompleta), o (b) inválida en JS-5 sin
+//                             reintentos de validación (causa validacion_agotada).
+//                             log_errores + alerta operativa, SIN reproceso.
+//   'reintentar_validacion'   inválida en JS-5 y quedan reintentos de validación:
+//                             se reenvía con mensaje_reintento.
+//   'continuar'               válida: JS-6 con respuesta_llm.
+//
+// Intentos de validación = intentos_llm - intentos_incompleta. Se reintenta
+// mientras ese número sea <= reintentos_validacion_llm (con 2: tres llamadas
+// de validación como máximo, más las inmediatas por incompleta).
+//
+// Anomalías contables (métrica de Fase 4 / v2): anomalia = 'incompleta' o
+// 'refusal' para ESTA llamada (null si no hubo). anomalias_llm acumula las
+// de toda la evaluación, para contar también los cortes que se recuperaron
+// con el reintento inmediato. Persistirlas en Sheets requiere una columna que
+// hoy no está en el contrato: mientras tanto, en los casos de error quedan en
+// detalle_log.causa y detalle_log.anomalias.
+//
+// Cambio respecto de Fase 1 (decisión del dueño, 24-oct-2026): en Fase 1 el
+// refusal y la respuesta incompleta se reenviaban con un mensaje de error de
+// JS-5 (gastaban reintentos de validación). Ahora: incompleta -> un reintento
+// inmediato con contador propio; refusal -> error con revisión manual. Ninguno
+// de los dos va a la cola de reproceso.
+// Salida sin mensajes (p. ej. solo reasoning) con status completed: no es
+// anomalía; JS-5 la reporta como vacía y se reintenta (igual que Fase 1).
+// La anomalía commentary + un solo final_answer se resuelve en
+// extraerTextoSalida() (se toma el final) y no cuenta como falla.
+//
+// Salida (campos intermedios del flujo, no columnas del contrato): accion,
+// falla_api, valido, intentos_llm (sin cambios), intentos_incompleta, uso_llm,
+// anomalia, anomalias_llm, respuesta_llm, texto_respuesta_llm (solo para el
+// turno assistant del reintento; NUNCA a logs), mensaje_reintento,
+// errores_validacion (puede citar fragmentos: no va a logs),
+// estado_respuesta_llm, estructura_salida_llm y detalle_log (lo único que va
+// a log_errores.detalle_json y a la alerta; sin texto de la respuesta ni de la
+// conversación; null con continuar y con los dos reintentos).
+function enteroNoNegativo(valor, nombre) {
+  let n = NaN;
+  if (typeof valor === 'number') n = valor;
+  else if (typeof valor === 'string' && /^\s*\d+\s*$/.test(valor)) n = Number(valor);
+  if (!Number.isInteger(n) || n < 0) throw new Error(`${nombre} debe ser un entero mayor o igual a 0 y vale ${JSON.stringify(valor)}.`);
+  return n;
+}
+
+// regla y ruta de JS-5 son rutas del esquema; si el modelo inventó una clave con
+// texto libre, la ruta podría traerlo: lo que no parezca ruta se cambia por "otro".
+const rutaSegura = (x) => (x === '(raíz)' || /^[A-Za-z0-9_.\[\]-]{1,120}$/.test(String(x)) ? String(x) : 'otro');
+
+function arregloOVacio(v, nombre) {
+  if (v === undefined || v === null) return [];
+  if (!Array.isArray(v)) throw new Error(`${nombre} debe ser un arreglo.`);
+  return v;
+}
+
+function procesarRespuestaEvaluador({ respuestaHttp, item, config, esquema, base_conocimiento, extraerUso } = {}) {
+  // Errores de programación o de armado del flujo: se lanzan (el nodo se detiene).
+  if (!item || typeof item !== 'object') throw new Error('Falta item.');
+  if (typeof extraerUso !== 'function') throw new Error('Falta extraerUso (extraerUsoOpenAI de js/costo.js).');
+  const cfg = config || item.config;
+  if (!cfg) throw new Error('Falta config.');
+  const maxValidacion = enteroNoNegativo(cfg.reintentos_validacion_llm, 'config.reintentos_validacion_llm');
+  const maxIncompleta = enteroNoNegativo(cfg.reintentos_respuesta_incompleta, 'config.reintentos_respuesta_incompleta');
+  const intentos = item.intentos_llm;
+  if (!Number.isInteger(intentos) || intentos < 1) throw new Error(`item.intentos_llm debe ser un entero >= 1 y vale ${JSON.stringify(intentos)}.`);
+  const incompletas = item.intentos_incompleta === undefined || item.intentos_incompleta === null ? 0 : item.intentos_incompleta;
+  if (!Number.isInteger(incompletas) || incompletas < 0 || incompletas >= intentos) {
+    throw new Error(`item.intentos_incompleta debe ser un entero >= 0 y menor que intentos_llm; vale ${JSON.stringify(item.intentos_incompleta)}.`);
+  }
+  const usoPrevio = arregloOVacio(item.uso_llm, 'item.uso_llm');
+  const anomaliasPrevias = arregloOVacio(item.anomalias_llm, 'item.anomalias_llm');
+
+  // Cuerpo de la API: respuesta completa de n8n ({ statusCode, body }) o el cuerpo directo.
+  let api = respuestaHttp && typeof respuestaHttp === 'object' && 'body' in respuestaHttp ? respuestaHttp.body : respuestaHttp;
+  if (typeof api === 'string') {
+    try {
+      api = JSON.parse(api);
+    } catch (_) {
+      api = null;
+    }
+  }
+  const cuerpoValido = !!api && typeof api === 'object' && !Array.isArray(api);
+  const uso_llm = [...usoPrevio, extraerUso(cuerpoValido ? api : {})];
+
+  const { texto, rechazo, estado, estructura, falla_estructura } = extraerTextoSalida(cuerpoValido ? api : null);
+  const estadoSeguro = etiquetaSegura(estado);
+
+  // Clasificación de la llamada (orden: falla_api antes que todo lo demás).
+  let causa = null;
+  if (!cuerpoValido) causa = 'cuerpo_invalido';
+  else if (falla_estructura) causa = falla_estructura.causa;
+  const esFallaApi = causa !== null;
+  const anomalia = esFallaApi ? null : rechazo ? 'refusal' : estado !== null && estado !== undefined && estado !== 'completed' ? 'incompleta' : null;
+  const anomalias_llm = anomalia ? [...anomaliasPrevias, anomalia] : [...anomaliasPrevias];
+
+  const comun = {
+    intentos_llm: intentos,
+    intentos_incompleta: incompletas,
+    uso_llm,
+    anomalia,
+    anomalias_llm,
+    estado_respuesta_llm: estadoSeguro,
+    estructura_salida_llm: estructura,
+  };
+  const log = (tipo_error, c, reglas = []) => ({ tipo_error, causa: c, intentos_llm: intentos, estado: estadoSeguro, anomalias: anomalias_llm, estructura, reglas });
+  const sinRespuesta = { valido: false, respuesta_llm: null, mensaje_reintento: null, errores_validacion: [] };
+
+  // 1. falla_api.
+  if (esFallaApi) {
+    return { ...comun, ...sinRespuesta, accion: 'falla_api', falla_api: true, texto_respuesta_llm: null, detalle_log: log('fallo_api', causa) };
+  }
+  // 2. Refusal: error con revisión manual, sin reproceso.
+  if (anomalia === 'refusal') {
+    return { ...comun, ...sinRespuesta, accion: 'rechazo_llm', falla_api: false, texto_respuesta_llm: null, detalle_log: log('respuesta_llm_invalida', 'refusal') };
+  }
+  // 3. Incompleta: reintento inmediato con contador propio, o se agota.
+  if (anomalia === 'incompleta') {
+    if (incompletas < maxIncompleta) {
+      return { ...comun, ...sinRespuesta, accion: 'reintentar_incompleta', falla_api: false, texto_respuesta_llm: null, detalle_log: null };
+    }
+    return { ...comun, ...sinRespuesta, accion: 'respuesta_llm_invalida', falla_api: false, texto_respuesta_llm: null, detalle_log: log('respuesta_llm_invalida', 'incompleta') };
+  }
+
+  // 4. Validación de JS-5.
+  const resultado = validarRespuestaLlm(texto, {
+    esquema,
+    mensajes: item.extraccion && item.extraccion.mensajes_enmascarados,
+    catalogo_temas: item.catalogo,
+    base_conocimiento,
+    tipo_interaccion: item.payload && item.payload.tipo_interaccion,
+    termina_por_inactividad: item.resultados_js && item.resultados_js.variables && item.resultados_js.variables.termina_por_inactividad,
+  });
+  if (resultado.valido) {
+    return {
+      ...comun,
+      accion: 'continuar',
+      falla_api: false,
+      valido: true,
+      respuesta_llm: JSON.parse(texto),
+      texto_respuesta_llm: texto,
+      mensaje_reintento: null,
+      errores_validacion: [],
+      detalle_log: null,
+    };
+  }
+  const reintentar = intentos - incompletas <= maxValidacion;
+  return {
+    ...comun,
+    accion: reintentar ? 'reintentar_validacion' : 'respuesta_llm_invalida',
+    falla_api: false,
+    valido: false,
+    respuesta_llm: null,
+    texto_respuesta_llm: texto,
+    mensaje_reintento: reintentar ? redactarMensajeReintento(resultado) : null,
+    errores_validacion: resultado.detalle,
+    detalle_log: reintentar
+      ? null
+      : log(
+          'respuesta_llm_invalida',
+          'validacion_agotada',
+          resultado.detalle.map((d) => ({ regla: rutaSegura(d.regla), ruta: rutaSegura(d.ruta) }))
+        ),
+  };
+}
+
 const exportados = {
   DEFINICION_RUBRICA_CE_V1,
   validarContraEsquema,
@@ -715,75 +930,39 @@ const exportados = {
   extraerTextoSalida,
   diagnosticarTextoNoJson,
   mensajeRaizSinContenido,
+  procesarRespuestaEvaluador,
 };
 if (typeof module !== 'undefined' && module.exports) module.exports = exportados;
 
 // =============================================================================
 // BLOQUE PARA EL NODO CODE DE n8n (JS-5)  —  modo "Run Once for Each Item"
 // -----------------------------------------------------------------------------
-// Cómo se pega: copia TODO este archivo desde "'use strict';" hasta la línea
-// "const exportados = ..." (sin incluirla) y debajo el bloque de abajo (sin
-// los "// "). Los nombres de nodos y de campos intermedios son de ejemplo; los
-// fija workflows-n8n.
-// Campos intermedios del flujo (falla_api, estructura_salida_llm, valido,
-// errores_validacion, estado_respuesta_llm, texto_respuesta_llm, respuesta_llm,
-// mensaje_reintento): no son columnas de ninguna hoja ni campos del contrato;
-// los fija workflows-n8n.
+// Fuentes del nodo: este archivo y js/costo.js (de reglas-js), ensambladas por
+// workflows/herramientas/ensamblar.mjs (una FUENTE por archivo). La función
+// extraerUsoOpenAI de costo.js se pasa como parámetro.
+// Los nombres de nodos son de ejemplo; los fija workflows-n8n.
 //
-// Después de este nodo, un IF sobre falla_api y luego otro sobre valido:
-//   - falla_api = true -> log_errores (tipo_error fallo_api, detalle_json =
-//           { falla_estructura, estructura }, sin texto) + alerta operativa.
-//           NO gasta reintento de JS-5: la salida de la API es ambigua (por
-//           ejemplo, dos mensajes final_answer) y corregir al modelo no aplica.
-//   - true  -> JS-6 (reglas híbridas) con respuesta_llm;
-//   - false y intentos_llm <= config.reintentos_validacion_llm
-//           -> nodo de reintento (agregarReintento de JS-4) y de vuelta a OpenAI;
-//   - false sin reintentos -> log_errores (tipo_error respuesta_llm_invalida,
-//           detalle_json = detalle, sin texto de la conversación) + alerta.
+// Después de este nodo, un Switch sobre accion (toda la lógica está en
+// procesarRespuestaEvaluador; el orden falla_api -> valido ya viene resuelto):
+//   - falla_api              -> log_errores (tipo_error fallo_api, detalle_json =
+//                               detalle_log) + reproceso + alerta operativa.
+//   - rechazo_llm            -> log_errores (respuesta_llm_invalida, causa refusal)
+//                               + conversación en estado error + alerta operativa.
+//                               Sin reproceso (revisión manual).
+//   - reintentar_incompleta  -> prepararReintentoIncompleta (JS-4): MISMA petición,
+//                               de vuelta a OpenAI.
+//   - respuesta_llm_invalida -> log_errores (detalle_json = detalle_log) + estado
+//                               error + alerta operativa. Sin reproceso.
+//   - reintentar_validacion  -> prepararReintento (JS-4) y de vuelta a OpenAI.
+//   - continuar              -> JS-6 (reglas híbridas) con respuesta_llm.
 //
 // const item = $input.item.json;
-// const api = $('OpenAI').item.json;               // respuesta cruda de la API Responses
-// const { texto, rechazo, estado, estructura, falla_estructura } = extraerTextoSalida(api);
-// if (falla_estructura) {
-//   return {
-//     json: {
-//       ...item,
-//       valido: false,
-//       falla_api: true,
-//       errores_validacion: [{ regla: 'estructura_salida', ruta: '(raíz)', mensaje: falla_estructura.mensaje }],
-//       estructura_salida_llm: estructura,
-//       estado_respuesta_llm: estado,
-//       texto_respuesta_llm: null,
-//       respuesta_llm: null,
-//       mensaje_reintento: null,
-//     },
-//   };
-// }
-// const resultado = validarRespuestaLlm(texto, {
+// const r = procesarRespuestaEvaluador({
+//   respuestaHttp: item.respuesta_http,
+//   item,
 //   esquema: $('Esquema LLM').first().json.esquema_llm,
-//   mensajes: item.extraccion.mensajes_enmascarados,
-//   catalogo_temas: item.catalogo,
-//   base_conocimiento: $('Base de conocimiento').all().map((i) => i.json),
-//   tipo_interaccion: item.payload.tipo_interaccion,
-//   termina_por_inactividad: item.resultados_js.variables.termina_por_inactividad,
+//   base_conocimiento: $('Leer hoja base_conocimiento').all().map((i) => i.json),
+//   extraerUso: extraerUsoOpenAI,
 // });
-// if (rechazo) {
-//   const d = { regla: '1', ruta: '(raíz)', mensaje: 'El modelo se negó a responder (refusal).' };
-//   resultado.valido = false;
-//   resultado.detalle.unshift(d);
-//   resultado.errores.unshift(d.mensaje);
-// }
-// return {
-//   json: {
-//     ...item,
-//     valido: resultado.valido,
-//     falla_api: false,
-//     errores_validacion: resultado.detalle,
-//     estructura_salida_llm: estructura,            // anomalias sin texto (p. ej. fase_commentary_ignorada)
-//     estado_respuesta_llm: estado,
-//     texto_respuesta_llm: texto,
-//     respuesta_llm: resultado.valido ? JSON.parse(texto) : null,
-//     mensaje_reintento: resultado.valido ? null : redactarMensajeReintento(resultado),
-//   },
-// };
+// return { json: { ...item, ...r } };
 // =============================================================================

@@ -20,7 +20,7 @@ test('pipeline JS-1 → JS-8 con la conversación buena: cumple evaluacion.schem
   assert.equal(evaluacion.criterios.length, 69);
   assert.equal(evaluacion.id_evaluacion, 'EVAL-CONV-0101-reglas_ce_v1-evaluador_ce_v1');
   assert.equal(evaluacion.llave_dedup, 'CONV-0101|reglas_ce_v1|evaluador_ce_v1');
-  assert.deepEqual(evaluacion.consumo, { tokens_entrada: 5000, tokens_salida: 900, intentos_llm: 1, costo_usd: 0.00095 });
+  assert.deepEqual(evaluacion.consumo, { tokens_entrada: 5000, tokens_salida: 900, intentos_llm: 1, anomalias_llm: [], costo_usd: 0.00095 });
   // Ninguna evidencia lleva datos personales sin enmascarar.
   const texto = JSON.stringify(evaluacion);
   for (const dato of ['TLA190211QM2', 'hector.villanueva@', 'Villanueva', 'Héctor']) assert.ok(!texto.includes(dato), dato);

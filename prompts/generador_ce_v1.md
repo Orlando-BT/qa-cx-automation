@@ -4,16 +4,16 @@
 |---|---|
 | Versión | `generador_ce_v1` (valor de `config.version_prompt_generador` para `tipo_interaccion = ce`; se guarda en `escenarios.version_prompt_generador`) |
 | Uso | Workflow 0 (Simulador), paso 3: generar UNA conversación por llamada |
-| Modelo previsto | Anthropic por verificar al inicio de la Fase 2 (candidato: `claude-haiku-5-5`, SUPUESTO; en la hoja `config`, clave `modelo_generador` = `por_verificar`) |
+| Modelo previsto | `claude-haiku-5-5` (Anthropic; `config.modelo_generador`, verificado el 24-oct-2026). Está en la lista de modelos con salida estructurada de platform.claude.com/docs/en/build-with-claude/structured-outputs |
 | API | Messages API con salida estructurada: `output_config.format` de tipo `json_schema` con `prompts/generador_payload_salida.schema.json` |
-| Muestreo | **No se envía `temperature`** (la API la rechaza desde 2026-10-21). La variedad sale de los parámetros del escenario. |
-| Costo estimado por conversación | No disponible: precios del generador sin verificar; estimación de costo no disponible hasta verificarlos |
+| Muestreo | **No se envían `temperature`, `top_p` ni `top_k`**: con `anthropic-version: 2026-10-21` la API los eliminó y responde 400 si llegan (api/versioning). La variedad sale de los parámetros del escenario. Se envía `output_config.effort` = `config.esfuerzo_generador` (`medium`, el valor por defecto de `claude-haiku-5-5`; admite low, medium, high, xhigh y max). No se envía `thinking` (queda el razonamiento adaptativo por defecto, cuya profundidad controla `effort`) ni prefill (incompatible con salida JSON). |
+| Costo estimado por conversación | ≈ 0.002 a 0.003 USD por intento; peor caso ≈ 0.005 USD por intento (tope `max_tokens_generador` = 8000). SUPUESTO: tokens estimados, no medidos (ver abajo) |
 | Autor | subagente `evaluador-llm`, Fase 1 |
-| Revisión | 23-oct-2026: ajuste al contrato del commit ba53913 (identidad con `identidad_min_datos_correctos`, datos alternativos y declinación; número de caso fuera de la validación; RFC genéricos; plazos sin minutos y con cifras; `max_tokens_generador`). Sin cambio de nombre de versión: el simulador todavía no ha generado conversaciones. `generador_ce_v1` se congela al cerrar la Fase 1. |
+| Revisión | 23-oct-2026: ajuste al contrato del commit ba53913 (identidad con `identidad_min_datos_correctos`, datos alternativos y declinación; número de caso fuera de la validación; RFC genéricos; plazos sin minutos y con cifras; `max_tokens_generador`). Sin cambio de nombre de versión: el simulador todavía no ha generado conversaciones. `generador_ce_v1` se congela al cerrar la Fase 1. 24-oct-2026 (Fase 2): solo se actualiza esta cabecera y la sección de costo (modelo y precios verificados, cuerpo de la petición confirmado contra la documentación oficial). El texto que se envía (bloques INSTRUCCIONES y ENTRADA) no cambia, así que la versión no sube. |
 
 ## Costo estimado (SUPUESTO, no medición)
 
-Modelo generador por verificar al inicio de la Fase 2 (candidato: `claude-haiku-5-5`, SUPUESTO). Precios del generador sin verificar; estimación de costo no disponible hasta verificarlos (en `config` siguen en `por_verificar`). Abajo solo se estima el tamaño en tokens.
+Modelo `claude-haiku-5-5`. Precios de `config` (verificados el 24-oct-2026, tramo de prompts de hasta 100,000 tokens): 0.10 USD por millón de tokens de entrada y 0.50 USD por millón de salida. Los tamaños en tokens son estimaciones, no mediciones.
 
 | Parte | Tokens aproximados (SUPUESTO) |
 |---|---|
@@ -24,7 +24,15 @@ Modelo generador por verificar al inicio de la Fase 2 (candidato: `claude-haiku-
 | **Entrada total** | **≈ 11,300** |
 | Salida: conversación de 12 a 24 mensajes en JSON | 2,000 a 4,000 |
 
-Costo en USD: precios del generador sin verificar; estimación de costo no disponible hasta verificarlos. Con el reintento de `config.reintentos_generacion` (1), el peor caso son dos intentos de este tamaño. Lo real se registra en `escenarios.tokens_entrada`, `tokens_salida` y `costo_generacion_usd`.
+Costo en USD (SUPUESTO, a partir de los tokens estimados):
+
+- Entrada: 11,300 × 0.10 / 1,000,000 ≈ 0.0011.
+- Salida visible: 2,000 a 4,000 × 0.50 / 1,000,000 ≈ 0.001 a 0.002.
+- Razonamiento adaptativo (encendido por defecto en `claude-haiku-5-5`, profundidad según `config.esfuerzo_generador` = `medium`): se cobra como salida y cuenta dentro de `max_tokens`; su tamaño no está medido.
+- Típico: ≈ 0.002 a 0.003 por intento. Peor caso de un intento (salida al tope de 8000): 0.0011 + 0.004 ≈ 0.005.
+- Con el reintento de `config.reintentos_generacion` (1), el peor caso son dos intentos: ≈ 0.010 por conversación.
+
+Lo real se registra en `escenarios.tokens_entrada`, `tokens_salida` y `costo_generacion_usd` (los tokens salen de `leerRespuestaGenerador()` de `js/construccion_prompt.js`).
 
 ## Cómo se usa este archivo
 
@@ -33,7 +41,7 @@ Mismo formato que el prompt del evaluador: solo se envía lo que está entre los
 1. **Instrucciones** (entre `INICIO_INSTRUCCIONES` y `FIN_INSTRUCCIONES`): campo `system` de la Messages API.
 2. **Plantilla de entrada** (entre `INICIO_ENTRADA` y `FIN_ENTRADA`): único mensaje `user`. El nodo Code de W0 reemplaza los marcadores `<<...>>`. Se puede reutilizar `extraerBloque()` y `llenarPlantillaEntrada()` de `js/construccion_prompt.js` (detienen el flujo si falta un delimitador o queda un marcador sin llenar).
 
-Cuerpo de la petición (forma; los nombres de parámetros de Anthropic los confirma `workflows-n8n` contra la documentación vigente):
+Cuerpo de la petición: lo arma `construirPeticionGenerador()` de `js/construccion_prompt.js` (forma confirmada el 24-oct-2026 contra platform.claude.com/docs/en/api/messages y build-with-claude/structured-outputs). Encabezados del nodo HTTP Request: `x-api-key` (credencial de n8n), `anthropic-version` = `config.anthropic_version_api` (`2026-10-21`), `content-type: application/json`. La respuesta se lee con `leerRespuestaGenerador()` (texto del bloque `text`, `stop_reason`, `usage`).
 
 ```
 POST https://api.anthropic.com/v1/messages
@@ -46,7 +54,7 @@ POST https://api.anthropic.com/v1/messages
 }
 ```
 
-`max_tokens` es obligatorio en la Messages API; su valor sale de `config.max_tokens_generador` (8000, SUPUESTO).
+`max_tokens` es obligatorio en la Messages API; su valor sale de `config.max_tokens_generador` (8000, SUPUESTO). Si `stop_reason` es `max_tokens` o `refusal`, la salida puede no cumplir el esquema: W0 la trata como generación fallida.
 
 ### Marcadores que llena W0 (paso 2, "completar el escenario")
 

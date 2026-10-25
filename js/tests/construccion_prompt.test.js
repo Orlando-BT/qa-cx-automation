@@ -151,7 +151,7 @@ test('construirPeticion arma el cuerpo de la API Responses con temperatura 0', (
   assert.equal(c.temperature, 0);
   assert.equal(c.reasoning, undefined);
   assert.equal(c.store, false);
-  assert.equal(c.max_output_tokens, undefined);
+  assert.strictEqual(c.max_output_tokens, 8000); // Fase 2: siempre se envía, desde config.max_tokens_evaluador
   assert.equal(c.text.format.type, 'json_schema');
   assert.equal(c.text.format.strict, true);
   assert.equal(c.text.format.name, 'evaluacion_ce');
@@ -190,6 +190,45 @@ test('construirPeticion con esfuerzo de razonamiento: sin temperature', () => {
   assert.deepEqual(c.reasoning, { effort: 'none' });
   assert.equal('temperature' in c, false);
   assert.equal(c.max_output_tokens, 8000);
+});
+
+test('construirPeticion siempre envía max_output_tokens desde config.max_tokens_evaluador', () => {
+  // Texto crudo de Sheets ("8000") o número ya convertido por JS-1 (8000).
+  for (const valor of ['8000', 8000, ' 8000 ']) {
+    const c = js4.construirPeticion(datosPeticion({ config: { ...datos.CONFIG_EJEMPLO, max_tokens_evaluador: valor } }));
+    assert.strictEqual(c.max_output_tokens, 8000);
+  }
+  const c2 = js4.construirPeticion(datosPeticion({ config: { ...datos.CONFIG_EJEMPLO, max_tokens_evaluador: 1200 } }));
+  assert.strictEqual(c2.max_output_tokens, 1200);
+});
+
+test('construirPeticion falla con error explícito si max_tokens_evaluador falta o no es entero positivo', () => {
+  const sin = { ...datos.CONFIG_EJEMPLO };
+  delete sin.max_tokens_evaluador;
+  assert.throws(() => js4.construirPeticion(datosPeticion({ config: sin })), /config\.max_tokens_evaluador debe ser un entero positivo/);
+  for (const malo of ['', null, 0, -5, '0', 8000.5, '8000.5', 'ocho mil', '8e3', NaN, Infinity, true, [8000]]) {
+    assert.throws(
+      () => js4.construirPeticion(datosPeticion({ config: { ...datos.CONFIG_EJEMPLO, max_tokens_evaluador: malo } })),
+      /config\.max_tokens_evaluador debe ser un entero positivo/,
+      `debió fallar con ${JSON.stringify(malo)}`
+    );
+  }
+});
+
+test('opciones.max_tokens_salida sustituye el valor (pruebas), pero config.max_tokens_evaluador se valida igual', () => {
+  const c = js4.construirPeticion(datosPeticion(), { max_tokens_salida: 500 });
+  assert.strictEqual(c.max_output_tokens, 500);
+  assert.throws(() => js4.construirPeticion(datosPeticion(), { max_tokens_salida: 0 }), /opciones\.max_tokens_salida/);
+  const sin = { ...datos.CONFIG_EJEMPLO };
+  delete sin.max_tokens_evaluador;
+  assert.throws(() => js4.construirPeticion(datosPeticion({ config: sin }), { max_tokens_salida: 8000 }), /config\.max_tokens_evaluador/);
+});
+
+test('leerEnteroPositivo acepta enteros y texto de dígitos; rechaza lo demás', () => {
+  assert.strictEqual(js4.leerEnteroPositivo('42', 'x'), 42);
+  assert.strictEqual(js4.leerEnteroPositivo(1, 'x'), 1);
+  assert.throws(() => js4.leerEnteroPositivo(undefined, 'config.clave'), /config\.clave debe ser un entero positivo y vale undefined/);
+  assert.throws(() => js4.leerEnteroPositivo('-1', 'x'), /entero positivo/);
 });
 
 test('construirPeticion toma el esfuerzo de razonamiento de config.llm_esfuerzo_razonamiento', () => {
@@ -233,6 +272,8 @@ test('con las filas reales de datos/config.csv: reasoning none, sin temperature 
   assert.deepEqual(c.reasoning, { effort: config.llm_esfuerzo_razonamiento });
   assert.equal('temperature' in c, false);
   assert.deepEqual(c.text.format.schema, ESQUEMA);
+  // datos/config.csv trae max_tokens_evaluador = 8000 (el mismo tope de la prueba B).
+  assert.strictEqual(c.max_output_tokens, 8000);
 });
 
 test('construirPeticion falla con modelo en por_verificar, temperatura no numérica o bandera faltante', () => {

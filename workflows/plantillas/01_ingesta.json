@@ -1,0 +1,1627 @@
+{
+  "name": "01 Ingesta",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "qa-ingesta",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "4769fa28-aba2-45e3-82f9-abf3f02a27ab",
+      "name": "Webhook de ingesta",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "17b0ce67-a261-4485-85c9-ab37ad7b67c4"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "documentId": {
+          "__rl": true,
+          "value": "<ID_LIBRO_SHEETS>",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "config",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "44183828-468c-4a9e-8436-4c27cf604915",
+      "name": "Leer hoja config",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        240,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Google Sheets QA"
+        }
+      },
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "documentId": {
+          "__rl": true,
+          "value": "<ID_LIBRO_SHEETS>",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "cuentas",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "f038686b-77de-44c9-8c62-1b5a6165b790",
+      "name": "Leer hoja cuentas",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        480,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Google Sheets QA"
+        }
+      },
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/normalizacion.js\n// PEGAMENTO: pegamento/config_cargada_ingesta.js\n"
+      },
+      "id": "fec6bfe1-dcd5-46fa-8223-2575b640e1e1",
+      "name": "Config cargada",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/validador_payload.js\n// PEGAMENTO: pegamento/validar_payload.js\n"
+      },
+      "id": "1a1eef52-946e-4d5e-8e74-af6e113791e7",
+      "name": "Validar payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "b075eebf-71dd-4f1c-8b96-8d96e5d678db",
+              "leftValue": "={{ $json.valido }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "439ebda9-b600-4fe7-8ebc-964fde802075",
+      "name": "¿Payload válido?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1200,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "documentId": {
+          "__rl": true,
+          "value": "<ID_LIBRO_SHEETS>",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "conversaciones",
+          "mode": "name"
+        },
+        "options": {},
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "conversation_id",
+              "lookupValue": "={{ $('Validar payload').first().json.payload.conversation_id }}"
+            }
+          ]
+        },
+        "combineFilters": "AND"
+      },
+      "id": "2b9b8846-24bd-4569-8a7b-93099d9922ba",
+      "name": "Leer conversaciones existentes",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1440,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Google Sheets QA"
+        }
+      },
+      "executeOnce": true,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/ingesta.js\n// PEGAMENTO: pegamento/decidir_ingesta.js\n"
+      },
+      "id": "e5fe83cf-25fb-40ad-8e9e-02402bec1a43",
+      "name": "Decidir ingesta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1680,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "0a7ab5a1-42f7-48bb-80d2-e6b18379a8f3",
+                    "leftValue": "={{ $json.accion }}",
+                    "rightValue": "insertar",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "insertar"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "8034c787-b5aa-4851-8a0b-b9a3e148cb53",
+                    "leftValue": "={{ $json.accion }}",
+                    "rightValue": "reutilizar",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "reutilizar"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "0eece07f-ab68-4274-868d-92c2913bb498",
+                    "leftValue": "={{ $json.accion }}",
+                    "rightValue": "sin_rubrica",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "sin_rubrica"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "b700d3ff-2751-4813-8a14-5143c0bcf257",
+                    "leftValue": "={{ $json.accion }}",
+                    "rightValue": "duplicado",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "duplicado"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ecd84a30-5471-48a0-8878-a0390994e3f1",
+      "name": "Según decisión de ingesta",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        1920,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ $json.fila }}",
+        "options": {}
+      },
+      "id": "6f3d5330-300f-4cb9-86f6-5587fd719d72",
+      "name": "Fila nueva de conversaciones",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2160,
+        -180
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "<ID_LIBRO_SHEETS>",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "conversaciones",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "cellFormat": "RAW",
+          "handlingExtraData": "ignoreIt"
+        }
+      },
+      "id": "d0b0992a-85d0-4da5-875c-f7ef83869697",
+      "name": "Insertar conversación",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2400,
+        -180
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Google Sheets QA"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ $json.actualizacion }}",
+        "options": {}
+      },
+      "id": "0218c608-0e95-4f5e-8ba4-993e3ae4f447",
+      "name": "Actualización de conversaciones",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2160,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "<ID_LIBRO_SHEETS>",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "conversaciones",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "llave_dedup"
+          ],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "cellFormat": "RAW",
+          "handlingExtraData": "ignoreIt"
+        }
+      },
+      "id": "41797da6-e670-4682-8fc6-244afa86bf74",
+      "name": "Reactivar conversación",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2400,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Google Sheets QA"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "294b7f85-54dd-404b-8e94-d3e9dc48ac60",
+              "leftValue": "={{ $('Decidir ingesta').first().json.evaluar }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "9cba03c0-6965-4ed6-8ac1-2ee8b9fd56c5",
+      "name": "¿Evaluar ahora?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2640,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ { llave_dedup: $('Decidir ingesta').first().json.llave_dedup } }}",
+        "options": {}
+      },
+      "id": "2cb60bca-50a6-4435-8b68-9e0dd09dd848",
+      "name": "Datos para evaluación",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2880,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "value": "<ID_WORKFLOW_EVALUACION>",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "17ce5594-3423-459c-8329-3d5538a636ff",
+      "name": "Evaluar conversación",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        3120,
+        0
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {},
+      "id": "2903e86d-5e34-4e28-8ecd-87e00f5b3814",
+      "name": "Duplicado: sin cambios",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        2160,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "de61742b-ce59-47bc-87ff-6322475916f4",
+              "name": "config",
+              "value": "={{ $('Config cargada').first().json }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {},
+        "includeOtherFields": true
+      },
+      "id": "a4e8100d-5bbf-40d8-898b-7cddfec19f52",
+      "name": "Error sin rúbrica",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2160,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/registro_errores.js\n// PEGAMENTO: pegamento/error_payload_invalido.js\n",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "c7978b4b-88b5-4341-858b-b7e498904d92",
+      "name": "Error de payload inválido",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1440,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/registro_errores.js\n// PEGAMENTO: pegamento/cadena_fila_log_errores.js\n",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "fc0e7bf3-e8d2-4496-8f4b-ce1210601105",
+      "name": "Fila log_errores",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1680,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "<ID_LIBRO_SHEETS>",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "log_errores",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "cellFormat": "RAW",
+          "handlingExtraData": "ignoreIt"
+        }
+      },
+      "id": "310d2584-1814-480d-8773-8e563aba074b",
+      "name": "Escribir log_errores",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1920,
+        720
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Google Sheets QA"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "eac45ae4-d694-4c08-8679-36f4a0daa6e9",
+              "leftValue": "={{ $('Fila log_errores').item.json.aux_error.enviar_alerta }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "4b19d456-52f2-43a1-8fa5-15dde363e212",
+      "name": "¿Enviar alerta operativa?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2160,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/alertas.js\n// PEGAMENTO: pegamento/cadena_armar_alerta_operativa.js\n",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "9a4a5cb1-5a5e-412a-8cf5-4911136765e9",
+      "name": "Armar alerta operativa",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2400,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.config.telegram_destinatario }}",
+        "text": "={{ $json.texto }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "a34605fa-efb6-4f03-8499-a6cbc7aaef05",
+      "name": "Telegram: alerta operativa",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2640,
+        720
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "telegramApi": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Telegram bot QA"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/alertas.js\n// PEGAMENTO: pegamento/cadena_fila_alertas_operativa.js\n",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "fb189310-d11e-46e0-88fa-c17bed4be2e3",
+      "name": "Fila alertas (operativa)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2880,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "<ID_LIBRO_SHEETS>",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "alertas",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "cellFormat": "RAW",
+          "handlingExtraData": "ignoreIt"
+        }
+      },
+      "id": "d3450d7b-f8f2-4030-8d68-452c645d2d9a",
+      "name": "Escribir alertas (operativa)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        3120,
+        720
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Google Sheets QA"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {},
+      "id": "72ad3a36-e779-4c5b-8d5a-5f3018b07567",
+      "name": "Disparador manual de calibración",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        1260
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5aff6e74-2491-4178-8316-15c4c81c99d3",
+              "name": "lote",
+              "value": "calibracion_v1",
+              "type": "string"
+            },
+            {
+              "id": "6691170e-0420-45cc-88b2-26c0d71fd66c",
+              "name": "version_reglas",
+              "value": "reglas_ce_v1",
+              "type": "string"
+            },
+            {
+              "id": "aa523519-e5c6-40f9-853d-6898a22dfbd1",
+              "name": "version_prompt",
+              "value": "evaluador_ce_v1",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "0c6e3fb1-50ea-44d2-8f38-375aee587442",
+      "name": "Parámetros de calibración",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        1260
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "documentId": {
+          "__rl": true,
+          "value": "<ID_LIBRO_SHEETS>",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "config",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "70edd267-ba52-4c3e-8232-c8c0c457c942",
+      "name": "Leer config (calibración)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        480,
+        1260
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Google Sheets QA"
+        }
+      },
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/normalizacion.js\n// PEGAMENTO: pegamento/config_calibracion.js\n"
+      },
+      "id": "3667076b-55f1-43b4-813f-25fdf3a6c87c",
+      "name": "Config de calibración",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        1260
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "documentId": {
+          "__rl": true,
+          "value": "<ID_LIBRO_SHEETS>",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "conversaciones",
+          "mode": "name"
+        },
+        "options": {},
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "lote",
+              "lookupValue": "={{ $('Parámetros de calibración').first().json.lote }}"
+            }
+          ]
+        },
+        "combineFilters": "AND"
+      },
+      "id": "3ddff397-0e48-45c1-8fc4-3c84e76ab7e0",
+      "name": "Leer conversaciones del lote",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        960,
+        1260
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Google Sheets QA"
+        }
+      },
+      "executeOnce": true,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/ingesta.js\n// PEGAMENTO: pegamento/planificar_calibracion.js\n"
+      },
+      "id": "0d5ee299-0a2c-48c1-8638-6a2cb8c57245",
+      "name": "Planificar calibración",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        1260
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "bca0364b-d191-49c9-84f5-069b02098193",
+              "leftValue": "={{ $json.valido }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "5d9f8ee6-2e92-4888-8f3e-545a447d82a5",
+      "name": "¿Plan válido?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1440,
+        1260
+      ]
+    },
+    {
+      "parameters": {
+        "errorMessage": "={{ $json.errores.join(' | ') }}"
+      },
+      "id": "b91594b9-15d9-4138-8f26-72531731e1c4",
+      "name": "Detener: plan inválido",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        1680,
+        1620
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "filas_nuevas",
+        "include": "noOtherFields",
+        "options": {}
+      },
+      "id": "5c871593-8bd8-428d-8c8e-b10a522141d8",
+      "name": "Filas nuevas",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1680,
+        1080
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "<ID_LIBRO_SHEETS>",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "conversaciones",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "cellFormat": "RAW",
+          "handlingExtraData": "ignoreIt"
+        }
+      },
+      "id": "813e44d2-e35e-4cb6-85e1-14bb0cef014d",
+      "name": "Crear filas de la versión",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1920,
+        1080
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Google Sheets QA"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "llaves_pendientes",
+        "include": "noOtherFields",
+        "options": {
+          "destinationFieldName": "llave_dedup"
+        }
+      },
+      "id": "2661afec-c069-4258-8ffb-78a08bb16bf9",
+      "name": "Llaves pendientes",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1680,
+        1440
+      ]
+    },
+    {
+      "parameters": {
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "value": "<ID_WORKFLOW_EVALUACION>",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "d1f72f23-6e1e-41a8-857b-5ad0f85f9d88",
+      "name": "Evaluar pendientes",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1920,
+        1440
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/alertas.js\n// PEGAMENTO: pegamento/cierre_lote_calibracion.js\n"
+      },
+      "id": "c970571e-2e6c-40ab-8391-18e709dc7983",
+      "name": "Cierre del lote",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2160,
+        1440
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.config.telegram_destinatario }}",
+        "text": "={{ $json.texto }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "a1f49a69-1eb0-4b19-83e6-f3beb88079a4",
+      "name": "Telegram: cierre del lote",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2400,
+        1440
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "telegramApi": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Telegram bot QA"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/alertas.js\n// PEGAMENTO: pegamento/fila_alertas_cierre_lote.js\n",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "07cf44b4-403e-496e-8e0f-36d15e60644f",
+      "name": "Fila alertas (cierre del lote)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2640,
+        1440
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "<ID_LIBRO_SHEETS>",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "alertas",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "cellFormat": "RAW",
+          "handlingExtraData": "ignoreIt"
+        }
+      },
+      "id": "fa29da5c-5859-4d24-81ea-d3740a96354f",
+      "name": "Escribir alertas (cierre del lote)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2880,
+        1440
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Google Sheets QA"
+        }
+      },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Webhook de ingesta": {
+      "main": [
+        [
+          {
+            "node": "Leer hoja config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer hoja config": {
+      "main": [
+        [
+          {
+            "node": "Leer hoja cuentas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer hoja cuentas": {
+      "main": [
+        [
+          {
+            "node": "Config cargada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config cargada": {
+      "main": [
+        [
+          {
+            "node": "Validar payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar payload": {
+      "main": [
+        [
+          {
+            "node": "¿Payload válido?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Payload válido?": {
+      "main": [
+        [
+          {
+            "node": "Leer conversaciones existentes",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error de payload inválido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer conversaciones existentes": {
+      "main": [
+        [
+          {
+            "node": "Decidir ingesta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decidir ingesta": {
+      "main": [
+        [
+          {
+            "node": "Según decisión de ingesta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Según decisión de ingesta": {
+      "main": [
+        [
+          {
+            "node": "Fila nueva de conversaciones",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Actualización de conversaciones",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error sin rúbrica",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Duplicado: sin cambios",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fila nueva de conversaciones": {
+      "main": [
+        [
+          {
+            "node": "Insertar conversación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insertar conversación": {
+      "main": [
+        [
+          {
+            "node": "¿Evaluar ahora?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Actualización de conversaciones": {
+      "main": [
+        [
+          {
+            "node": "Reactivar conversación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reactivar conversación": {
+      "main": [
+        [
+          {
+            "node": "¿Evaluar ahora?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Evaluar ahora?": {
+      "main": [
+        [
+          {
+            "node": "Datos para evaluación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Datos para evaluación": {
+      "main": [
+        [
+          {
+            "node": "Evaluar conversación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error sin rúbrica": {
+      "main": [
+        [
+          {
+            "node": "Fila log_errores",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error de payload inválido": {
+      "main": [
+        [
+          {
+            "node": "Fila log_errores",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fila log_errores": {
+      "main": [
+        [
+          {
+            "node": "Escribir log_errores",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Escribir log_errores": {
+      "main": [
+        [
+          {
+            "node": "¿Enviar alerta operativa?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Enviar alerta operativa?": {
+      "main": [
+        [
+          {
+            "node": "Armar alerta operativa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar alerta operativa": {
+      "main": [
+        [
+          {
+            "node": "Telegram: alerta operativa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram: alerta operativa": {
+      "main": [
+        [
+          {
+            "node": "Fila alertas (operativa)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fila alertas (operativa)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fila alertas (operativa)": {
+      "main": [
+        [
+          {
+            "node": "Escribir alertas (operativa)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Disparador manual de calibración": {
+      "main": [
+        [
+          {
+            "node": "Parámetros de calibración",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parámetros de calibración": {
+      "main": [
+        [
+          {
+            "node": "Leer config (calibración)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer config (calibración)": {
+      "main": [
+        [
+          {
+            "node": "Config de calibración",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config de calibración": {
+      "main": [
+        [
+          {
+            "node": "Leer conversaciones del lote",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer conversaciones del lote": {
+      "main": [
+        [
+          {
+            "node": "Planificar calibración",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Planificar calibración": {
+      "main": [
+        [
+          {
+            "node": "¿Plan válido?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Plan válido?": {
+      "main": [
+        [
+          {
+            "node": "Filas nuevas",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Llaves pendientes",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Detener: plan inválido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filas nuevas": {
+      "main": [
+        [
+          {
+            "node": "Crear filas de la versión",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Llaves pendientes": {
+      "main": [
+        [
+          {
+            "node": "Evaluar pendientes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evaluar pendientes": {
+      "main": [
+        [
+          {
+            "node": "Cierre del lote",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cierre del lote": {
+      "main": [
+        [
+          {
+            "node": "Telegram: cierre del lote",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram: cierre del lote": {
+      "main": [
+        [
+          {
+            "node": "Fila alertas (cierre del lote)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fila alertas (cierre del lote)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fila alertas (cierre del lote)": {
+      "main": [
+        [
+          {
+            "node": "Escribir alertas (cierre del lote)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "errorWorkflow": "<ID_WORKFLOW_ERRORES>"
+  }
+}

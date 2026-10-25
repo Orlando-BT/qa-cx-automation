@@ -272,8 +272,40 @@ function prepararContexto({ payload, lote, filasConfig, filasListas, filasCatalo
   };
 }
 
+/**
+ * Convierte una fila de `conversaciones` (todo texto, como la entrega Sheets) en el payload del
+ * contrato. `total_mensajes` no forma parte del payload. Si un JSON es inválido lanza un error
+ * que NO copia el contenido (podría traer datos personales).
+ */
+function payloadDesdeFilaConversaciones(fila) {
+  const leerJson = (texto, columna) => {
+    try {
+      return JSON.parse(texto);
+    } catch (e) {
+      throw new Error(`conversaciones.${columna} no es un JSON válido`);
+    }
+  };
+  const numero = fila.numero_caso;
+  return {
+    conversation_id: fila.conversation_id,
+    canal: fila.canal,
+    tipo_interaccion: fila.tipo_interaccion,
+    agente: fila.agente,
+    cuenta_id: fila.cuenta_id,
+    metadatos_caso: {
+      tipificacion_agente: fila.tipificacion_agente,
+      numero_caso: numero === '' || numero === undefined || numero === null ? null : numero,
+      estado_caso: fila.estado_caso,
+      escalado: esSi(fila.escalado),
+      campos_capturados: leerJson(fila.campos_capturados_json, 'campos_capturados_json'),
+    },
+    mensajes: leerJson(fila.mensajes_json, 'mensajes_json'),
+  };
+}
+
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
+    payloadDesdeFilaConversaciones,
     convertirValorConfig,
     cargarConfig,
     filtrarPorTipoYActivas,
