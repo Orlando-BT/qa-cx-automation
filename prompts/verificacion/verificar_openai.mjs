@@ -30,7 +30,9 @@
 // Modo lote (--lote, sección 12b): evalúa N conversaciones de datos/lotes/<lote>/
 // con el pipeline real JS-1..JS-8 y compara contra el escenario. Salida SOLO
 // AGREGADA (regla del dueño: la calificación humana es a ciegas): nunca imprime
-// ni guarda resultados por conversación.
+// ni guarda resultados por conversación. La consola muestra solo `ejecucion` y
+// `consumo`; la comparación contra el escenario solo se imprime con
+// --mostrar-concordancia (uso de la Fase 4, después de la calificación a ciegas).
 //
 // Seguridad: la clave se lee de process.env y SOLO se usa en el encabezado
 // Authorization. Nunca se imprime ni se escribe en archivos. Tampoco se guarda
@@ -75,12 +77,17 @@ const TOPE_USD_DEFAULT = 0.05;      // tope duro de costo del modo lote (--tope-
 //    --prueba-b      ejecuta la prueba B (sección 12)
 //    --esfuerzo <none|low|ninguno>, --quitar-claves <a,b>, --sin-llamada: solo prueba B
 //    --lote <nombre> [--n N | --ids A,B] [--tope-usd X]: prueba B en modo lote (12b)
+//    --mostrar-concordancia: modo lote; imprime en consola la comparación contra
+//      el escenario. SOLO Fase 4, después de cerrar la calificación a ciegas
+//      (Fase 3). Solo se activa con el texto exacto; sin ella la consola muestra
+//      solo ejecucion y consumo.
 // -----------------------------------------------------------------------------
-function leerArgumentos(argv) {
+export function leerArgumentos(argv) {
   const args = {
     modelo: MODELO_DEFAULT, pruebaB: false, esfuerzo: undefined, quitarClaves: undefined, sinLlamada: false,
     // Modo lote de la prueba B (sección 12b).
     lote: null, n: 2, ids: null, topeUsd: TOPE_USD_DEFAULT,
+    mostrarConcordancia: false,
   };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
@@ -113,6 +120,8 @@ function leerArgumentos(argv) {
     } else if (a === '--tope-usd') {
       args.topeUsd = Number(argv[i + 1]);
       i++;
+    } else if (a === '--mostrar-concordancia') {
+      args.mostrarConcordancia = true;
     }
   }
   if (!args.modelo) {
@@ -1208,8 +1217,7 @@ async function pruebaBLote(args) {
     ],
   };
 
-  console.log('\n===== RESUMEN PRUEBA B (LOTE, SOLO AGREGADOS) =====');
-  console.log(JSON.stringify({ ejecucion: resultados.ejecucion, consumo: resultados.consumo, concordancia_con_escenario: resultados.concordancia_con_escenario }, null, 2));
+  console.log(resumenConsola(resultados, { mostrarConcordancia: args.mostrarConcordancia }));
   if (detenidoPorTope) console.log(`DETENIDO POR TOPE: el costo acumulado alcanzó USD ${args.topeUsd}.`);
   if (detenidoPorError) console.log(`DETENIDO POR ERROR DE LA API (${detenidoPorError}); ver errores_api_por_tipo.`);
   if (args.sinLlamada) {
@@ -1219,6 +1227,23 @@ async function pruebaBLote(args) {
   await mkdir(CARPETA_PRIVADA, { recursive: true });
   await writeFile(RUTA_RESULTADOS_B_LOTE, JSON.stringify(resultados, null, 2) + '\n', 'utf8');
   console.log(`Resultados guardados en ${path.relative(RAIZ_REPO, RUTA_RESULTADOS_B_LOTE)}`);
+}
+
+// -----------------------------------------------------------------------------
+// 12c. Texto del resumen en consola del modo lote (función pura, sin E/S).
+//      Por defecto solo incluye `ejecucion` y `consumo`. La comparación contra la
+//      verdad del escenario (`concordancia_con_escenario`) solo se agrega con
+//      mostrarConcordancia = true (opción --mostrar-concordancia, Fase 4). El
+//      archivo de _privado/ no depende de esto: siempre guarda `resultados` completo.
+// -----------------------------------------------------------------------------
+export function resumenConsola(resultados, { mostrarConcordancia = false } = {}) {
+  const visible = { ejecucion: resultados.ejecucion, consumo: resultados.consumo };
+  if (mostrarConcordancia === true) visible.concordancia_con_escenario = resultados.concordancia_con_escenario;
+  const lineas = ['\n===== RESUMEN PRUEBA B (LOTE, SOLO AGREGADOS) =====', JSON.stringify(visible, null, 2)];
+  if (mostrarConcordancia !== true) {
+    lineas.push('La comparación contra el escenario no se muestra en consola (ver prompts/verificacion/README.md, uso de la Fase 4).');
+  }
+  return lineas.join('\n');
 }
 
 // -----------------------------------------------------------------------------
@@ -1290,8 +1315,21 @@ async function main() {
   console.log(`Resultados guardados en ${path.relative(RAIZ_REPO, RUTA_RESULTADOS)}`);
 }
 
-main().catch((e) => {
-  // Error inesperado del script (no de la API). No incluye la clave.
-  console.error('Error inesperado:', e?.message ?? e);
-  process.exit(1);
-});
+// Solo se ejecuta si el script se invoca directamente (node .../verificar_openai.mjs).
+// Al importarlo (por ejemplo desde js/tests/) no corre nada ni llama a la API.
+function esInvocacionDirecta() {
+  if (!process.argv[1]) return false;
+  const normalizar = (p) => {
+    const r = path.resolve(p);
+    return process.platform === 'win32' ? r.toLowerCase() : r;
+  };
+  return normalizar(fileURLToPath(import.meta.url)) === normalizar(process.argv[1]);
+}
+
+if (esInvocacionDirecta()) {
+  main().catch((e) => {
+    // Error inesperado del script (no de la API). No incluye la clave.
+    console.error('Error inesperado:', e?.message ?? e);
+    process.exit(1);
+  });
+}
