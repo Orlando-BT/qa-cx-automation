@@ -6,3 +6,6 @@ credentials*.json
 
 # Valores locales de n8n (ID del libro, URL del webhook); nunca al repo
 workflows/_local/
+
+# Resultados con datos de calibracion_v1 contra la verdad del escenario; se restauran al cerrar la Fase 3
+prompts/verificacion/_privado/

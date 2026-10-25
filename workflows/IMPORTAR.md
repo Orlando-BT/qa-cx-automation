@@ -9,7 +9,7 @@ Pasos que solo haces tú (ningún agente los sustituye): crear cuentas y claves,
 | `00_simulador.json` | 00 Simulador | Formulario `http://localhost:5678/form/qa-simulador` |
 | `01_ingesta.json` | 01 Ingesta | Webhook `POST http://localhost:5678/webhook/qa-ingesta?lote=...` y disparador manual de calibración |
 | `02_evaluacion.json` | 02 Evaluación | Lo llaman 01 y 04 (Execute Workflow), una conversación por ejecución |
-| `03_metricas.json` | 03 Métricas | Manual |
+| `03_metricas.json` | 03 Métricas | Manual. **Esqueleto hasta la Fase 4**: lee las hojas, pero no calcula ni escribe métricas ("Escribir metricas" no tiene conexión de entrada). |
 | `04_reproceso.json` | 04 Reproceso | Programado cada 30 min y manual |
 | `99_errores.json` | 99 Errores | Error Trigger (error workflow de los demás) |
 | `pruebas/mock_api.json` | PRUEBA mock API | Webhook `POST http://localhost:5678/webhook/qa-mock-openai` (solo para la prueba 8) |
@@ -82,8 +82,10 @@ En n8n: **Credentials > Add credential**. Usa exactamente estos nombres: así `-
 |---|---|---|---|
 | OpenAI | Header Auth | `OpenAI (Authorization Bearer)` | 02: "OpenAI: evaluar conversación" |
 | Anthropic | Header Auth | `Anthropic (x-api-key)` | 00: "Claude: generar conversación" |
-| Google Sheets | Google Sheets OAuth2 API | `Google Sheets QA` (o el nombre que ya tiene la tuya; elígela en cada nodo) | Todos los nodos "Leer ...", "Escribir ...", "Insertar ...", "Actualizar ...", "Reactivar ...", "Crear filas ...", "Pasar conversación a error": 12 en 00, 11 en 01, 14 en 02, 4 en 03, 6 en 04 y 3 en 99 |
-| Telegram | Telegram API | `Telegram bot QA` | Todos los nodos "Telegram: ...": 1 en 00, 2 en 01, 2 en 02, 2 en 04 y 1 en 99 |
+| Google Sheets | Google Sheets OAuth2 API | `Google Sheets QA` (o el nombre que ya tiene la tuya; elígela en cada nodo) | Todos los nodos cuyo nombre empieza con "Leer", "Escribir", "Insertar", "Actualizar", "Reactivar", "Crear filas" o "Pasar" (por ejemplo "Pasar conversación a error", "Pasar atascada a reproceso", "Pasar conversación a reproceso"). Total por workflow (Sheets): 13 en 00, 11 en 01, 16 en 02, 4 en 03, 7 en 04 y 4 en 99 |
+| Telegram | Telegram API | `Telegram bot QA` | Todos los nodos "Telegram: ...". Total por workflow (Telegram): 1 en 00, 2 en 01, 2 en 02, 0 en 03, 2 en 04 y 1 en 99 |
+
+Los totales de esta tabla los comprueba `workflows/tests/estructura.test.js` contra los JSON.
 
 ### 2.1 OpenAI (Header Auth)
 - Name: `Authorization`
@@ -313,7 +315,12 @@ Antes de empezar, anota cuántas filas tiene cada hoja: los resultados esperados
 - Esperado:
   - `conversaciones`: +1 `pendiente`, **sin evaluar** (`evaluar_al_ingerir_calibracion = no`).
   - `evaluaciones`: +0. Costo 0.
-- No corras el "Disparador manual de calibración" en esta fase: se usa en la Fase 4, después de tu calificación.
+- El "Disparador manual de calibración" de "01 Ingesta" viene **desactivado** y con el `lote` vacío en "Parámetros de calibración". Así no se puede evaluar `calibracion_v1` por accidente antes de tu calificación a ciegas.
+- En la Fase 4, después de calificar:
+  1. Actívalo (clic derecho > Activate).
+  2. Escribe el `lote` y las versiones en "Parámetros de calibración".
+  3. Ejecútalo.
+- Con el `lote` vacío, "Planificar calibración" lo rechaza y la ejecución se detiene en "Detener: plan inválido".
 - Puedes ingerir las 24 del mismo modo: no cuesta nada y quedan pendientes.
 
 **12. Doble ejecución sin filas duplicadas (sin costo, con el mock)**
@@ -369,6 +376,21 @@ Antes de empezar, anota cuántas filas tiene cada hoja: los resultados esperados
 - **99 Errores casi nunca identifica la conversación:** el Error Trigger de n8n 2.32.6 solo entrega `execution { id, url, error, lastNodeExecuted, mode, retryOf, executionContext }` y `workflow { id, name }` (ver `INVENTARIO_NODOS.md`, sección 5), sin los datos de la ejecución.
   - "99 Errores" pasa la conversación a `reproceso` solo si la `llave_dedup` aparece en el mensaje de error.
   - En el resto de los casos la red de seguridad es W4: una conversación que queda en `en_evaluacion` más de `evaluacion_tiempo_maximo_min` (90 min) se pasa a `reproceso` (prueba 13).
+- **Escrituras de W1 sin salida de error propia:** "Insertar conversación", "Reactivar conversación" y "Crear filas de la versión" reintentan 3 veces. Si Sheets sigue fallando, la ejecución se detiene y "99 Errores" registra y alerta, pero el webhook ya había dado el acuse: la conversación no quedó guardada. Para recuperarla:
+  1. En n8n, abre **Executions** y filtra por "01 Ingesta" con estado **Error**.
+  2. Abre la ejecución fallida y haz clic en el nodo **"Webhook de ingesta"**.
+  3. En su salida, copia el objeto `body` (vista JSON) y anota el valor de `query.lote`.
+  4. Guarda el `body` en un archivo, por ejemplo `reenvio.json`, y reenvíalo con el mismo lote:
+     - Git Bash:
+       ```bash
+       curl -X POST "http://localhost:5678/webhook/qa-ingesta?lote=demo" -H "Content-Type: application/json" --data @reenvio.json
+       ```
+     - PowerShell:
+       ```powershell
+       Invoke-RestMethod -Method Post -Uri "http://localhost:5678/webhook/qa-ingesta?lote=demo" -ContentType "application/json" -InFile reenvio.json
+       ```
+  5. Si la fila sí se había guardado antes de la falla, la deduplicación por `llave_dedup` la trata como duplicado: no se crea una segunda fila.
+  - El historial existe porque n8n 2.32.6 guarda por defecto los datos de las ejecuciones fallidas (`saveDataOnError = 'all'` en `@n8n/config`, `executions.config.js`) y los conserva 336 horas (14 días, `pruneDataMaxAge`), salvo que tu Docker cambie `EXECUTIONS_DATA_SAVE_ON_ERROR` o la poda. Además, "01 Ingesta" trae `settings.saveDataErrorExecution = 'all'` (en la UI: **... > Settings > Save failed production executions = Save**), así que lo guarda aunque el valor global cambie. Recupera dentro de ese plazo.
 - **Timeout de cada petición a OpenAI y Claude:** sale de `config.tiempo_maximo_peticion_llm_ms` por expresión. Un timeout se trata como falla de red y se reintenta con espera.
 - **Cierre del lote en W4:** `cierrePorLotes` agrupa por el `lote` que devuelve W2. Una evaluación que terminó en error no trae `lote` y no entra al resumen (su alerta operativa ya se envió).
 - **W4 reenvía dos grupos por separado** (reproceso y atascadas): el cierre del lote puede salir en dos mensajes en la misma corrida.

@@ -291,8 +291,7 @@
           "id": "<ASIGNAR_EN_N8N>",
           "name": "Google Sheets QA"
         }
-      },
-      "disabled": true
+      }
     }
   ],
   "connections": {
@@ -363,17 +362,6 @@
         [
           {
             "node": "Calcular métricas (pendiente Fase 4)",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Calcular métricas (pendiente Fase 4)": {
-      "main": [
-        [
-          {
-            "node": "Escribir metricas",
             "type": "main",
             "index": 0
           }

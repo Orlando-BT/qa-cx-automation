@@ -121,8 +121,8 @@ Algunas carpetas aún no tienen contenido porque su fase no ha llegado.
 | Fase | Contenido | Estado |
 |---|---|---|
 | 0 | Contrato | Terminada |
-| 1 | Datos de referencia y lote `calibracion_v1`, código JS con pruebas, prompt v1 y validador, esqueleto de documentación | En curso |
-| 2 | Workflows de n8n y alertas por Telegram | Pendiente |
+| 1 | Datos de referencia y lote `calibracion_v1`, código JS con pruebas, prompt v1 y validador, esqueleto de documentación | Terminada |
+| 2 | Workflows de n8n y alertas por Telegram | En curso: workflows construidos y revisados; falta la importación y el guion de pruebas del dueño en su n8n |
 | 3 | Calificación humana a ciegas del lote (la hace el dueño) | Pendiente |
 | 4 | Métricas v1, prompt v2, comparación y especificación del tablero | Pendiente |
 | 5 y 5b | HubSpot y rúbrica de Sales | Pendiente |

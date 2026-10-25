@@ -72,9 +72,11 @@ Las entradas de las Fases 0 y 1 **se reconstruyeron después**, a partir del his
 
 ## Fase 2 (en curso, iniciada 24-oct-2026)
 
-### Plan aprobado y decisiones de arranque (pendiente de commit)
+Nota: las entradas de la Fase 2 no son reconstrucciones; se escriben al cerrar cada bloque de trabajo. Todas las del checkpoint comparten un solo commit, porque el trabajo de la fase se guardó junto.
+
+### Plan aprobado y decisiones de arranque
 - Fecha: 24-oct-2026.
-- Commit: pendiente de commit.
+- Commit: "Fase 2 (checkpoint): contrato, código JS, prompts y workflows de n8n" (24-oct-2026 18:35, hora de México, -0600; consultado en `.git/logs/HEAD`, convertido desde la marca de tiempo).
 - Subagente: orquestador (plan); `documentacion` registra la entrada.
 - Qué cambió: el dueño aprobó el plan de la Fase 2. Todavía no hay cambios en el repositorio por esta entrada, salvo esta bitácora. Decisiones:
   - Modelo generador: `claude-haiku-5-5`, verificado en la documentación oficial de Anthropic; es de un proveedor distinto al del evaluador.
@@ -88,16 +90,77 @@ Las entradas de las Fases 0 y 1 **se reconstruyeron después**, a partir del his
   - Fuente única del código en `js/`, con un ensamblador que arma el código de los nodos y una prueba de sincronía que confirma que es igual al del repositorio.
 - Decisión relacionada: requisitos de la Fase 2 del registro técnico (sección 3 de la Fase 1: cola de reproceso, reintentos 429/5xx, IF de `falla_api` antes del de validez). Los cambios que toquen el contrato (por ejemplo, el estado `reproceso` o las claves nuevas de config) requieren aprobación del dueño.
 
-### Pendiente heredado: incoherencia entre críticos y solución (pendiente de commit)
+### Pendiente heredado: incoherencia entre críticos y solución
 - Fecha: 24-oct-2026.
-- Commit: pendiente de commit.
+- Commit: "Fase 2 (checkpoint): contrato, código JS, prompts y workflows de n8n".
 - Subagente: ninguno; es un pendiente registrado.
 - Qué cambió: nada en el código. La incoherencia entre `critico.informacion_incorrecta` y `solucion.informacion_correcta` queda para v2, con métrica en la Fase 4.
 - Decisión relacionada: backlog de v2 y de la Fase 4.
+
+### Cambios de contrato de la Fase 2
+- Fecha: 24-oct-2026.
+- Commit: "Fase 2 (checkpoint): contrato, código JS, prompts y workflows de n8n".
+- Subagente: `contrato-datos` (contrato), con aprobación del dueño de cada cambio.
+- Qué cambió:
+  - `contrato/config.md`: claves nuevas de generador, simulador, reintentos, reproceso y tiempos (lista completa en `docs/registro-tecnico.md`, Fase 2); precios del generador `claude-haiku-5-5` (0.10/0.50 USD por millón de tokens, verificados el 24-oct-2026); `zona_horaria`.
+  - `contrato/evaluacion.schema.json`: `consumo.anomalias_llm` (`incompleta`, `refusal`, `commentary`).
+  - `contrato/sheets.md`: columna `evaluaciones.anomalias_llm` (columna 30, al final) y `escenarios.semilla_sorteo` (columna 20).
+  - `contrato/rubrica.md`: sección 8, solo para el sorteo de fallas del simulador (W0).
+  - Estado `reproceso` y manejo de respuestas del evaluador (ver entrada de decisiones del dueño).
+- Decisión relacionada: cambios de contrato aprobados por el dueño el 24-oct-2026. `reglas_ce_v1` y `evaluador_ce_v1` no cambian de versión.
+
+### Código JS nuevo de la Fase 2
+- Fecha: 24-oct-2026.
+- Commit: "Fase 2 (checkpoint): contrato, código JS, prompts y workflows de n8n".
+- Subagentes: `reglas-js` (`js/` y `js/tests/`), `evaluador-llm` (`js/validador_llm.js`, `js/construccion_prompt.js`).
+- Qué cambió: según `git show --stat` del checkpoint, archivos nuevos en `js/`: `alertas.js`, `clasificacion_http.js`, `ingesta.js`, `registro_errores.js` y `simulador.js`; archivos modificados: `construccion_prompt.js`, `costo.js`, `normalizacion.js`, `scoring.js` y `validador_llm.js` (no se describe el contenido de cada cambio). Las pruebas de `js/tests/` y `workflows/tests/` suman 492 en el checkpoint.
+- Decisión relacionada: fuente única del código en `js/` (decisión de arranque); el pegamento de los workflows no toma decisiones.
+
+### generador_ce_v2
+- Fecha: 24-oct-2026.
+- Commit: "Fase 2 (checkpoint): contrato, código JS, prompts y workflows de n8n".
+- Subagente: `evaluador-llm`.
+- Qué cambió: nuevo `generador_ce_v2` con los marcadores `TIPIFICACION_AGENTE` y `VARIANTE_IDENTIDAD`. `generador_ce_v1` queda intacto y el evaluador sigue en `evaluador_ce_v1`. Cada escenario guarda la versión del generador; `verificarEscenarioGenerado` valida el resultado con 1 reintento.
+- Decisión relacionada: versión del generador por escenario (decisión del dueño, 24-oct-2026).
+
+### Workflows y herramientas
+- Fecha: 24-oct-2026.
+- Commit: "Fase 2 (checkpoint): contrato, código JS, prompts y workflows de n8n".
+- Subagente: `workflows-n8n`.
+- Qué cambió: `workflows/00_simulador.json`, `01_ingesta.json`, `02_evaluacion.json`, `03_metricas.json`, `04_reproceso.json` (nuevo) y `99_errores.json`; `herramientas/` (`construir_plantillas.mjs`, `ensamblar.mjs`, `encabezados.mjs`, `valores.ejemplo.json`); `plantillas/`, `pegamento/`, `pruebas/`, `tests/` (sincronía, secretos, estructura y simulación), `IMPORTAR.md`, `INVENTARIO_NODOS.md` y `README.md`. `workflows/_local/` queda en `.gitignore`. Incluye, aprobadas por el dueño aunque no las pidió, la pantalla "Simulación en curso" en W0 y la prueba de fórmulas en `workflows/tests/estructura.test.js`.
+- Decisión relacionada: plan de la Fase 2; los workflows solo conectan `js/`, `prompts/` y `contrato/`.
+
+### Decisiones del dueño en la Fase 2
+- Fecha: 24-oct-2026.
+- Commit: "Fase 2 (checkpoint): contrato, código JS, prompts y workflows de n8n".
+- Subagente: orquestador y `documentacion` (registro); las decisiones son del dueño y sus razones van en `docs/decisiones.md`.
+- Qué cambió:
+  - Respuesta incompleta del evaluador: 1 reintento inmediato (`reintentos_respuesta_incompleta = 1`); si se repite, `respuesta_llm_invalida` con alerta, sin reproceso. Refusal: estado `error` con alerta, sin reproceso. Ambos se cuentan como anomalías. En la Fase 1 esos casos caían en `falla_api`.
+  - Reintentos de conexión solo ante HTTP 429, 5xx y fallas de red, con espera y tope de `Retry-After`.
+  - `evaluacion_tiempo_maximo_min = 90` (la regla es del dueño; el valor es supuesto).
+  - `formulario_invalido` sin alerta operativa.
+  - Rúbrica sección 8 solo para el sorteo de W0.
+  - `claude-haiku-5-5` como generador y versión de generador por escenario.
+- Decisión relacionada: las del registro técnico (Fase 2).
+
+### Checkpoint de la Fase 2
+- Fecha: 24-oct-2026 18:35 (hora de México, -0600; Git).
+- Commit: "Fase 2 (checkpoint): contrato, código JS, prompts y workflows de n8n".
+- Subagentes: `reglas-js`, `evaluador-llm`, `workflows-n8n`, `contrato-datos`, `documentacion`.
+- Qué cambió: se guardó el trabajo de la Fase 2. Verificaciones reportadas por el orquestador para este checkpoint: 492 de 492 pruebas pasan, la verificación de sincronía no encontró diferencias y la búsqueda de secretos dio "no encontrado". Yo no volví a ejecutarlas.
+- Estado: el checkpoint no cierra la fase. Falta la revisión del `revisor`, la importación y el guion de pruebas del dueño en su n8n, el cierre y la etiqueta `fase-2-cierre`.
+- Decisión relacionada: criterio de terminado de la Fase 2 (lote `demo` más casos de prueba; `calibracion_v1` solo se ingesta como pendiente).
+
+### Correcciones de la revisión de la Fase 2 (pendiente de commit)
+- Fecha: 24-oct-2026.
+- Commit: pendiente de commit.
+- Subagentes: `workflows-n8n`, `contrato-datos`, `evaluador-llm`, `reglas-js`, `documentacion`, orquestador (`.gitignore`).
+- Qué cambió: el `revisor` aprobó con condiciones y 0 críticos. Se corrigieron el disparador manual de calibración (M1), los conteos de `IMPORTAR.md` (m1) y la base de costo (m2); `resultados_prueba_b_lote.json` se movió a `prompts/verificacion/_privado/` (ignorada por Git; sigue en el historial anterior); los hashes de `docs/` pasaron a títulos o etiquetas; el estado de fases del README se actualizó. W3 sigue como esqueleto (M2). El mensaje de lote congelado sugiere `demo` o `calibracion_v2`. Detalle en `docs/registro-tecnico.md`, Fase 2, apartado 10.
+- Decisión relacionada: backlog de la Fase 4 sobre no escribir la verdad de `calibracion_v2` en el `escenarios` visible durante la calificación a ciegas.
 
 ## Cómo se mantiene
 
 - Desde la Fase 2, cada commit lleva en el mensaje la línea `Subagente: <nombre>` y la decisión relacionada.
 - `documentacion` agrega la entrada a esta bitácora al cerrar cada bloque de trabajo, con el título del commit o la etiqueta (no el hash), la fecha, los subagentes, qué cambió y la decisión relacionada.
-- Mientras un commit no exista, la entrada se marca "pendiente de commit" y se completa después.
+- Mientras un commit no exista, la entrada se marca "pendiente de commit" y se completa después. Las entradas de la Fase 2 ya apuntan al checkpoint; lo que se haga después (revisión, cierre) entra como entradas nuevas.
 - Las entradas reconstruidas de las Fases 0 y 1 no se reescriben; si se confirma una fecha aproximada, se corrige y se anota.

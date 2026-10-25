@@ -196,7 +196,7 @@ Estado: el código JS, los prompts y las pruebas existen; los workflows (Fase 2)
 - Una salida ambigua (varios `final_answer`, ninguno, varios bloques sin fase o varias partes) se trata como falla de API (`tipo_error = fallo_api`), sin reintento y sin pasar por JS-5.
 - El diagnóstico de la causa raíz se hizo sin guardar el contenido de las respuestas.
 
-**Silencio final: alcance del SUPUESTO (aclaración de redacción, posterior al commit de cierre cae781b)**
+**Silencio final: alcance del SUPUESTO (aclaración de redacción, posterior al commit "Fase 1: construcción en paralelo (código JS, prompts v1, prueba B)")**
 - En `contrato/rubrica.md` sección 3.10, la marca SUPUESTO del párrafo del silencio final cubre solo la viñeta de `recapitulacion.cierre_inactividad`; el texto queda "(SUPUESTO: solo esta viñeta)".
 - `cierre.despedida` = `no_cumple` no es supuesto: sale directo de su propia regla ("`no_aplica` cuando: Nunca").
 - El dueño confirmó la lectura actual: recordatorio sin cierre = `no_cumple`.
@@ -204,7 +204,7 @@ Estado: el código JS, los prompts y las pruebas existen; los workflows (Fase 2)
 
 **Metadatos: hashes tras reescribir el historial (cambio de metadatos dentro de v1)**
 - El historial se reescribió antes del primer push para usar el correo noreply de GitHub como autor; el contenido de los archivos no cambió, pero sí los hashes.
-- Se actualizaron las referencias: este registro (cierre de Fase 1: `cae781b`) y la fila "Revisión" del encabezado de `prompts/evaluador_ce_v1.md` y `prompts/generador_ce_v1.md` (checkpoint: `ba53913`).
+- Se actualizaron las referencias: este registro (cierre de Fase 1: etiqueta `fase-1-cierre`) y la fila "Revisión" del encabezado de `prompts/evaluador_ce_v1.md` y `prompts/generador_ce_v1.md` (checkpoint: commit "Fase 1 (checkpoint): contrato y datos actualizados").
 - El encabezado de los prompts no se envía al modelo: JS-4 solo envía lo que está entre los marcadores `INICIO_`/`FIN_` y de la primera línea solo lee el nombre de la versión. Por eso no cambia la versión ni el comportamiento.
 - Etiquetas de cierre: `fase-0-cierre` y `fase-1-cierre`. Desde ahora, los documentos citan etiquetas en vez de hashes.
 
@@ -253,3 +253,104 @@ Se corrió el evaluador con salida estructurada `json_schema` estricta. Por regl
 
 - Revisión del `revisor` y commit al cierre.
 - Todas las métricas de confiabilidad siguen pendientes: no hay calificación humana.
+
+## Fase 2: Workflows de n8n (24-oct-2026, en curso)
+
+Commit de referencia: "Fase 2 (checkpoint): contrato, código JS, prompts y workflows de n8n" (24-oct-2026). Verificaciones reportadas por el orquestador en ese checkpoint: 492 de 492 pruebas pasan, sincronía sin diferencias y secretos "no encontrado". Yo no las volví a ejecutar. Del lote `calibracion_v1` solo se citan totales; no hay métricas de confiabilidad (no existe calificación humana).
+
+### 1. Arquitectura
+
+- Workflows (en `workflows/`):
+  - W0 `00_simulador`: formulario, sorteo de escenario en JS, generación con Claude, verificación, escritura en `escenarios` y `revision_humana`, envío a Ingesta.
+  - W1 `01_ingesta`: webhook, validación, deduplicación, guardado como pendiente y llamada a W2 (con el disparador manual de lotes de calibración).
+  - W2 `02_evaluacion`: normalización, enmascaramiento, reglas, OpenAI, validación, scoring, costo, escritura y alertas.
+  - W3 `03_metricas`: métricas de calibración.
+  - W4 `04_reproceso` (nuevo): reenvía a W2 las conversaciones en `reproceso` y las atascadas en `en_evaluacion`.
+  - 99 Errores: Error Trigger que registra en `log_errores` y alerta.
+- Fuente única en `js/`: los nodos Code son copia literal de archivos de `js/`. `workflows/herramientas/ensamblar.mjs` arma cada workflow desde `plantillas/` (nodos con marcadores `// FUENTE: js/<archivo>.js`), los archivos de `js/`, el pegamento (`workflows/pegamento/`, máximo 15 líneas efectivas y sin decisiones) y los prompts. Las decisiones de los IF y Switch leen campos que calculó `js/`.
+- Pruebas de `workflows/tests/`: sincronía (cada nodo es copia exacta del repo), secretos (sin claves ni IDs reales), estructura (tipos y versiones del inventario de n8n 2.32.6) y simulación (ejecuta los nodos Code con un `$` simulado).
+- Marcadores de credenciales: los JSON de `workflows/` llevan marcadores (`<ASIGNAR_EN_N8N>`, `<ID_LIBRO_SHEETS>`, `<URL_WEBHOOK_INGESTA>`, `<ID_WORKFLOW_EVALUACION>`, `<ID_WORKFLOW_ERRORES>`). `ensamblar.mjs --local` escribe copias con los valores del dueño en `workflows/_local/`, que está en `.gitignore`. Alternativa descartada: reemplazar los marcadores a mano, por el riesgo de subir valores reales o de olvidar uno.
+
+### 2. Cambio de JS-5 respecto de la Fase 1 (decisión del dueño)
+
+- Respuesta incompleta del evaluador (por ejemplo, cortada por `max_output_tokens`): 1 reintento inmediato con la misma petición (`reintentos_respuesta_incompleta = 1`, contador propio que no consume `reintentos_validacion_llm`). Si se repite: `tipo_error = respuesta_llm_invalida` con alerta operativa, sin reproceso.
+- Refusal del modelo: estado `error` con alerta operativa para revisión manual, sin reproceso (`respuesta_llm_invalida`, causa `refusal`).
+- Ambos casos se cuentan como anomalías.
+- Antes (Fase 1): esos casos caían en `falla_api`. Ahora `falla_api` y la cola de reproceso quedan para salida ambigua, cuerpo inválido y fallas HTTP.
+- Razones del dueño:
+  - Respuesta incompleta: un solo reintento inmediato "porque el commentary es intermitente (en la Fase 1 el segundo intento salió sin él)".
+  - Refusal: error con alerta para revisión manual, sin cola de reproceso, "porque reenviar la misma entrada probablemente da la misma negativa".
+  - Ambos casos se cuentan en totales como anomalías para la métrica de v2.
+
+### 3. Cambios de esquema de la Fase 2
+
+- `evaluacion.schema.json`: `consumo.anomalias_llm`, con valores `incompleta`, `refusal` y `commentary`.
+- `sheets.md`: `evaluaciones.anomalias_llm` (columna 30, al final), derivada de ese campo; una prueba comprueba que coinciden. `escenarios.semilla_sorteo` (columna 20).
+- Una sola fuente por dato: la columna se deriva del campo del esquema y no se calcula por separado.
+
+### 4. generador_ce_v2
+
+- Agrega los marcadores `TIPIFICACION_AGENTE` (tipificación errónea sorteada) y `VARIANTE_IDENTIDAD` (variante sin crítico de `identidad.datos_coinciden`).
+- `generador_ce_v1` queda intacto. El evaluador sigue en `evaluador_ce_v1`.
+- Cada escenario guarda la versión del generador (`escenarios.version_prompt_generador`); `calibracion_v1` no salió del simulador (`no_aplica`).
+- `verificarEscenarioGenerado` comprueba la conversación generada contra el escenario, con 1 reintento (`reintentos_generacion`).
+- Alternativa descartada: editar v1. Rompería la trazabilidad de qué prompt produjo cada escenario.
+
+### 5. Modelo generador, precios y claves nuevas de config
+
+- Modelo generador: `claude-haiku-5-5`; precios 0.10 (entrada) y 0.50 (salida) USD por millón de tokens, verificados el 24-oct-2026 en la documentación oficial de Anthropic (models overview y pricing), tramo de prompts de hasta 100,000 tokens. Proveedor distinto al del evaluador.
+- Claves nuevas o cambiadas en `contrato/config.md` y su valor por defecto:
+  - Generador y simulador: `version_prompt_generador` = `generador_ce_v2`; `esfuerzo_generador` = `medium` (supuesto); `generador_fallas_regular` = 2 y `generador_fallas_mala` = 2 (supuestos); `max_tokens_generador` = 8000; `anthropic_version_api` = `2026-10-21`; `horario_atencion_chat` (igual a KB-08); `simulador_dias_atras` = 30; `simulador_max_conversaciones` = 5; `zona_horaria` = `America/Mexico_City`.
+  - Modelos y precios: `modelo_generador`, `precio_entrada_usd_millon_generador` = 0.10, `precio_salida_usd_millon_generador` = 0.50; `max_tokens_evaluador` = 8000.
+  - Reintentos y tiempos: `reintentos_respuesta_incompleta` = 1; `reproceso_max_intentos` = 3; `reproceso_intervalo_min` = 30; `espera_maxima_reintento_ms` = 60000; `tiempo_maximo_peticion_llm_ms` = 180000; `evaluacion_tiempo_maximo_min` = 90.
+  - Alertas: `alerta_tipo_interaccion_sin_rubrica` = `no`.
+- Los valores marcados supuesto en `config.md` son editables y deben revisarse con el lote `demo`.
+
+### 6. Reproceso, atascadas y reintentos
+
+- Reproceso (W4): programado cada 30 minutos y manual. Reenvía a W2 hasta `reproceso_max_intentos`; después pasa a `error` con alerta operativa. Nunca borra filas. W2 revisa `falla_api` antes que `valido`.
+- Atascadas: una conversación en `en_evaluacion` con `actualizado_en` más viejo que `evaluacion_tiempo_maximo_min` (90) se pasa a `reproceso`. Cálculo del peor caso de W2: 4 llamadas LLM (1 + 1 incompleta + 2 validación) x (4 x 180 s + 3 x 60 s = 900 s) = 3600 s = 60 min; 90 min deja 50 % de margen. Una prueba de `reglas-js` lo comprueba con los valores de `config`.
+- Escritura idempotente (W2): antes de escribir se leen las filas existentes de esa `llave_dedup` en `evaluaciones` y de ese `id_evaluacion` en `detalle_criterios`, y `planificarEscrituraResultados` devuelve solo las que faltan. Así un reenvío no duplica filas.
+- 429 y 5xx: se reintentan con un Wait (`espera_entre_reintentos_ms`), respetando `Retry-After` con tope `espera_maxima_reintento_ms`. Si pide más, no se espera y la conversación va a reproceso como `fallo_api`. Otro 4xx no se reintenta. Los nodos de OpenAI y Claude no usan el reintento nativo: lo decide `clasificacion_http.js`.
+- `formulario_invalido` (W0): no envía alerta operativa y el mensaje en pantalla dice qué corregir. Una captura incorrecta del dueño no es una falla del sistema.
+- Rúbrica sección 8 (`contrato/rubrica.md`): solo la usa el sorteo de W0 para decidir qué fallas pedir al generador. No la leen JS-6 ni JS-7, por lo que no cambia la evaluación. Excepción: `identidad.datos_coinciden` en conversaciones regulares, tratado con la variante `VARIANTE_IDENTIDAD`.
+
+### 7. Aprobados por el dueño aunque no los pidió
+
+- Pantalla "Simulación en curso" en W0 (el formulario no queda en blanco mientras se genera).
+- Prueba de fórmulas en `workflows/tests/estructura.test.js`.
+
+### 8. Limitaciones y riesgos (de `workflows/IMPORTAR.md`, sección 6)
+
+- 99 Errores casi nunca identifica la conversación: el Error Trigger de n8n 2.32.6 no trae datos de ejecución (solo ids, error, último nodo y modo). Solo pasa la conversación a `reproceso` si la `llave_dedup` aparece en el mensaje de error. La red de seguridad es W4 con las atascadas.
+- Schedule de W4 fijo en 30 minutos: un Schedule Trigger no puede leer la hoja; si cambia `reproceso_intervalo_min`, hay que cambiar también el nodo.
+- Cuota de Google Sheets: cada evaluación lee 8 hojas o filtros y escribe de 4 a 6 veces. En `demo` no es problema; en un lote de 24 podría acercarse al límite por minuto (SUPUESTO, aún no medido). Mitigación posible en la Fase 4.
+- El mock del evaluador exige cambiar a mano la URL del nodo de OpenAI en W2 (pruebas 8, 12 y 13) y restaurarla; ese cambio no se exporta.
+- Plantilla del evaluador fija en v1: para evaluar con v2 hay que cambiar la ruta en `construir_plantillas.mjs`, reensamblar y reimportar, además de `config.version_prompt`.
+- Costo de generación solo del último intento: el intento descartado no se suma.
+- Reproducir un escenario exige el mismo "ahora": `semilla_sorteo` repite calidad, tema, cuenta y fallas, pero la fecha depende de la hora de envío.
+- Supuestos de nombres en el Form Trigger y en Set: se confirman al importar.
+- W4 reenvía dos grupos por separado (reproceso y atascadas); el cierre del lote puede salir en dos mensajes.
+- Los datos son sintéticos.
+
+### 9. Pendientes
+
+- Heredado: la incoherencia entre `critico.informacion_incorrecta` y `solucion.informacion_correcta` queda para v2, con métrica en la Fase 4.
+- Backlog de la Fase 4 (decisión del dueño): si W0 genera `calibracion_v2`, su verdad de escenario no debe escribirse en la hoja `escenarios` visible mientras el dueño la califica a ciegas. Hoy W0 escribe `escenarios` para cualquier lote aceptado.
+- Mensaje de lote congelado (resuelto): se queda sugiriendo `demo` o `calibracion_v2`. W0 solo rechaza `calibracion_v1`, y una prueba comprueba que el lote sugerido se acepta.
+
+### 10. Hallazgos del revisor y su resolución
+
+Veredicto: aprobado con condiciones, 0 críticos.
+- M1: el disparador manual de calibración estaba desactivado y con lote vacío. Corregido.
+- M2: W3 es un esqueleto y no escribe en `metricas`. Queda así; las métricas son de la Fase 4.
+- m1: conteos en `IMPORTAR.md`. Corregidos.
+- m2: la base de costo se corrigió a "3 evaluaciones en 2 corridas".
+- m4: `prompts/verificacion/resultados_prueba_b_lote.json` se movió a `prompts/verificacion/_privado/` (ignorada por Git, sin borrarlo) porque contiene la comparación de 2 conversaciones de `calibracion_v1` contra la verdad del escenario. Se restaura al repositorio al cerrar la Fase 3. Sigue en el historial de Git de commits anteriores: no se reescribió el historial.
+- m5: hashes reemplazados por títulos de commit o etiquetas.
+- m6: documentado como riesgo, con recuperación desde el historial de ejecuciones de n8n.
+
+### 11. Estado de la Fase 2
+
+- Hecho: contrato, código, prompts y workflows en el checkpoint.
+- Falta: revisión del `revisor`; importación y guion de pruebas del dueño en su n8n (criterio de terminado: lote `demo` más los casos de prueba; `calibracion_v1` solo como pendiente); cierre y etiqueta `fase-2-cierre`. Resultados de esas pruebas: pendiente.

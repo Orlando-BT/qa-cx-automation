@@ -174,6 +174,38 @@ test('cada expresión ={{ ... }} de los parámetros es JavaScript válido', () =
   assert.deepEqual(fallas, []);
 });
 
+test('W1: el disparador manual de calibración viene desactivado y con lote vacío (decisión del dueño)', () => {
+  const wf = leer('01_ingesta.json');
+  assert.equal(wf.nodes.find((n) => n.name === 'Disparador manual de calibración').disabled, true);
+  const par = wf.nodes.find((n) => n.name === 'Parámetros de calibración').parameters.assignments.assignments;
+  assert.equal(par.find((a) => a.name === 'lote').value, '');
+  assert.equal(wf.settings.saveDataErrorExecution, 'all', 'W1 guarda las ejecuciones fallidas para recuperar payloads');
+});
+
+test('W3 es esqueleto: "Escribir metricas" no recibe datos de ningún nodo', () => {
+  const wf = leer('03_metricas.json');
+  assert.ok(wf.nodes.some((n) => n.name === 'Escribir metricas'));
+  const destinos = Object.values(wf.connections).flatMap((c) => c.main.flat().map((d) => d.node));
+  assert.ok(!destinos.includes('Escribir metricas'));
+});
+
+test('IMPORTAR.md: los totales de nodos con credencial coinciden con los JSON', () => {
+  const texto = fs.readFileSync(path.join(DIR, 'IMPORTAR.md'), 'utf8');
+  const prefijos = ['Leer', 'Escribir', 'Insertar', 'Actualizar', 'Reactivar', 'Crear filas', 'Pasar'];
+  for (const [etiqueta, tipo] of [['Sheets', 'n8n-nodes-base.googleSheets'], ['Telegram', 'n8n-nodes-base.telegram']]) {
+    const inicio = texto.indexOf(`Total por workflow (${etiqueta}): `);
+    const m = inicio === -1 ? null : [null, texto.slice(inicio, texto.indexOf('|', inicio))];
+    assert.ok(m, `falta la línea de totales de ${etiqueta}`);
+    const declarados = Object.fromEntries([...m[1].matchAll(/(\d+) en (\d{2})/g)].map((x) => [x[2], Number(x[1])]));
+    for (const archivo of Object.keys(ESPERADOS)) {
+      const nodos = leer(archivo).nodes.filter((n) => n.type === tipo);
+      assert.equal(declarados[archivo.slice(0, 2)], nodos.length, `${etiqueta} en ${archivo}`);
+      if (tipo === 'n8n-nodes-base.googleSheets') for (const n of nodos) assert.ok(prefijos.some((p) => n.name.startsWith(p)), `prefijo no listado: ${n.name}`);
+      else for (const n of nodos) assert.ok(n.name.startsWith('Telegram: '), n.name);
+    }
+  }
+});
+
 test('las plantillas y pruebas/ son las que escribe construir_plantillas.mjs', async () => {
   const { construirTodo, serializarPlantilla } = await import(pathToFileURL(path.join(DIR, 'herramientas', 'construir_plantillas.mjs')).href);
   for (const [rel, obj] of Object.entries(construirTodo())) {

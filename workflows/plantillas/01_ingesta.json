@@ -771,7 +771,8 @@
       "position": [
         0,
         1260
-      ]
+      ],
+      "disabled": true
     },
     {
       "parameters": {
@@ -780,7 +781,7 @@
             {
               "id": "5aff6e74-2491-4178-8316-15c4c81c99d3",
               "name": "lote",
-              "value": "calibracion_v1",
+              "value": "",
               "type": "string"
             },
             {
@@ -1622,6 +1623,7 @@
   },
   "settings": {
     "executionOrder": "v1",
-    "errorWorkflow": "<ID_WORKFLOW_ERRORES>"
+    "errorWorkflow": "<ID_WORKFLOW_ERRORES>",
+    "saveDataErrorExecution": "all"
   }
 }

@@ -412,6 +412,9 @@ function w2() {
 // =============================================================================
 function w1() {
   const w = nuevoWorkflow('01 Ingesta');
+  // Guarda los datos de las ejecuciones fallidas (ya es el valor por defecto de n8n 2.32.6) para
+  // poder recuperar el payload desde Executions si falla una escritura en Sheets.
+  w.wf.settings.saveDataErrorExecution = 'all';
   // Acuse inmediato: el webhook responde al recibir y el resto corre después.
   const wh = w.nodo('Webhook de ingesta', 'n8n-nodes-base.webhook', 2, { httpMethod: 'POST', path: 'qa-ingesta', responseMode: 'onReceived', options: {} }, [0, 0], { webhookId: uuid('01/webhook') });
   const cfg = hojaLeer(w, 'Leer hoja config', 'config', [1, 0]);
@@ -451,12 +454,14 @@ function w1() {
   cadenaErrores(w, [[sr, 0], [pi, 0]], 7, 4);
 
   // Disparador manual de calibración: crea las filas de la versión pedida y evalúa una por una.
-  const man = w.nodo('Disparador manual de calibración', 'n8n-nodes-base.manualTrigger', 1, {}, [0, 7]);
+  // Desactivado hasta la Fase 4 (decisión del dueño): evita evaluar calibracion_v1 antes de la
+  // calificación a ciegas. El lote va vacío: el dueño lo escribe al activarlo.
+  const man = w.nodo('Disparador manual de calibración', 'n8n-nodes-base.manualTrigger', 1, {}, [0, 7], { disabled: true });
   const par = setCampos(
     w,
     'Parámetros de calibración',
     [
-      ['lote', 'string', 'calibracion_v1'],
+      ['lote', 'string', ''],
       ['version_reglas', 'string', 'reglas_ce_v1'],
       ['version_prompt', 'string', 'evaluador_ce_v1'],
     ],
@@ -750,9 +755,9 @@ function w3() {
   const esc = hojaLeer(w, 'Leer escenarios del lote', 'escenarios', [5, 0], { filtros: [['lote', "={{ $('Parámetros de métricas').first().json.lote }}"]], siempreSalida: true });
   const calc = noOp(w, 'Calcular métricas (pendiente Fase 4)', [6, 0], { notes: 'Fase 4 (metricas-bi): aquí va el nodo Code con las fórmulas de metricas/ y la alerta de calibración (armarAlertaCalibracion de js/alertas.js).' });
   const escM = hojaEscribir(w, 'Escribir metricas', 'metricas', [7, 0]);
-  w.wf.nodes.find((n) => n.name === escM).disabled = true;
   w.une(hay, ev, 0);
-  w.cadena(ev, esc, calc, escM);
+  // Esqueleto hasta la Fase 4: "Escribir metricas" queda sin conexión de entrada (no recibe nada).
+  w.cadena(ev, esc, calc);
   return w.wf;
 }
 

@@ -75,6 +75,37 @@ test('lotes con patrón inválido se rechazan y el patrón coincide con el de va
   assert.equal(S.validarLoteDestino('prueba', config).valido, false);
 });
 
+/**
+ * Extrae los lotes que un mensaje de error sugiere al usuario (demo, calibracion_v2...).
+ * Se quita primero el lote rechazado que el mensaje cita al inicio (`lote "x" ...`) para no
+ * tomarlo como sugerencia. El marcador genérico "calibracion_vN" no es un lote, se ignora.
+ */
+function lotesSugeridos(mensaje, loteRechazado) {
+  const sinCita = mensaje.replace(`lote "${loteRechazado}"`, '');
+  return [...new Set(sinCita.match(/\b(?:demo|calibracion_v\d+)\b/g) || [])];
+}
+
+test('los lotes que sugiere el mensaje de lote congelado son aceptados por validarLoteDestino', () => {
+  const r = S.validarLoteDestino('calibracion_v1', config);
+  const sugeridos = lotesSugeridos(r.errores[0], 'calibracion_v1');
+  assert.ok(sugeridos.includes('demo') && sugeridos.includes('calibracion_v2'), `sugeridos: ${sugeridos}`);
+  for (const lote of sugeridos) {
+    assert.equal(S.validarLoteDestino(lote, config).valido, true, `el mensaje sugiere "${lote}" pero se rechaza`);
+  }
+});
+
+test('los lotes que sugiere el mensaje de formato inválido son aceptados por validarLoteDestino', () => {
+  const r = S.validarLoteDestino('prueba', config);
+  const sugeridos = lotesSugeridos(r.errores[0], 'prueba');
+  // demo, el ejemplo calibracion_v2 y el lote por defecto de la configuración.
+  assert.ok(sugeridos.includes('demo') && sugeridos.includes('calibracion_v2'), `sugeridos: ${sugeridos}`);
+  assert.ok(r.errores[0].includes(`"${config.lote_por_defecto}"`), 'el mensaje debe citar lote_por_defecto');
+  sugeridos.push(config.lote_por_defecto);
+  for (const lote of sugeridos) {
+    assert.equal(S.validarLoteDestino(lote, config).valido, true, `el mensaje sugiere "${lote}" pero se rechaza`);
+  }
+});
+
 // --- Formulario -------------------------------------------------------------
 
 test('formulario vacío: valores por defecto', () => {

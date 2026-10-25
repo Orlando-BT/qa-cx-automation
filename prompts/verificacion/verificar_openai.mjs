@@ -38,7 +38,7 @@
 // mensaje de error literal, tokens y si la salida parsea como JSON).
 // =============================================================================
 
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
@@ -796,7 +796,10 @@ async function pruebaB(args) {
 //      costo, y no escribe archivos. Sirve para comprobar que la salida no
 //      filtra nada por conversación.
 // -----------------------------------------------------------------------------
-const RUTA_RESULTADOS_B_LOTE = path.join(CARPETA_SCRIPT, `resultados_prueba_b_lote_${sufijoFechaHora()}.json`);
+// Va en _privado/ (fuera de Git, ver .gitignore) porque compara contra la verdad
+// de escenarios de calibracion_v1; se restaura al cerrar la Fase 3.
+const CARPETA_PRIVADA = path.join(CARPETA_SCRIPT, '_privado');
+const RUTA_RESULTADOS_B_LOTE = path.join(CARPETA_PRIVADA, `resultados_prueba_b_lote_${sufijoFechaHora()}.json`);
 
 // Tipo agregado de un error de JS-5: regla de rubrica.md 6.1 + campo raíz de la
 // ruta (sin índices ni subcampos). El mensaje NO se guarda: puede citar texto
@@ -1213,6 +1216,7 @@ async function pruebaBLote(args) {
     console.log('--sin-llamada: LLM simulado; no se llamó a la API ni se escribió resultados_prueba_b_lote_<fecha-hora>.json.');
     return;
   }
+  await mkdir(CARPETA_PRIVADA, { recursive: true });
   await writeFile(RUTA_RESULTADOS_B_LOTE, JSON.stringify(resultados, null, 2) + '\n', 'utf8');
   console.log(`Resultados guardados en ${path.relative(RAIZ_REPO, RUTA_RESULTADOS_B_LOTE)}`);
 }
