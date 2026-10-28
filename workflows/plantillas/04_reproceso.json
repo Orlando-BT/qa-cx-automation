@@ -315,9 +315,10 @@
     {
       "parameters": {
         "chatId": "={{ $json.config.telegram_destinatario }}",
-        "text": "={{ $json.texto }}",
+        "text": "={{ $json.texto_html }}",
         "additionalFields": {
-          "appendAttribution": false
+          "appendAttribution": false,
+          "parse_mode": "HTML"
         }
       },
       "id": "a3f0854a-1e3f-4e0f-8249-88e04f209692",
@@ -550,52 +551,6 @@
     },
     {
       "parameters": {
-        "authentication": "oAuth2",
-        "operation": "append",
-        "documentId": {
-          "__rl": true,
-          "value": "<ID_LIBRO_SHEETS>",
-          "mode": "id"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": "log_errores",
-          "mode": "name"
-        },
-        "columns": {
-          "mappingMode": "autoMapInputData",
-          "value": {},
-          "matchingColumns": [],
-          "schema": [],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
-        "options": {
-          "cellFormat": "RAW",
-          "handlingExtraData": "ignoreIt"
-        }
-      },
-      "id": "4b316b74-88db-4d56-848c-f3eb77e3b63b",
-      "name": "Escribir log_errores",
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        1680,
-        1260
-      ],
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 3000,
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "<ASIGNAR_EN_N8N>",
-          "name": "Google Sheets QA"
-        }
-      },
-      "onError": "continueRegularOutput"
-    },
-    {
-      "parameters": {
         "conditions": {
           "options": {
             "caseSensitive": true,
@@ -606,7 +561,7 @@
           "conditions": [
             {
               "id": "5c17c5b2-2b89-4863-8528-6dac35a6bf98",
-              "leftValue": "={{ $('Fila log_errores').item.json.aux_error.enviar_alerta }}",
+              "leftValue": "={{ $json.enviar_alerta }}",
               "rightValue": "",
               "operator": {
                 "type": "boolean",
@@ -624,7 +579,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1920,
+        1680,
         1260
       ]
     },
@@ -638,16 +593,17 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2160,
-        1260
+        1920,
+        1080
       ]
     },
     {
       "parameters": {
         "chatId": "={{ $json.config.telegram_destinatario }}",
-        "text": "={{ $json.texto }}",
+        "text": "={{ $json.texto_html }}",
         "additionalFields": {
-          "appendAttribution": false
+          "appendAttribution": false,
+          "parse_mode": "HTML"
         }
       },
       "id": "9095468f-edee-4811-8c91-c7912938aba4",
@@ -655,8 +611,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        2400,
-        1260
+        2160,
+        1080
       ],
       "retryOnFail": true,
       "maxTries": 3,
@@ -679,8 +635,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2640,
-        1260
+        2400,
+        1080
       ]
     },
     {
@@ -715,7 +671,81 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
+        2640,
+        1080
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Google Sheets QA"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/registro_errores.js\n// PEGAMENTO: pegamento/cadena_log_errores_tras_envio.js\n",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "07c79fdc-7708-481b-8e1c-11c11a67f7b7",
+      "name": "Fila log_errores (tras el envío)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
         2880,
+        1080
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// FUENTE: js/registro_errores.js\n// PEGAMENTO: pegamento/cadena_log_errores_sin_alerta.js\n",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "150b5b50-2b25-43d2-8492-646c136c4d2c",
+      "name": "Fila log_errores (sin alerta)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2880,
+        1440
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "<ID_LIBRO_SHEETS>",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "log_errores",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "cellFormat": "RAW",
+          "handlingExtraData": "ignoreIt"
+        }
+      },
+      "id": "4b316b74-88db-4d56-848c-f3eb77e3b63b",
+      "name": "Escribir log_errores",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        3120,
         1260
       ],
       "retryOnFail": true,
@@ -938,17 +968,6 @@
       "main": [
         [
           {
-            "node": "Escribir log_errores",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Escribir log_errores": {
-      "main": [
-        [
-          {
             "node": "¿Enviar alerta operativa?",
             "type": "main",
             "index": 0
@@ -961,6 +980,13 @@
         [
           {
             "node": "Armar alerta operativa",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fila log_errores (sin alerta)",
             "type": "main",
             "index": 0
           }
@@ -1001,6 +1027,39 @@
         [
           {
             "node": "Escribir alertas (operativa)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Escribir alertas (operativa)": {
+      "main": [
+        [
+          {
+            "node": "Fila log_errores (tras el envío)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fila log_errores (tras el envío)": {
+      "main": [
+        [
+          {
+            "node": "Escribir log_errores",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fila log_errores (sin alerta)": {
+      "main": [
+        [
+          {
+            "node": "Escribir log_errores",
             "type": "main",
             "index": 0
           }

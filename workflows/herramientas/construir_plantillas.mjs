@@ -204,7 +204,11 @@ function telegram(w, nombre, expresionChat, pos) {
     nombre,
     'n8n-nodes-base.telegram',
     1.2,
-    { chatId: `={{ ${expresionChat} }}`, text: '={{ $json.texto }}', additionalFields: { appendAttribution: false } },
+    // parse_mode HTML: sin él, el nodo Telegram 1.2 usa Markdown por defecto (GenericFunctions.js de
+    // n8n 2.32.6) y los guiones bajos de 'critico.promesa_no_autorizada' se vuelven cursiva o rompen
+    // el envío. texto_html es el texto de js/alertas.js con &, < y > escapados; en `alertas`
+    // (texto_enviado) se guarda el texto plano.
+    { chatId: `={{ ${expresionChat} }}`, text: '={{ $json.texto_html }}', additionalFields: { appendAttribution: false, parse_mode: 'HTML' } },
     pos,
     // La salida de error también va al nodo que arma la fila de `alertas` (estado_envio = fallida).
     { ...REINTENTO_NATIVO, onError: 'continueErrorOutput', credentials: CREDENCIALES.telegram }
@@ -272,25 +276,30 @@ function llamarEvaluacion(w, nombre, pos) {
 }
 
 // -----------------------------------------------------------------------------
-// Cadena común: log_errores + alerta operativa + hoja alertas
+// Cadena común: alerta operativa + hoja alertas + log_errores
 // -----------------------------------------------------------------------------
 // Entrada: ítems { registrar_error, enviar_alerta, config, ... } (registrar_error con la forma de
 // filaLogErrores). Las decisiones (qué error, si se alerta) ya vienen de js/.
+// Orden: "Fila log_errores" fija id_error, hora y consecutivo (la alerta cita ese id_error); después
+// se intenta el Telegram y se registra en `alertas`; al final se escribe log_errores con
+// alerta_enviada = resultado real del envío (false si no se debía alertar o si el envío falló).
+// Ningún ítem que llega a un nodo de escritura trae claves que no sean columnas de su hoja.
 function cadenaErrores(w, entradas, col, fila, siguiente) {
   const f = code(w, 'Fila log_errores', ['registro_errores'], 'cadena_fila_log_errores', [col, fila]);
   for (const [nodo, salida] of entradas) w.une(nodo, f, salida);
-  const esc = hojaEscribir(w, 'Escribir log_errores', 'log_errores', [col + 1, fila], { alFallar: 'continueRegularOutput' });
-  const decide = si(w, '¿Enviar alerta operativa?', "$('Fila log_errores').item.json.aux_error.enviar_alerta", [col + 2, fila]);
-  const armar = code(w, 'Armar alerta operativa', ['alertas'], 'cadena_armar_alerta_operativa', [col + 3, fila]);
-  const tg = telegram(w, 'Telegram: alerta operativa', '$json.config.telegram_destinatario', [col + 4, fila]);
-  const filaAl = code(w, 'Fila alertas (operativa)', ['alertas'], 'cadena_fila_alertas_operativa', [col + 5, fila]);
-  const escAl = hojaEscribir(w, 'Escribir alertas (operativa)', 'alertas', [col + 6, fila], { alFallar: 'continueRegularOutput' });
-  w.cadena(f, esc, decide, armar, tg, filaAl, escAl);
+  const decide = si(w, '¿Enviar alerta operativa?', '$json.enviar_alerta', [col + 1, fila]);
+  const armar = code(w, 'Armar alerta operativa', ['alertas'], 'cadena_armar_alerta_operativa', [col + 2, fila - 1]);
+  const tg = telegram(w, 'Telegram: alerta operativa', '$json.config.telegram_destinatario', [col + 3, fila - 1]);
+  const filaAl = code(w, 'Fila alertas (operativa)', ['alertas'], 'cadena_fila_alertas_operativa', [col + 4, fila - 1]);
+  const escAl = hojaEscribir(w, 'Escribir alertas (operativa)', 'alertas', [col + 5, fila - 1], { alFallar: 'continueRegularOutput' });
+  const tras = code(w, 'Fila log_errores (tras el envío)', ['registro_errores'], 'cadena_log_errores_tras_envio', [col + 6, fila - 1]);
+  const sin = code(w, 'Fila log_errores (sin alerta)', ['registro_errores'], 'cadena_log_errores_sin_alerta', [col + 6, fila + 1]);
+  const esc = hojaEscribir(w, 'Escribir log_errores', 'log_errores', [col + 7, fila], { alFallar: 'continueRegularOutput' });
+  w.cadena(f, decide, armar, tg, filaAl, escAl, tras, esc);
   w.une(tg, filaAl, 1);
-  if (siguiente) {
-    w.une(escAl, siguiente);
-    w.une(decide, siguiente, 1);
-  }
+  w.une(decide, sin, 1);
+  w.une(sin, esc);
+  if (siguiente) w.une(esc, siguiente);
   return f;
 }
 
@@ -401,8 +410,11 @@ function w2() {
   w.une(escEv, eGua, 1);
   w.une(escDet, eGua, 1);
   w.une(upEv, eGua, 1);
-  const upErr = hojaEscribir(w, 'Actualizar conversación: estado de error', 'conversaciones', [25, 6], { operacion: 'update', coincidir: ['llave_dedup'], alFallar: 'continueRegularOutput' });
-  for (const n of [eHttp, eRep, eErr, eSco, eGua]) w.une(n, upErr);
+  // A la hoja solo llega la actualización (llave_dedup, estado, actualizado_en): sin registrar_error ni config.
+  const actErr = setJson(w, 'Actualización de estado de error', '$json.actualizacion', [25, 5]);
+  const upErr = hojaEscribir(w, 'Actualizar conversación: estado de error', 'conversaciones', [26, 5], { operacion: 'update', coincidir: ['llave_dedup'], alFallar: 'continueRegularOutput' });
+  for (const n of [eHttp, eRep, eErr, eSco, eGua]) w.une(n, actErr);
+  w.une(actErr, upErr);
   cadenaErrores(w, [eHttp, eRep, eErr, eSco, eGua].map((n) => [n, 0]), 26, 8);
   return w.wf;
 }
@@ -602,7 +614,7 @@ function w0() {
   // registra en log_errores como formulario_invalido, sin Telegram (debeAlertar = false).
   const finMal = finFormulario(w, 'Formulario rechazado', 'Formulario rechazado', "$json.errores.join(' | ')", [15, 2]);
   const errF = code(w, 'Error de formulario', ['registro_errores'], 'error_formulario', [15, 3]);
-  const filaF = code(w, 'Fila log_errores (formulario)', ['registro_errores'], 'cadena_fila_log_errores', [16, 3]);
+  const filaF = code(w, 'Fila log_errores (formulario)', ['registro_errores'], 'fila_log_errores_formulario', [16, 3]);
   const escF = hojaEscribir(w, 'Escribir log_errores (formulario)', 'log_errores', [17, 3], { alFallar: 'continueRegularOutput' });
   for (const n of [okF, okE]) {
     w.une(n, finMal, 1);
@@ -807,12 +819,15 @@ function payloadsDePrueba() {
   sinAgente.metadatos_caso = { ...sinAgente.metadatos_caso, numero_caso: null, estado_caso: 'sin_caso' };
   const falloApi = copia('CONV-9004');
   const mockApi = copia('CONV-9005');
+  // Repetir el caso 2 cuando CONV-0001 ya quedó evaluada (CONV-9006 la usa el caso 7c).
+  const repetirCaso2 = copia('CONV-9007');
   return {
     'payload_invalido.json': invalido,
     'payload_sales.json': sales,
     'payload_sin_agente.json': sinAgente,
     'payload_fallo_api.json': falloApi,
     'payload_mock_api.json': mockApi,
+    'payload_repetir_caso2.json': repetirCaso2,
   };
 }
 

@@ -1,0 +1,79 @@
+{
+  "conversation_id": "CONV-9007",
+  "canal": "chat",
+  "tipo_interaccion": "ce",
+  "agente": "Laura Méndez",
+  "cuenta_id": "CTA-104",
+  "metadatos_caso": {
+    "tipificacion_agente": "Cancelación de CFDI",
+    "numero_caso": "CASO-58213",
+    "estado_caso": "cerrado",
+    "escalado": false,
+    "campos_capturados": {
+      "uuid_factura": "presente",
+      "motivo_cancelacion": "presente"
+    }
+  },
+  "mensajes": [
+    {
+      "n": 1,
+      "emisor": "cliente",
+      "timestamp": "2026-10-21T10:02:11",
+      "texto": "Hola, ayer emití una factura con el RFC del receptor mal escrito y necesito cancelarla. Me preocupa que el SAT me multe."
+    },
+    {
+      "n": 2,
+      "emisor": "agente",
+      "timestamp": "2026-10-21T10:03:05",
+      "texto": "Hola, buenos días. Soy Laura de Contamix, gracias por contactarnos. Tus datos personales serán tratados conforme al aviso de privacidad. ¿Con quién tengo el gusto? Con gusto te ayudo con tu cancelación."
+    },
+    {
+      "n": 3,
+      "emisor": "cliente",
+      "timestamp": "2026-10-21T10:03:38",
+      "texto": "Soy Héctor Villanueva."
+    },
+    {
+      "n": 4,
+      "emisor": "agente",
+      "timestamp": "2026-10-21T10:04:30",
+      "texto": "Mucho gusto, Héctor. Entiendo tu preocupación, es normal con un error así. ¿Me confirmas si el total de la factura es mayor a 1,000 pesos?"
+    },
+    {
+      "n": 5,
+      "emisor": "cliente",
+      "timestamp": "2026-10-21T10:05:02",
+      "texto": "Sí, es de 2,300 pesos."
+    },
+    {
+      "n": 6,
+      "emisor": "agente",
+      "timestamp": "2026-10-21T10:05:55",
+      "texto": "Va, sale. Primero emite la factura corregida; luego entra a Facturación > Facturas emitidas, busca la anterior, da clic en Cancelar y elige el motivo 01 indicando el UUID de la nueva. Queda en proceso de cancelacion y tu receptor la acepta en el SAT. Por las molestias, te hago un descuento del 20% en tu próxima mensualidad."
+    },
+    {
+      "n": 7,
+      "emisor": "cliente",
+      "timestamp": "2026-10-21T10:06:20",
+      "texto": "Listo, ya la cancelé. Gracias."
+    },
+    {
+      "n": 8,
+      "emisor": "agente",
+      "timestamp": "2026-10-21T10:07:10",
+      "texto": "Qué bueno, Héctor. Te resumo: cancelaste la factura con el motivo 01 y queda pendiente la aceptación de tu receptor. Tu número de caso es CASO-58231 y el caso queda cerrado con esta solución."
+    },
+    {
+      "n": 9,
+      "emisor": "agente",
+      "timestamp": "2026-10-21T10:09:15",
+      "texto": "¿Sigues ahí, Héctor? Quedo atenta por si necesitas algo más."
+    },
+    {
+      "n": 10,
+      "emisor": "agente",
+      "timestamp": "2026-10-21T10:11:25",
+      "texto": "Al no recibir respuesta, cierro el chat. Gracias por contactar a Contamix, que tengas buen día. Laura Méndez."
+    }
+  ]
+}

@@ -136,6 +136,85 @@ test('Telegram: reintento nativo y salida de error conectada al registro en aler
   }
 });
 
+test('Telegram: envía texto_html con parse_mode HTML (sin Markdown por defecto)', () => {
+  let total = 0;
+  for (const [archivo, wf] of todos()) {
+    for (const n of wf.nodes.filter((x) => x.type === 'n8n-nodes-base.telegram')) {
+      total += 1;
+      assert.equal(n.parameters.text, '={{ $json.texto_html }}', `${archivo}: ${n.name} debe enviar texto_html`);
+      assert.equal(n.parameters.additionalFields.parse_mode, 'HTML', `${archivo}: ${n.name} sin parse_mode HTML`);
+    }
+  }
+  assert.ok(total > 0);
+});
+
+/** Nodos alcanzables desde las salidas indicadas de `nombre` (sin pasar dos veces por el mismo). */
+function alcanzables(wf, nombre, salidas) {
+  const vistos = new Set();
+  const pendientes = salidas.flatMap((s) => ((wf.connections[nombre] || { main: [] }).main[s] || []).map((d) => d.node));
+  while (pendientes.length) {
+    const n = pendientes.pop();
+    if (vistos.has(n)) continue;
+    vistos.add(n);
+    for (const destinos of (wf.connections[n] || { main: [] }).main) for (const d of destinos || []) pendientes.push(d.node);
+  }
+  return vistos;
+}
+
+const escribeEn = (wf, nodo, hoja) => {
+  const n = wf.nodes.find((x) => x.name === nodo);
+  return n && n.type === 'n8n-nodes-base.googleSheets' && n.parameters.operation === 'append' && n.parameters.sheetName.value === hoja;
+};
+
+test('Telegram: cada salida (normal y de error) llega a una escritura en la hoja alertas', () => {
+  for (const [archivo, wf] of todos()) {
+    for (const n of wf.nodes.filter((x) => x.type === 'n8n-nodes-base.telegram')) {
+      const salidas = wf.connections[n.name].main;
+      assert.equal(salidas.length, 2, `${archivo}: ${n.name} debe tener salida normal y de error conectadas`);
+      for (const s of [0, 1]) {
+        assert.ok(salidas[s].length > 0, `${archivo}: ${n.name} salida ${s} sin conectar`);
+        const destino = [...alcanzables(wf, n.name, [s])];
+        assert.ok(destino.some((d) => escribeEn(wf, d, 'alertas')), `${archivo}: ${n.name} salida ${s} no termina en la hoja alertas`);
+        if (n.name === 'Telegram: alerta operativa') {
+          assert.ok(destino.some((d) => escribeEn(wf, d, 'log_errores')), `${archivo}: salida ${s} no llega a log_errores`);
+        }
+      }
+    }
+  }
+});
+
+test('Cadena de errores: log_errores se escribe después del Telegram o por la rama "no alertar"', () => {
+  for (const archivo of ['00_simulador.json', '01_ingesta.json', '02_evaluacion.json', '04_reproceso.json', '99_errores.json']) {
+    const wf = leer(archivo);
+    const origenes = Object.entries(wf.connections).flatMap(([de, c]) => c.main.flatMap((ds, s) => ds.filter((d) => d.node === 'Escribir log_errores').map(() => `${de}#${s}`)));
+    assert.deepEqual(origenes.sort(), ['Fila log_errores (sin alerta)#0', 'Fila log_errores (tras el envío)#0'], archivo);
+    // "Fila log_errores (tras el envío)" solo se alcanza pasando por el Telegram.
+    const desdeIf = alcanzables(wf, '¿Enviar alerta operativa?', [0]);
+    assert.ok(desdeIf.has('Telegram: alerta operativa') && desdeIf.has('Fila log_errores (tras el envío)'), archivo);
+    assert.ok(alcanzables(wf, 'Telegram: alerta operativa', [0, 1]).has('Fila log_errores (tras el envío)'), archivo);
+    assert.deepEqual(wf.connections['¿Enviar alerta operativa?'].main[1].map((d) => d.node), ['Fila log_errores (sin alerta)'], archivo);
+    // La rama "no" va directo a la escritura (en W0 después sigue el bucle, por eso no se usa alcanzables).
+    assert.deepEqual(wf.connections['Fila log_errores (sin alerta)'].main.map((s) => s.map((d) => d.node)), [['Escribir log_errores']], archivo);
+  }
+});
+
+test('Code por ítem: ningún nodo contiene $input.first/last/all/itemMatching (n8n los rechaza)', () => {
+  const re = /\$input\.(first|last|all|itemMatching)/;
+  const fallas = [];
+  let porItem = 0;
+  for (const [archivo, wf] of todos()) {
+    for (const n of wf.nodes.filter((x) => x.type === 'n8n-nodes-base.code' && x.parameters.mode === 'runOnceForEachItem')) {
+      porItem += 1;
+      const m = n.parameters.jsCode.match(re);
+      if (m) fallas.push(`${archivo}: "${n.name}" contiene ${m[0]}`);
+    }
+  }
+  assert.ok(porItem > 0);
+  assert.deepEqual(fallas, []);
+  // $('Nodo').all() sí está permitido y no se marca.
+  assert.equal(re.test("$('Leer hoja config').all()"), false);
+});
+
 test('W2: el Switch de validación cubre las 6 acciones de procesarRespuestaEvaluador', () => {
   const wf = leer('02_evaluacion.json');
   const sw = wf.nodes.find((x) => x.name === 'Según validación');

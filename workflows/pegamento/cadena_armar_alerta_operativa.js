@@ -1,5 +1,6 @@
-// Armar alerta operativa (cadena común). Modo "Run Once for Each Item". Fuente: js/alertas.js.
-// Usa el tipo_error ya validado por filaLogErrores y el id_error para citar el registro.
-const f = $('Fila log_errores').item.json;
-const datos = { ...f.aux_error.registrar_error, tipo_error: f.tipo_error, id_error: f.id_error };
-return { json: { ...armarAlertaOperativa(datos), config: f.aux_error.config } };
+// Armar alerta operativa (cadena común), rama "sí" de "¿Enviar alerta operativa?".
+// Modo "Run Once for Each Item". Fuente: js/alertas.js. $json = salida de "Fila log_errores":
+// usa el tipo_error ya validado por filaLogErrores y el id_error con el que se escribirá la fila.
+const f = $json;
+const datos = { ...f.registrar_error, tipo_error: f.tipo_error, id_error: f.id_error };
+return { json: { ...armarAlertaOperativa(datos), config: f.config } };

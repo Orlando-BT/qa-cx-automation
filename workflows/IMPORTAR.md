@@ -47,32 +47,57 @@ Los JSON de `workflows/` llevan marcadores (`<ASIGNAR_EN_N8N>`, `<ID_LIBRO_SHEET
    - En `credenciales`: el ID de cada credencial de n8n, que se ve en la URL al abrirla. Es opcional; también se puede elegir en cada nodo.
 3. Corre `node workflows/herramientas/ensamblar.mjs --local`. Escribe copias en `workflows/_local/` y lista los marcadores que siguen sin valor. Nunca escribe valores reales fuera de `_local/`.
 
-### 1.2 Orden
-Importa con **Workflows > Create Workflow > ... > Import from File** (usa las copias de `_local/`), en este orden:
+### 1.2 Orden de importación y publicación
+En tu n8n 2.32.6 (lo observaste al importar):
+- "01 Ingesta" y "04 Reproceso" **no se pueden publicar** mientras su sub-workflow, "02 Evaluación", no esté publicado.
+- "99 Errores" **no aparece** en **Settings > Error Workflow** de los demás mientras no esté publicado.
+
+Por eso "99 Errores" y "02 Evaluación" van primero y se publican antes de seguir. Importa con **Workflows > Create Workflow > ... > Import from File** (usa las copias de `_local/`), en este orden:
 
 | # | Archivo | Después de importar |
 |---|---|---|
-| 1 | `99_errores.json` | Anota su ID (final de la URL del workflow) como `<ID_WORKFLOW_ERRORES>`. |
-| 2 | `02_evaluacion.json` | Anota su ID como `<ID_WORKFLOW_EVALUACION>`. |
-| 3 | Regenera las copias | Corre `node workflows/herramientas/ensamblar.mjs --local` para que los siguientes ya lleven esos dos IDs. |
-| 4 | `01_ingesta.json` | |
-| 5 | `04_reproceso.json` | |
-| 6 | `00_simulador.json` | |
-| 7 | `03_metricas.json` | |
-| 8 | `pruebas/mock_api.json` | Solo para la prueba 8; no lleva credenciales. |
+| 1 | `99_errores.json` | Asigna credenciales (sección 2) y **publícalo**. Anota su ID (final de la URL del workflow) como `<ID_WORKFLOW_ERRORES>`. |
+| 2 | `02_evaluacion.json` | Asigna credenciales y **publícalo**. Anota su ID como `<ID_WORKFLOW_EVALUACION>`. |
+| 3 | Regenera las copias | Pon los dos IDs en `_local/valores.json` y corre `node workflows/herramientas/ensamblar.mjs --local`, para que los siguientes ya los lleven. |
+| 4 | `01_ingesta.json` | Credenciales y publicar. |
+| 5 | `04_reproceso.json` | Credenciales y publicar. |
+| 6 | `00_simulador.json` | Credenciales y publicar. |
+| 7 | `03_metricas.json` | Credenciales. No hace falta publicarlo (solo tiene disparador manual). |
+| 8 | `pruebas/mock_api.json` | Solo para la prueba 8; no lleva credenciales. Publícalo solo durante esa prueba. |
 
-Si no regeneras: en "01 Ingesta" (nodos "Evaluar conversación" y "Evaluar pendientes") y en "04 Reproceso" ("Evaluar conversación"), elige "02 Evaluación" en la lista desplegable del campo Workflow.
+Si no regeneras en el paso 3: en "01 Ingesta" (nodos "Evaluar conversación" y "Evaluar pendientes") y en "04 Reproceso" ("Evaluar conversación"), elige "02 Evaluación" en la lista desplegable del campo Workflow.
 
 ### 1.3 Error workflow
-Cada workflow (menos "99 Errores" y el mock) trae `settings.errorWorkflow`. Confírmalo en **... > Settings > Error Workflow = 99 Errores**; si dice otra cosa, elígelo ahí. "99 Errores" no necesita estar activo para recibir errores.
+Cada workflow (menos "99 Errores" y el mock) trae `settings.errorWorkflow`. Confírmalo en **... > Settings > Error Workflow = 99 Errores**; si dice otra cosa, elígelo ahí. "99 Errores" **debe estar publicado** para aparecer en esa lista (sección 1.2) y debe seguir publicado. SUPUESTO: no verifiqué qué hace n8n si se despublica después de asignarlo; no lo dejes despublicado.
 
-### 1.4 Actualizar un workflow ya importado
-Si cambia algo en `js/`, `prompts/` o las plantillas:
-1. Corre `construir_plantillas.mjs`, luego `ensamblar.mjs` y luego `ensamblar.mjs --local`.
-2. Abre el workflow en n8n y usa **... > Import from File** sobre ese mismo workflow: reemplaza el lienzo y conserva el ID.
-3. Revisa que las credenciales sigan asignadas.
+### 1.4 Actualizar un workflow ya importado (sin perder los IDs)
+Úsalo cada vez que cambien `js/`, `workflows/pegamento/`, `prompts/` o las plantillas. Reimporta **sobre el workflow existente**: crear uno nuevo daría otro ID y rompería `<ID_WORKFLOW_ERRORES>`, `<ID_WORKFLOW_EVALUACION>` y el error workflow de los demás.
+
+1. Desde la raíz del repo, en este orden:
+   ```bash
+   node workflows/herramientas/construir_plantillas.mjs
+   node workflows/herramientas/ensamblar.mjs
+   node workflows/herramientas/ensamblar.mjs --local
+   ```
+   El último reescribe `workflows/_local/` con tus valores; revisa que no liste marcadores "sin valor".
+2. Reimporta en el orden de la sección 1.2: **99 Errores y 02 Evaluación primero**; después 01, 04, 00 y 03. Para cada uno:
+   1. Abre el workflow **existente** en n8n (no crees uno nuevo).
+   2. Usa **... > Import from File** y elige su copia de `_local/`. Reemplaza el lienzo dentro del mismo workflow.
+   3. Revisa las credenciales de los nodos de OpenAI, Claude, Google Sheets y Telegram (sección 2). Si algún nodo quedó sin credencial, elígela.
+   4. **Vuelve a publicarlo.** En n8n 2.x los cambios importados quedan como borrador hasta publicar: sin publicar, los webhooks, el formulario, el programado y las llamadas desde 01 y 04 siguen usando la versión anterior.
+3. Comprueba al final:
+   - En 00, 01, 02, 03 y 04: **... > Settings > Error Workflow** sigue en "99 Errores".
+   - Los IDs al final de la URL de cada workflow no cambiaron; los de "99 Errores" y "02 Evaluación" son los de `_local/valores.json`. SUPUESTO: Import from File sobre un workflow abierto conserva su ID. Si alguno cambiara, actualiza `valores.json`, repite el paso 1 y reimporta 00, 01, 03 y 04.
+   - En "01 Ingesta" y "04 Reproceso", el campo Workflow de los nodos "Evaluar ..." apunta a "02 Evaluación".
 
 **No edites nodos Code ni Set de prompts en la UI**: la prueba de sincronía lo detecta. El cambio se pide al subagente dueño del archivo.
+
+### 1.5 Limpieza del libro tras la versión anterior
+La versión anterior mandaba campos auxiliares a dos escrituras, y n8n 2.32.6 los agregó como columnas nuevas aunque el nodo decía "ignorar extras":
+- `log_errores`: borra la columna **`aux_error`** (la 12) completa.
+- `conversaciones`: si después de `id_evaluacion` (la columna 21) aparecen `registrar_error`, `enviar_alerta` o `config` (salen del caso 7a o de cualquier error de W2), bórralas completas.
+
+Las demás hojas no recibían claves auxiliares. Ahora cada nodo de escritura recibe solo columnas del contrato (lo comprueba `workflows/tests/simulacion.test.js`).
 
 ## 2. Credenciales que debes crear
 
@@ -167,15 +192,19 @@ Cada Webhook o Formulario tiene dos URL:
 - **Prueba** (`/webhook-test/...` o `/form-test/...`): solo mientras das "Execute workflow" en el editor.
 - **Producción** (`/webhook/...` o `/form/...`): solo con el workflow activo o publicado.
 
-| Workflow | ¿Activar? | Para qué |
-|---|---|---|
-| 01 Ingesta | Sí | Webhook `http://localhost:5678/webhook/qa-ingesta`. Responde de inmediato ("Workflow was started") y sigue trabajando después. |
-| 00 Simulador | Sí | Formulario `http://localhost:5678/form/qa-simulador`. Si el formulario es válido, la pantalla dice "Simulación en curso" y la generación sigue en segundo plano (resultado en las hojas y en Executions); si no, muestra "Formulario rechazado" con los motivos. |
-| 04 Reproceso | Sí | Corre cada 30 minutos. También puedes correrlo a mano. |
-| 02, 03, 99 | No | 02 lo llaman 01 y 04; 03 es manual; 99 se ejecuta solo ante errores. |
-| PRUEBA mock API | Solo en la prueba 8 | Desactívalo al terminar. |
+Publica en el orden de la sección 1.2 (99 y 02 primero).
 
-Usa el interruptor de activación o el botón de publicar, según tu versión.
+| Workflow | ¿Publicar? | Para qué |
+|---|---|---|
+| 99 Errores | Sí, primero | Sin publicar no aparece en Settings > Error Workflow de los demás. Se ejecuta solo ante errores. |
+| 02 Evaluación | Sí, segundo | Sin publicar, 01 y 04 no se pueden publicar. Lo llaman 01 y 04. |
+| 01 Ingesta | Sí | Webhook `http://localhost:5678/webhook/qa-ingesta`. Responde de inmediato ("Workflow was started") y sigue trabajando después. |
+| 04 Reproceso | Sí | Corre cada 30 minutos. También puedes correrlo a mano. |
+| 00 Simulador | Sí | Formulario `http://localhost:5678/form/qa-simulador`. Si el formulario es válido, la pantalla dice "Simulación en curso" y la generación sigue en segundo plano (resultado en las hojas y en Executions); si no, muestra "Formulario rechazado" con los motivos. |
+| 03 Métricas | No | Solo disparador manual. |
+| PRUEBA mock API | Solo en la prueba 8 | Despublícalo al terminar. |
+
+Después de cada reimportación, vuelve a publicar (sección 1.4).
 
 Limitación del programado: el intervalo de "04 Reproceso" está fijo en 30 minutos en el nodo, porque un Schedule Trigger no puede leer la hoja. Si cambias `reproceso_intervalo_min` en `config`, cambia también el nodo "Programado (reproceso_intervalo_min)".
 
@@ -193,6 +222,9 @@ Los archivos de `workflows/pruebas/` salen de `contrato/ejemplos/payload_ejemplo
 - `payload_sales.json`: `tipo_interaccion = sales`.
 - `payload_sin_agente.json`: solo mensajes del cliente, `sin_caso`.
 - `payload_fallo_api.json` y `payload_mock_api.json`: copias válidas.
+- `payload_repetir_caso2.json`: copia válida con `CONV-9007`, para repetir el caso 2 cuando `CONV-0001` ya está evaluada.
+
+Todo el rango `CONV-9000` a `CONV-9999` está reservado para pruebas: hoy `CONV-9001` a `CONV-9007` los usan estos archivos y el caso 7c, y el resto queda libre para copias manuales. El simulador nunca genera IDs en ese rango (sección 6).
 
 Antes de empezar, anota cuántas filas tiene cada hoja: los resultados esperados son filas **nuevas**.
 
@@ -203,21 +235,30 @@ Antes de empezar, anota cuántas filas tiene cada hoja: los resultados esperados
 - Esperado: todo en verde; los dos `--verificar`, sin diferencias.
 
 **2. Conversación de ejemplo**
-- Cómo: POST de `contrato/ejemplos/payload_ejemplo.json` con `?lote=demo`.
+- Cómo: POST de `contrato/ejemplos/payload_ejemplo.json` con `?lote=demo`. Si `CONV-0001` ya quedó evaluada, repetirla sería un duplicado (caso 4); usa `workflows/pruebas/payload_repetir_caso2.json` (`CONV-9007`, mismo contenido):
+  ```bash
+  curl -X POST "http://localhost:5678/webhook/qa-ingesta?lote=demo" -H "Content-Type: application/json" --data @workflows/pruebas/payload_repetir_caso2.json
+  ```
 - Esperado en las hojas:
-  - `conversaciones`: +1 fila con `estado = evaluada`, `intentos = 1` e `id_evaluacion` lleno.
+  - `conversaciones`: +1 fila con `estado = evaluada`, `intentos = 1` e `id_evaluacion` lleno. Ninguna columna nueva.
   - `evaluaciones`: +1.
   - `detalle_criterios`: +77.
+  - `log_errores`: +0.
 - Esperado en Telegram y `alertas`:
-  - Una alerta de calidad inmediata por cada error crítico detectado.
+  - Una alerta de calidad inmediata por cada error crítico detectado. El ID del crítico se ve completo, con guiones bajos y sin cursivas (por ejemplo `critico.promesa_no_autorizada`).
   - Una alerta de costo solo si la evaluación pasa de 0.01 USD (2 × `costo_estimado_por_evaluacion_usd`).
+  - `alertas`: +1 fila por cada alerta intentada, **también si Telegram falló**: `estado_envio = enviada` si llegó y `fallida` si no. `texto_enviado` guarda el texto plano.
 
 **3. Payload inválido**
-- Cómo: POST de `workflows/pruebas/payload_invalido.json`.
+- Cómo: POST de `workflows/pruebas/payload_invalido.json`. Se puede repetir con el mismo archivo: un payload inválido sale por la rama "no" de "¿Payload válido?" directo a la cadena de errores, sin pasar por la deduplicación ni escribir en `conversaciones`.
 - Esperado:
-  - `log_errores`: +1 con `payload_invalido` y `alerta_enviada = si`. El `detalle_json` solo tiene rutas y reglas, sin texto de mensajes.
-  - Telegram: +1 alerta operativa.
-  - `alertas`: +1 `operativa`.
+  - Telegram: +1 alerta operativa, con "Tipo de error: payload_invalido" completo y una línea "Registro: ERR-...".
+  - `alertas`: +1 `operativa` con `estado_envio = enviada`.
+  - `log_errores`: +1 con `payload_invalido`, escrita **después** del intento de envío:
+    - `alerta_enviada = si` si Telegram la entregó (lo esperado);
+    - `alerta_enviada = no` si el envío falló; en ese caso `alertas` también tiene su fila, con `estado_envio = fallida`.
+  - El `id_error` de la fila de `log_errores` es el mismo que cita la alerta ("Registro: ERR-...").
+  - El `detalle_json` solo tiene rutas y reglas, sin texto de mensajes. `log_errores` sigue con 11 columnas (sin `aux_error`).
   - `conversaciones`: +0.
 
 **4. Duplicado**
@@ -393,6 +434,8 @@ Antes de empezar, anota cuántas filas tiene cada hoja: los resultados esperados
   - El historial existe porque n8n 2.32.6 guarda por defecto los datos de las ejecuciones fallidas (`saveDataOnError = 'all'` en `@n8n/config`, `executions.config.js`) y los conserva 336 horas (14 días, `pruneDataMaxAge`), salvo que tu Docker cambie `EXECUTIONS_DATA_SAVE_ON_ERROR` o la poda. Además, "01 Ingesta" trae `settings.saveDataErrorExecution = 'all'` (en la UI: **... > Settings > Save failed production executions = Save**), así que lo guarda aunque el valor global cambie. Recupera dentro de ese plazo.
 - **Timeout de cada petición a OpenAI y Claude:** sale de `config.tiempo_maximo_peticion_llm_ms` por expresión. Un timeout se trata como falla de red y se reintenta con espera.
 - **Cierre del lote en W4:** `cierrePorLotes` agrupa por el `lote` que devuelve W2. Una evaluación que terminó en error no trae `lote` y no entra al resumen (su alerta operativa ya se envió).
+- **IDs del simulador y rango reservado para pruebas:** `CONV-9000` a `CONV-9999` está reservado para los archivos de `workflows/pruebas/` y las copias manuales (`RANGO_IDS_PRUEBA` en js/simulador.js). `generarIdsConversacion` toma el mayor ID de `escenarios`, `conversaciones` y `revision_humana`, **ignora los de ese rango** y le suma 1, sin generar nunca un ID dentro de él (de `CONV-8999` salta a `CONV-10000`). Así el simulador no choca con los archivos de prueba y ya no importa si corres primero el simulador o las pruebas. Si haces una copia manual de un payload, usa un ID libre de ese rango.
+- **Una alerta enviada puede quedar sin fila en `alertas` si Sheets falla:** "Escribir alertas (...)" reintenta 3 veces y, si sigue fallando, la ejecución continúa sin esa fila. En la cadena de errores, `log_errores` se escribe igual, con el resultado real del envío.
 - **W4 reenvía dos grupos por separado** (reproceso y atascadas): el cierre del lote puede salir en dos mensajes en la misma corrida.
 
 ## 7. Si algo falla

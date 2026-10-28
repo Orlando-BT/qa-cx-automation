@@ -40,6 +40,15 @@ const PATRON_ID_CONVERSACION = /^CONV-([0-9]{4,})$/;
 const LOTES_CONGELADOS = ['calibracion_v1'];
 
 /**
+ * Rango de IDs de conversación reservado para pruebas manuales (CONV-9000 a CONV-9999). El simulador
+ * nunca genera un ID dentro de este rango y tampoco lo cuenta al buscar el mayor ID existente, para
+ * que los IDs de prueba no empujen la numeración real. Si la numeración llega a CONV-8999, el
+ * siguiente ID es CONV-10000 (el contrato acepta 4 o más dígitos).
+ */
+const RANGO_IDS_PRUEBA = { minimo: 9000, maximo: 9999 };
+const enRangoPrueba = (n) => n >= RANGO_IDS_PRUEBA.minimo && n <= RANGO_IDS_PRUEBA.maximo;
+
+/**
  * Errores críticos de cada rúbrica (rubrica.md sección 5). Se necesita saber cuáles existen para
  * validar lo que el dueño pide inyectar. Copia de js/scoring.js (RUBRICAS), verificada por prueba.
  */
@@ -592,6 +601,9 @@ function sugerirTemas(filas) {
  * separados por `|` o `,`. Si el dueño escribe un subelemento que no existe, un caso difícil fuera
  * del glosario, un crítico que no es de la rúbrica o una combinación incompatible, se rechaza con
  * un mensaje que nombra el valor.
+ * `cantidad` vacía (null, undefined, "") se trata como 1. LIMITACIÓN: el campo número del Form Trigger
+ * de n8n entrega el vacío como 0, así que 0 (número o "0") también queda en 1; un 0 escrito a propósito
+ * no se puede distinguir. Negativos, decimales y texto se rechazan.
  * `cantidad` mayor que `config.simulador_max_conversaciones` se rechaza (antes de llamar a la API).
  * Devuelve { valido, errores, solicitud }.
  */
@@ -607,7 +619,8 @@ function validarFormulario(formulario, { config, catalogo }) {
   if (!CALIDADES_SOLICITADAS.includes(calidad)) errores.push(`calidad_solicitada "${f.calidad_solicitada}" no es válida; escribe uno de: ${CALIDADES_SOLICITADAS.join(', ')} (o déjala vacía para aleatoria)`);
 
   let cantidad = 1;
-  if (!vacio(f.cantidad)) {
+  // n8n manda el campo número vacío como 0 y no distingue "vacío" de "0 escrito": ambos quedan en 1.
+  if (!vacio(f.cantidad) && Number(f.cantidad) !== 0) {
     cantidad = Number(f.cantidad);
     if (!Number.isInteger(cantidad) || cantidad < 1) errores.push(`cantidad ${JSON.stringify(f.cantidad)} no es válida; escribe un número entero de 1 a ${Number.isInteger(config.simulador_max_conversaciones) ? config.simulador_max_conversaciones : "el máximo configurado (simulador_max_conversaciones)"} (o déjala vacía para 1)`);
   }
@@ -676,17 +689,24 @@ function validarFormulario(formulario, { config, catalogo }) {
 /**
  * Genera `cantidad` IDs CONV-nnnn consecutivos, todos mayores que el mayor existente, por lo que
  * nunca chocan con `idsExistentes` (el pegamento junta los de `escenarios`, `conversaciones` y
- * `revision_humana`). Mínimo 4 dígitos (glosario). Limitación: dos formularios enviados al mismo
+ * `revision_humana`). Mínimo 4 dígitos (glosario). Ignora y evita el rango reservado de pruebas
+ * (RANGO_IDS_PRUEBA). Limitación: dos formularios enviados al mismo
  * tiempo podrían leer la misma lista y repetir ID; se asume uso por una sola persona.
  */
 function generarIdsConversacion(idsExistentes, cantidad) {
   let maximo = 0;
   for (const id of idsExistentes || []) {
     const m = PATRON_ID_CONVERSACION.exec(String(id));
-    if (m) maximo = Math.max(maximo, Number(m[1]));
+    // Los IDs del rango reservado para pruebas no cuentan para el máximo.
+    if (m && !enRangoPrueba(Number(m[1]))) maximo = Math.max(maximo, Number(m[1]));
   }
   const ids = [];
-  for (let i = 1; i <= cantidad; i++) ids.push(`CONV-${String(maximo + i).padStart(4, '0')}`);
+  let n = maximo;
+  for (let i = 0; i < cantidad; i++) {
+    n += 1;
+    if (enRangoPrueba(n)) n = RANGO_IDS_PRUEBA.maximo + 1; // salta el rango reservado
+    ids.push(`CONV-${String(n).padStart(4, '0')}`);
+  }
   return ids;
 }
 
@@ -1161,6 +1181,7 @@ if (typeof module !== 'undefined' && module.exports) {
     verificarEscenarioGenerado,
     decidirIntentoGeneracion,
     LOTES_CONGELADOS,
+    RANGO_IDS_PRUEBA,
     CRITICOS_POR_VERSION,
     COLUMNAS_ESCENARIOS,
     COLUMNAS_REVISION_HUMANA,

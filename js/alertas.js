@@ -12,7 +12,10 @@
  *    enmascarada. Por seguridad, la evidencia se vuelve a limpiar aquí.
  *  - Modo de calidad por lote (config.md sección 12): lote `demo` -> `alerta_calidad_modo_lote_demo`
  *    (inmediato); cualquier otro -> `alerta_calidad_modo_otros_lotes` (resumen_lote).
- *  - Los mensajes son texto plano (sin parse_mode) para que ningún carácter rompa el formato.
+ *  - `texto` es texto plano (es lo que se guarda en alertas.texto_enviado). Cada alerta trae además
+ *    `texto_html`: el mismo texto con &, < y > escapados, para el nodo Telegram con parse_mode HTML
+ *    (así guiones bajos, asteriscos o etiquetas de la evidencia no se interpretan como formato).
+ *    `texto_html` es un campo intermedio de n8n, no una columna de ninguna hoja.
  *
  * Decisión sobre código duplicado (n8n no permite `require` entre nodos): `marcaTiempoSistema`
  * (de js/costo.js) y `limpiarTexto` (de js/registro_errores.js) se copian aquí; js/tests/
@@ -138,6 +141,17 @@ function modoAlertaCalidad(lote, config) {
 // Textos por tipo de alerta
 // ---------------------------------------------------------------------------
 
+/**
+ * Escapa texto para parse_mode HTML de Telegram: solo &, < y >. El & va PRIMERO para no volver
+ * a escapar los & que producen los otros dos reemplazos.
+ */
+function escaparHtml(texto) {
+  return String(texto === undefined || texto === null ? '' : texto)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 /** Une las líneas que tienen valor (las vacías se omiten). */
 function unirLineas(lineas) {
   return lineas.filter((l) => l !== null && l !== undefined && l !== '').join('\n');
@@ -261,6 +275,7 @@ function prepararAlertasCalidad(evaluacion, config) {
       mensajes: e.mensajes,
       evidencia: e.evidencia,
       texto: textoAlertaCalidad(e),
+      texto_html: escaparHtml(textoAlertaCalidad(e)),
     })),
   };
 }
@@ -270,7 +285,7 @@ function prepararAlertasCalidad(evaluacion, config) {
  * críticos. Si no hubo ninguno, no hay nada que enviar. Respeta el límite de Telegram.
  */
 function armarResumenCalidadLote(errores, lote) {
-  if (!errores || errores.length === 0) return { enviar: false, texto: '', total_errores: 0, total_conversaciones: 0 };
+  if (!errores || errores.length === 0) return { enviar: false, texto: '', texto_html: '', total_errores: 0, total_conversaciones: 0 };
   const conversaciones = new Set(errores.map((e) => e.conversation_id));
   const cabecera = unirLineas([
     `RESUMEN DE CALIDAD DEL LOTE ${lote}`,
@@ -281,15 +296,15 @@ function armarResumenCalidadLote(errores, lote) {
     const msgs = (e.mensajes || []).join(', ') || 'n/a';
     return `- ${e.conversation_id} | ${limpiarTexto(e.agente, 60)} | ${e.id_criterio} | mensaje(s) ${msgs} | ${limpiarTexto(e.evidencia, 120)}`;
   });
-  let texto = `${cabecera}\n${lineas.join('\n')}`;
-  if (texto.length > LIMITE_TELEGRAM) {
-    // Se cortan líneas completas y se avisa cuántas faltan (ver hojas evaluaciones y detalle_criterios).
-    const pie = (n) => `\n... y ${n} más (ver hoja detalle_criterios)`;
-    let incluidas = lineas.length;
-    while (incluidas > 0 && `${cabecera}\n${lineas.slice(0, incluidas).join('\n')}${pie(lineas.length - incluidas)}`.length > LIMITE_TELEGRAM) incluidas--;
-    texto = `${cabecera}\n${lineas.slice(0, incluidas).join('\n')}${pie(lineas.length - incluidas)}`;
-  }
-  return { enviar: true, texto, total_errores: errores.length, total_conversaciones: conversaciones.size };
+  // El límite se mide sobre el texto YA ESCAPADO (texto_html), que es el que viaja a Telegram y
+  // siempre es igual o más largo que el plano. Se cortan líneas completas, nunca a mitad de una
+  // línea, así que tampoco se parte una entidad (&amp;, &lt;, &gt;). `texto` lleva exactamente las
+  // mismas líneas, para que lo guardado en la hoja alertas sea el mismo contenido recortado.
+  const armar = (n) => (n === lineas.length ? `${cabecera}\n${lineas.join('\n')}` : `${cabecera}\n${lineas.slice(0, n).join('\n')}\n... y ${lineas.length - n} más (ver hoja detalle_criterios)`);
+  let incluidas = lineas.length;
+  while (incluidas > 0 && escaparHtml(armar(incluidas)).length > LIMITE_TELEGRAM) incluidas--;
+  const texto = armar(incluidas);
+  return { enviar: true, texto, texto_html: escaparHtml(texto), total_errores: errores.length, total_conversaciones: conversaciones.size };
 }
 
 // ---------------------------------------------------------------------------
@@ -303,6 +318,7 @@ function armarResumenCalidadLote(errores, lote) {
  */
 function armarAlertaCosto(resultado, { ambito, conversation_id: conversationId = '', lote = '' }) {
   if (!resultado || !resultado.evaluable || !resultado.disparar) return null;
+  const texto = textoAlertaCosto({ ambito, conversation_id: conversationId, lote, valor_observado: resultado.valor_observado, umbral: resultado.umbral });
   return {
     tipo_alerta: 'costo',
     modo_envio: 'inmediato',
@@ -311,11 +327,13 @@ function armarAlertaCosto(resultado, { ambito, conversation_id: conversationId =
     lote,
     valor_observado: resultado.valor_observado,
     umbral: resultado.umbral,
-    texto: textoAlertaCosto({ ambito, conversation_id: conversationId, lote, valor_observado: resultado.valor_observado, umbral: resultado.umbral }),
+    texto,
+    texto_html: escaparHtml(texto),
   };
 }
 
 function armarAlertaCalibracion(datos) {
+  const texto = textoAlertaCalibracion(datos);
   return {
     tipo_alerta: 'calibracion',
     modo_envio: 'inmediato',
@@ -325,19 +343,22 @@ function armarAlertaCalibracion(datos) {
     nombre_metrica: datos.nombre_metrica,
     valor_observado: datos.valor_observado,
     umbral: datos.umbral,
-    texto: textoAlertaCalibracion(datos),
+    texto,
+    texto_html: escaparHtml(texto),
   };
 }
 
 /** Alerta operativa lista para enviar y registrar. `datos` como en `textoAlertaOperativa`. */
 function armarAlertaOperativa(datos) {
+  const texto = textoAlertaOperativa(datos);
   return {
     tipo_alerta: 'operativa',
     modo_envio: 'inmediato',
     workflow: datos.workflow,
     conversation_id: datos.conversation_id || '',
     lote: datos.lote || '',
-    texto: textoAlertaOperativa(datos),
+    texto,
+    texto_html: escaparHtml(texto),
   };
 }
 
@@ -390,7 +411,7 @@ function cierreDeLote(resultados, lote, config) {
   const costos = lista.map((r) => (r ? r.costo_usd : undefined)).filter(esNumeroAlerta);
   const envios = [];
   const resumen = armarResumenCalidadLote(errores, lote);
-  if (resumen.enviar) envios.push({ tipo_alerta: 'calidad', modo_envio: 'resumen_lote', workflow: 'evaluacion', lote, texto: resumen.texto });
+  if (resumen.enviar) envios.push({ tipo_alerta: 'calidad', modo_envio: 'resumen_lote', workflow: 'evaluacion', lote, texto: resumen.texto, texto_html: resumen.texto_html });
   const costo = armarAlertaCosto(alertaCostoLoteCopia(costos, config), { ambito: 'lote', lote });
   if (costo) envios.push(costo);
   return { envios };
@@ -486,6 +507,7 @@ if (typeof module !== 'undefined' && module.exports) {
     LIMITE_TELEGRAM,
     marcaTiempoSistema,
     limpiarTexto,
+    escaparHtml,
     generarIdAlerta,
     modoAlertaCalidad,
     textoAlertaOperativa,
@@ -530,6 +552,7 @@ if (typeof module !== 'undefined' && module.exports) {
  * return { json: { envios: r.envios, acumular: r.acumular, costo_usd: $json.evaluacion.consumo.costo_usd } };
  *
  * --- W2, cierre del lote, nodo Code "Cierre de lote" (Run Once for All Items) ---
- * const c = cierreDeLote($input.all().map((i) => i.json), lote, config);
+ * // itemsDeEntrada = la lista de ítems de entrada del nodo (en n8n, el método "todos" del objeto de entrada).
+ * const c = cierreDeLote(itemsDeEntrada.map((i) => i.json), lote, config);
  * return c.envios.map((e) => ({ json: e }));
  * ------------------------------------------------------------------------- */

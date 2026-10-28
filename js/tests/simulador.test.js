@@ -32,7 +32,7 @@ const solicitudBase = (cambios = {}) => ({
   ...cambios,
 });
 
-const contextoBase = (cambios = {}) => ({ config, catalogo, cuentas, conversationId: 'CONV-0200', aleatorio: secuencia([0]), ...cambios });
+const contextoBase = (cambios = {}) => ({ config, catalogo, cuentas, conversationId: 'CONV-0200', aleatorio: secuencia([0]), ahora: new Date('2026-10-21T16:00:00Z'), ...cambios });
 
 // --- Contrato ---------------------------------------------------------------
 
@@ -139,7 +139,7 @@ test('formulario completo: normaliza tema sin acentos, calidad y lista de críti
 
 test('formulario con valores inválidos: acumula todos los errores', () => {
   const r = S.validarFormulario(
-    { tema: 'Tema inexistente', calidad_solicitada: 'excelente', cantidad: '0', lote: 'calibracion_v1', tipo_interaccion: 'otro', error_critico: 'critico.abandono,critico.abandono' },
+    { tema: 'Tema inexistente', calidad_solicitada: 'excelente', cantidad: '-1', lote: 'calibracion_v1', tipo_interaccion: 'otro', error_critico: 'critico.abandono,critico.abandono' },
     { config, catalogo }
   );
   assert.equal(r.valido, false);
@@ -178,7 +178,7 @@ test('generarIdsConversacion: formato del glosario y sin chocar con existentes',
     assert.match(id, /^CONV-[0-9]{4,}$/);
     assert.equal(existentes.includes(id), false);
   }
-  assert.deepEqual(S.generarIdsConversacion(['CONV-9999'], 1), ['CONV-10000']);
+  assert.deepEqual(S.generarIdsConversacion(['CONV-10000'], 1), ['CONV-10001']);
 });
 
 test('elegirCuenta toma una cuenta de la hoja con el generador recibido', () => {
@@ -268,6 +268,7 @@ test('planificarEscenarios: varios IDs nuevos y todo o nada', () => {
     cuentas,
     idsExistentes: ['CONV-0001', 'CONV-0124'],
     aleatorio: secuencia([0.1, 0.5, 0.9]),
+    ahora: new Date('2026-10-21T16:00:00Z'),
   });
   assert.equal(p.valido, true);
   assert.deepEqual(
@@ -281,6 +282,7 @@ test('planificarEscenarios: varios IDs nuevos y todo o nada', () => {
     cuentas,
     idsExistentes: [],
     aleatorio: secuencia([0]),
+    ahora: new Date('2026-10-21T16:00:00Z'),
   });
   assert.equal(malo.valido, false);
   assert.equal(malo.escenarios.length, 0);
@@ -377,7 +379,7 @@ test('rechazos del formulario incluyen la corrección concreta', () => {
   assert.match(con({ lote: 'prueba' }), /lote "prueba".*"demo" o "calibracion_vN"/);
   // cantidad: máximo y valor recibido
   assert.match(con({ cantidad: '8' }), /cantidad 8 supera el máximo por ejecución; escribe un número de 1 a 5 \(simulador_max_conversaciones\)/);
-  assert.match(con({ cantidad: '0' }), /cantidad "0".*de 1 a 5/);
+  assert.match(con({ cantidad: '-1' }), /cantidad "-1".*de 1 a 5/);
   // tema fuera de catálogo: lista temas activos del tipo
   const tema = con({ tema: 'Tema inexistente' });
   assert.match(tema, /tema "Tema inexistente"/);

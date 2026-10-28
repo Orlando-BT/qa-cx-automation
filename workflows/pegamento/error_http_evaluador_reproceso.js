@@ -9,4 +9,4 @@ const registrar_error = {
   detalle: { codigo_http: c.codigo_http, intento_conexion: item.intento_conexion },
 };
 const actualizacion = actualizacionEstadoEvaluacion(item.llave_dedup, 'reproceso', item.config, new Date());
-return { json: { ...actualizacion, registrar_error, enviar_alerta: debeAlertar(registrar_error.tipo_error, item.config), config: item.config } };
+return { json: { actualizacion, registrar_error, enviar_alerta: debeAlertar(registrar_error.tipo_error, item.config), config: item.config } };

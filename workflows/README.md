@@ -52,17 +52,23 @@ Si editas un nodo Code o Set en la UI de n8n, la prueba de sincronía falla e in
 - **Decisiones:** cada IF o Switch lee un campo que calculó `js/`: `valido`, `accion`, `decision.accion`, `clasificacion_http.accion`, `evaluar`, `sin_mensajes_agente`. Las únicas comprobaciones propias son de presencia de datos: `envios.length > 0` y `!!conversation_id`.
 - **Sheets:**
   - Las lecturas de referencia corren una vez (`executeOnce`). Las que pueden venir vacías llevan `alwaysOutputData`.
-  - Las escrituras usan mapeo automático, `cellFormat = RAW` y `handlingExtraData = ignoreIt`, para que los campos auxiliares del ítem no se escriban.
+  - Las escrituras usan mapeo automático y `cellFormat = RAW`. El ítem que llega a cada escritura trae **solo columnas del contrato** de su hoja: en n8n 2.32.6 `handlingExtraData = ignoreIt` no evitó que se creara la columna `aux_error`, así que se deja el parámetro pero no se depende de él. Los datos auxiliares se leen con `$('Nodo').item`. `simulacion.test.js` lo comprueba para cada escritura.
+  - En `update` solo se escriben las claves presentes (las ausentes no se tocan) y nunca una celda vacía.
   - Las actualizaciones buscan la fila por `llave_dedup`.
 - **OpenAI y Claude:**
   - HTTP Request con respuesta completa y "nunca fallar", sin reintento nativo.
   - Las dos salidas (normal y de error) van a `clasificacion_http.js`: 2xx sigue; 429/5xx o red pasa por un Wait de `espera_ms` y vuelve, hasta `reintentos_conexion_api`; otro 4xx o agotado es `falla_api`.
 - **Reintento nativo** (3 intentos, 3 s): solo en Sheets y Telegram, como red de seguridad de conexión.
 - **Errores:** una cadena común en W0, W1, W2, W4 y 99:
-  - Recorre: "Fila log_errores" > "Escribir log_errores" > "¿Enviar alerta operativa?" > "Armar alerta operativa" > "Telegram: alerta operativa" > "Fila alertas (operativa)" > "Escribir alertas (operativa)".
+  - Recorre: "Fila log_errores" (fija id_error, hora y consecutivo; no escribe) > "¿Enviar alerta operativa?".
+    - Sí: "Armar alerta operativa" > "Telegram: alerta operativa" (sus dos salidas) > "Fila alertas (operativa)" > "Escribir alertas (operativa)" > "Fila log_errores (tras el envío)" > "Escribir log_errores".
+    - No: "Fila log_errores (sin alerta)" > "Escribir log_errores".
+  - `log_errores` se escribe al final, con `alerta_enviada` real: `si` solo si Telegram salió por la salida normal (`estado_envio = enviada`). El `id_error` de la fila es el que cita la alerta.
   - Entra un ítem `{ registrar_error, enviar_alerta, config }`. `enviar_alerta` sale de `debeAlertar` (js/registro_errores.js), o de la función de js/ que tomó la decisión (`decidirIngesta`, `decidirReproceso`).
   - El rechazo del formulario (W0) va a un registro aparte, sin Telegram, y su motivo se muestra en pantalla con un nodo n8n Form (Form Ending).
   - Telegram manda sus dos salidas al registro, así una falla de envío queda como `estado_envio = fallida`.
+- **Telegram:** todos los nodos envían `texto_html` con `parse_mode = HTML`. Sin ese parámetro el nodo 1.2 usa Markdown y los guiones bajos de los IDs se pierden. En `alertas.texto_enviado` se guarda el texto plano.
+- **Code por ítem:** ningún nodo en modo "Run Once for Each Item" contiene `$input.first/last/all/itemMatching`, ni en comentarios: n8n lo rechaza con "Can't use .all() here". El ejecutor de pruebas aplica la misma regla.
 - **Escritura idempotente (W2):** antes de escribir se leen las filas de esa `llave_dedup` en `evaluaciones` y de ese `id_evaluacion` en `detalle_criterios`, y `planificarEscrituraResultados` devuelve solo las que faltan.
 - **Atascadas (W4):** lee las conversaciones en `reproceso` y en `en_evaluacion`. `decidirReproceso` marca como atascadas las de más de `evaluacion_tiempo_maximo_min` minutos y las reenvía.
 - **Alertas de calidad:**
@@ -72,5 +78,5 @@ Si editas un nodo Code o Set en la UI de n8n, la prueba de sincronía falla e in
 ## Campos intermedios del flujo
 No son columnas ni campos del contrato:
 - Del evaluador: `peticion_openai`, `intentos_llm`, `intentos_incompleta`, `uso_llm`, `anomalias_llm`, `intento_conexion`, `respuesta_http`, `clasificacion_http`, `accion`, `detalle_log`, `respuesta_llm`, `texto_respuesta_llm`, `mensaje_reintento`.
-- De las alertas y la cadena de errores: `envios`, `acumular`, `registrar_error`, `enviar_alerta`, `aux_error`.
+- De las alertas y la cadena de errores: `envios`, `acumular`, `registrar_error`, `enviar_alerta`, `actualizacion`, `ahora`, `consecutivo` (más `id_error` y `tipo_error` ya calculados por `filaLogErrores`, solo en el ítem intermedio de "Fila log_errores").
 - Del simulador: `peticion_claude`, `valores_generador`, `intento_generacion`, `lectura_generador`, `verificacion`, `decision`.

@@ -9,4 +9,4 @@ const registrar_error = {
   conversation_id: p.conversation_id, lote: item.lote, tipo_interaccion: p.tipo_interaccion, detalle: d,
 };
 const actualizacion = actualizacionEstadoEvaluacion(item.llave_dedup, 'reproceso', item.config, new Date());
-return { json: { ...actualizacion, registrar_error, enviar_alerta: debeAlertar(registrar_error.tipo_error, item.config), config: item.config } };
+return { json: { actualizacion, registrar_error, enviar_alerta: debeAlertar(registrar_error.tipo_error, item.config), config: item.config } };

@@ -462,7 +462,7 @@ test('valoresGenerador con un escenario real de completarEscenario (js/simulador
   const valores = [0.99, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6];
   const r = S.completarEscenario(
     { tipo_interaccion: 'ce', tema: null, calidad_solicitada: 'mala', errores_criticos_inyectados: ['critico.tipificacion_incorrecta'], cantidad: 1, lote: 'demo' },
-    { config: configCE(), catalogo: DATOS.catalogo, cuentas: DATOS.cuentas, conversationId: 'CONV-0300', aleatorio: () => valores[i++ % valores.length] }
+    { config: configCE(), catalogo: DATOS.catalogo, cuentas: DATOS.cuentas, conversationId: 'CONV-0300', aleatorio: () => valores[i++ % valores.length], ahora: new Date('2026-10-21T16:00:00Z') }
   );
   assert.equal(r.valido, true, (r.errores || []).join(' | '));
   const v = js4.valoresGenerador({ ...datosValores(), escenario: r.escenario, extras: r.extras, cuenta: r.cuenta });

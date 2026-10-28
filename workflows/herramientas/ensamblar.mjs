@@ -126,9 +126,13 @@ function cargarModulo(rutaAbs) {
   return requerir(rutaAbs) || {};
 }
 
-/** Texto comparable de un valor exportado (funciones por su código fuente). */
+/**
+ * Texto comparable de un valor exportado (funciones por su código fuente). Los saltos de línea se
+ * normalizan a LF, igual que el código que se pega en el nodo: con core.autocrlf, dos copias
+ * idénticas pueden quedar una en CRLF y otra en LF en la copia de trabajo.
+ */
 function huella(valor) {
-  return typeof valor === 'function' ? `fn:${String(valor)}` : `val:${JSON.stringify(valor)}`;
+  return typeof valor === 'function' ? `fn:${String(valor).replace(/\r\n/g, '\n')}` : `val:${JSON.stringify(valor)}`;
 }
 
 function nombreVariable(rutaFuente) {
