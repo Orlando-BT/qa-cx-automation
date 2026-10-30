@@ -367,17 +367,43 @@ function armarAlertaOperativa(datos) {
 // ---------------------------------------------------------------------------
 
 /**
+ * Quita de `envios` las alertas de calidad que ya se enviaron antes (reproceso o reevaluación de la
+ * misma conversación). Regla del dueño: no se reenvía si la hoja `alertas` ya tiene una fila con
+ * tipo_alerta = 'calidad', estado_envio = 'enviada' y la misma pareja (conversation_id, id_criterio).
+ *  - Una fila previa 'fallida' NO bloquea: ese aviso nunca llegó, así que se reintenta.
+ *  - Las alertas de costo (y cualquier otra que no sea de calidad) pasan siempre.
+ * Las filas llegan de Google Sheets como texto: se comparan sin espacios sobrantes. Filas nulas o con
+ * campos vacíos se ignoran sin tronar.
+ * Devuelve { envios, omitidas_ya_enviadas } (cuántas se quitaron, para trazabilidad).
+ */
+function filtrarAlertasCalidadYaEnviadas(envios, filasAlertasExistentes) {
+  const limpio = (v) => String(v === undefined || v === null ? '' : v).trim();
+  const yaEnviadas = new Set();
+  for (const fila of filasAlertasExistentes || []) {
+    if (!fila || limpio(fila.tipo_alerta) !== 'calidad' || limpio(fila.estado_envio) !== 'enviada') continue;
+    yaEnviadas.add(`${limpio(fila.conversation_id)} ${limpio(fila.id_criterio)}`);
+  }
+  const lista = envios || [];
+  const resultado = lista.filter((e) => !(e && e.tipo_alerta === 'calidad' && yaEnviadas.has(`${limpio(e.conversation_id)} ${limpio(e.id_criterio)}`)));
+  return { envios: resultado, omitidas_ya_enviadas: lista.length - resultado.length };
+}
+
+/**
  * Alertas que salen de UNA evaluación: las de calidad inmediatas (lote demo) y, si dispara, la de
  * costo por evaluación. `acumular` trae los errores críticos que se guardan para el resumen del lote
  * (lotes de calibración).
  * resultadoAlertaCosto: resultado de evaluarAlertaCostoEvaluacion (costo.js).
+ * filasAlertasExistentes (opcional): filas de la hoja `alertas`; si se pasa, no se reenvían las de
+ * calidad ya enviadas (ver filtrarAlertasCalidadYaEnviadas). Sin ella, el resultado es el de siempre.
+ * Devuelve { envios, acumular, omitidas_ya_enviadas }.
  */
-function alertasDeEvaluacion(evaluacion, resultadoAlertaCosto, config) {
+function alertasDeEvaluacion(evaluacion, resultadoAlertaCosto, config, filasAlertasExistentes) {
   const calidad = prepararAlertasCalidad(evaluacion, config);
   const envios = [...calidad.envios];
   const costo = armarAlertaCosto(resultadoAlertaCosto, { ambito: 'evaluacion', conversation_id: evaluacion.conversation_id, lote: evaluacion.lote });
   if (costo) envios.push(costo);
-  return { envios, acumular: calidad.acumular };
+  const filtrado = filtrarAlertasCalidadYaEnviadas(envios, filasAlertasExistentes);
+  return { envios: filtrado.envios, acumular: calidad.acumular, omitidas_ya_enviadas: filtrado.omitidas_ya_enviadas };
 }
 
 // Copia de evaluarAlertaCostoLote de js/costo.js (sin require entre módulos). Los nombres llevan
@@ -520,6 +546,7 @@ if (typeof module !== 'undefined' && module.exports) {
     armarAlertaCosto,
     armarAlertaCalibracion,
     armarAlertaOperativa,
+    filtrarAlertasCalidadYaEnviadas,
     alertasDeEvaluacion,
     alertaCostoLoteCopia,
     cierreDeLote,
@@ -548,8 +575,9 @@ if (typeof module !== 'undefined' && module.exports) {
  * //   modo_envio: 'resumen_lote', workflow: 'evaluacion', lote, texto: resumen.texto }, ...).
  *
  * --- W2, nodo Code "Alertas de la evaluación" (Run Once for Each Item) ---
- * const r = alertasDeEvaluacion($json.evaluacion, $json.alerta_costo, config);
- * return { json: { envios: r.envios, acumular: r.acumular, costo_usd: $json.evaluacion.consumo.costo_usd } };
+ * // filasAlertas = filas de la hoja `alertas` (array de objetos; [] si está vacía).
+ * const r = alertasDeEvaluacion($json.evaluacion, $json.alerta_costo, config, filasAlertas);
+ * return { json: { envios: r.envios, acumular: r.acumular, omitidas_ya_enviadas: r.omitidas_ya_enviadas, costo_usd: $json.evaluacion.consumo.costo_usd } };
  *
  * --- W2, cierre del lote, nodo Code "Cierre de lote" (Run Once for All Items) ---
  * // itemsDeEntrada = la lista de ítems de entrada del nodo (en n8n, el método "todos" del objeto de entrada).

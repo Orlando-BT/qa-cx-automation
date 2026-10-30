@@ -191,6 +191,8 @@ Modo de las alertas de calidad: **se decide por el lote de la conversación**.
 - `lote = demo` → modo simulador: envío inmediato.
 - Cualquier otro lote (`calibracion_vN`) → modo lote: resumen al final de la ejecución.
 
+En el envío inmediato, W2 no reenvía una alerta de calidad si la hoja `alertas` ya tiene una `enviada` para la misma conversación y el mismo crítico (regla en `sheets.md`, hoja `alertas`). Solo una alerta con `estado_envio = enviada` bloquea el reenvío; una `fallida` se reintenta. En modo `resumen_lote` no cambia nada. Si falla la lectura de la hoja `alertas`, W2 envía la alerta sin filtro, porque se prefiere una alerta repetida a una alerta de crítico perdida; esa falla queda en Executions de n8n, no en `log_errores`. Las tres son decisiones del dueño.
+
 | Clave | Valor por defecto | Tipo | Descripción | Supuesto |
 |---|---|---|---|---|
 | `telegram_destinatario` | `<TELEGRAM_CHAT_ID>` | texto | Marcador. El dueño lo reemplaza en su hoja; nunca se sube un ID real al repositorio. El token del bot vive solo en las credenciales de n8n. | no |

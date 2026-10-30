@@ -214,8 +214,10 @@ test('W2: camino completo con la respuesta del mock (continuar -> evaluada) y es
   assert.equal(evd.estado, 'evaluada');
   assert.equal(evd.id_evaluacion, plan.filas_evaluacion[0].id_evaluacion);
   await verEscritura(e, wf, 'Actualizar conversación: evaluada', 'Conversación evaluada', [evd]);
-  const [alr] = await e.correr('Preparar alertas de la evaluación', [evd]);
+  e.fijar('Leer alertas de la conversación', [{}]); // hoja sin filas de esta conversación (alwaysOutputData)
+  const [alr] = await e.correr('Preparar alertas de la evaluación', [{}]);
   assert.ok(Array.isArray(alr.envios) && Array.isArray(alr.acumular));
+  assert.equal(alr.omitidas_ya_enviadas, 0);
 
   // Se agrega una alerta de costo para recorrer siempre el registro, haya o no críticos en el mock.
   const costo = armarAlertaCosto({ evaluable: true, disparar: true, valor_observado: 0.02, umbral: 0.01 }, { ambito: 'evaluacion', conversation_id: 'CONV-0001', lote: 'demo' });
@@ -231,6 +233,64 @@ test('W2: camino completo con la respuesta del mock (continuar -> evaluada) y es
     assert.equal(fa.texto_enviado, envio.texto, 'en la hoja se guarda el texto plano');
   }
   await verEscritura(e, wf, 'Escribir alertas (evaluación)', 'Fila alertas (evaluación)', filasAlertas);
+});
+
+/** Corre W2 con la respuesta del mock hasta JS-8 (sin escrituras). */
+async function evaluarConMock(e) {
+  const fila = filaConversaciones(PAYLOAD, 'demo', { version_reglas: CONFIG_CE.version_reglas, version_prompt: CONFIG_CE.version_prompt }, CONFIG_CE, new Date());
+  prepararW2(e, fila);
+  await e.correr('JS-1 Normalización', [{}]);
+  const [js2] = await e.correr('JS-2 Extracción y enmascaramiento', [{}]);
+  const [js3] = await e.correr('JS-3 Reglas deterministas', [js2]);
+  const [js4] = await e.correr('JS-4 Construcción del prompt', [js3]);
+  e.fijar('Preparar llamada OpenAI', [js4]);
+  const [c200] = await e.correr('Clasificar respuesta OpenAI', [{ statusCode: 200, headers: {}, body: respuesta200DelMock() }]);
+  const [js5] = await e.correr('JS-5 Validación de la respuesta', [c200]);
+  const [js6] = await e.correr('JS-6 Reglas híbridas', [js5]);
+  const [js7] = await e.correr('JS-7 Scoring', [js6]);
+  const [js8] = await e.correr('JS-8 Costo', [js7]);
+  return js8.evaluacion;
+}
+
+test('W2: la reevaluación no reenvía una alerta de calidad ya enviada; una fallida sí se reenvía', async () => {
+  const wf = leer('workflows/02_evaluacion.json');
+  const e = crearEjecutor(wf);
+  const evaluacion = await evaluarConMock(e);
+  // La lectura va entre "Actualizar conversación: evaluada" y "Preparar alertas de la evaluación".
+  assert.deepEqual(e.origenes('Leer alertas de la conversación'), [{ de: 'Actualizar conversación: evaluada', salida: 0 }]);
+  assert.deepEqual(e.origenes('Preparar alertas de la evaluación'), [{ de: 'Leer alertas de la conversación', salida: 0 }]);
+
+  // Primera evaluación: la hoja no tiene filas de esta conversación.
+  e.fijar('Leer alertas de la conversación', [{}]);
+  const [primera] = await e.correr('Preparar alertas de la evaluación', [{}]);
+  const calidad = primera.envios.filter((x) => x.tipo_alerta === 'calidad');
+  assert.ok(calidad.length > 0, 'la respuesta del mock produce al menos un crítico en lote demo');
+  const previa = (estado) => calidad.map((x) => ({ tipo_alerta: 'calidad', conversation_id: evaluacion.conversation_id, id_criterio: x.id_criterio, estado_envio: estado }));
+
+  // Reevaluación con las filas previas "enviada": 0 envíos de calidad, sin Telegram ni fila nueva.
+  e.fijar('Leer alertas de la conversación', previa('enviada'));
+  const [segunda] = await e.correr('Preparar alertas de la evaluación', [{}]);
+  assert.equal(segunda.envios.filter((x) => x.tipo_alerta === 'calidad').length, 0);
+  assert.equal(segunda.omitidas_ya_enviadas, calidad.length);
+  if (segunda.envios.length === 0) {
+    const hay = wf.nodes.find((n) => n.name === '¿Hay alertas para enviar?').parameters.conditions.conditions[0].leftValue;
+    assert.equal(new Function('$json', `return (${/^=\{\{([\s\S]*)\}\}$/.exec(hay)[1]});`)(segunda), false, 'el IF no manda nada a Telegram');
+    assert.deepEqual(wf.connections['¿Hay alertas para enviar?'].main[1].map((d) => d.node), ['Resultado de la evaluación']);
+  }
+
+  // Filas previas "fallida": ese aviso nunca llegó, así que se reenvía.
+  e.fijar('Leer alertas de la conversación', previa('fallida'));
+  const [tercera] = await e.correr('Preparar alertas de la evaluación', [{}]);
+  assert.equal(tercera.envios.filter((x) => x.tipo_alerta === 'calidad').length, calidad.length);
+  assert.equal(tercera.omitidas_ya_enviadas, 0);
+
+  // Si la lectura falló, el nodo sigue (salida normal) con { error }: se envía sin filtro.
+  const lectura = wf.nodes.find((n) => n.name === 'Leer alertas de la conversación');
+  assert.equal(lectura.onError, 'continueRegularOutput');
+  assert.equal(lectura.alwaysOutputData, true);
+  e.fijar('Leer alertas de la conversación', [{ error: 'The service is currently unavailable' }]);
+  const [sinFiltro] = await e.correr('Preparar alertas de la evaluación', [{}]);
+  assert.equal(sinFiltro.envios.filter((x) => x.tipo_alerta === 'calidad').length, calidad.length);
 });
 
 test('W2: falla de la API -> reproceso; solo la actualización llega a conversaciones; alerta enviada', async () => {
@@ -490,6 +550,35 @@ test('W0: cantidad 0 (el vacío del campo número de n8n) genera 1 conversación
     assert.equal(plan.valido, true, JSON.stringify(plan.errores));
     assert.equal(plan.escenarios.length, 1, `cantidad ${JSON.stringify(cantidad)} -> 1 conversación`);
   }
+});
+
+test('W0: semilla 0 (el vacío del campo número de n8n) usa una semilla nueva distinta de 0', async () => {
+  const wf = leer('workflows/00_simulador.json');
+  const campo = wf.nodes.find((n) => n.name === 'Formulario del simulador').parameters.formFields.values.find((f) => f.fieldName === 'semilla_sorteo');
+  assert.equal(campo.placeholder, 'Vacío o 0 = semilla nueva');
+  const { semillaDesdeAleatorio } = require('../../js/simulador');
+  const e = crearEjecutor(wf);
+  prepararW0(e, { calidad_solicitada: 'buena', cantidad: 1, lote: 'demo', tipo_interaccion: 'ce', semilla_sorteo: 0, tema: '', error_critico: '', criterios_que_deben_fallar: '', casos_dificiles: '' });
+  await e.correr('Config general', [{}]);
+  const [vf] = await e.correr('Validar formulario', [{}]);
+  assert.equal(vf.valido, true, JSON.stringify(vf.errores));
+  assert.equal(vf.solicitud.semilla_sorteo, null, '0 = sorteo automático');
+  await e.correr('Config cargada', [{}]);
+  // El pegamento genera la semilla nueva con semillaDesdeAleatorio(Math.random()): se fija Math.random
+  // solo durante este nodo para saber qué semilla debe salir.
+  const original = Math.random;
+  Math.random = () => 0.123456789;
+  let plan;
+  try {
+    [plan] = await e.correr('Completar escenario', [{}]);
+  } finally {
+    Math.random = original;
+  }
+  assert.equal(plan.valido, true, JSON.stringify(plan.errores));
+  const esperada = semillaDesdeAleatorio(0.123456789);
+  assert.notEqual(esperada, 0);
+  assert.equal(plan.escenarios[0].escenario.semilla_sorteo, esperada);
+  assert.notEqual(plan.escenarios[0].escenario.semilla_sorteo, 0);
 });
 
 test('W0: lote congelado y cantidad mayor al máximo se rechazan antes de llamar a la API', async () => {

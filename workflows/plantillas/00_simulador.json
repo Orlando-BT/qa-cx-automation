@@ -92,7 +92,7 @@
               "fieldName": "semilla_sorteo",
               "fieldType": "number",
               "requiredField": false,
-              "placeholder": "Vacío = semilla nueva"
+              "placeholder": "Vacío o 0 = semilla nueva"
             }
           ]
         },

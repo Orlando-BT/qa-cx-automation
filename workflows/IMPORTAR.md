@@ -107,7 +107,7 @@ En n8n: **Credentials > Add credential**. Usa exactamente estos nombres: así `-
 |---|---|---|---|
 | OpenAI | Header Auth | `OpenAI (Authorization Bearer)` | 02: "OpenAI: evaluar conversación" |
 | Anthropic | Header Auth | `Anthropic (x-api-key)` | 00: "Claude: generar conversación" |
-| Google Sheets | Google Sheets OAuth2 API | `Google Sheets QA` (o el nombre que ya tiene la tuya; elígela en cada nodo) | Todos los nodos cuyo nombre empieza con "Leer", "Escribir", "Insertar", "Actualizar", "Reactivar", "Crear filas" o "Pasar" (por ejemplo "Pasar conversación a error", "Pasar atascada a reproceso", "Pasar conversación a reproceso"). Total por workflow (Sheets): 13 en 00, 11 en 01, 16 en 02, 4 en 03, 7 en 04 y 4 en 99 |
+| Google Sheets | Google Sheets OAuth2 API | `Google Sheets QA` (o el nombre que ya tiene la tuya; elígela en cada nodo) | Todos los nodos cuyo nombre empieza con "Leer", "Escribir", "Insertar", "Actualizar", "Reactivar", "Crear filas" o "Pasar" (por ejemplo "Pasar conversación a error", "Pasar atascada a reproceso", "Pasar conversación a reproceso"). Total por workflow (Sheets): 13 en 00, 11 en 01, 17 en 02, 4 en 03, 7 en 04 y 4 en 99 |
 | Telegram | Telegram API | `Telegram bot QA` | Todos los nodos "Telegram: ...". Total por workflow (Telegram): 1 en 00, 2 en 01, 2 en 02, 0 en 03, 2 en 04 y 1 en 99 |
 
 Los totales de esta tabla los comprueba `workflows/tests/estructura.test.js` contra los JSON.
@@ -373,6 +373,8 @@ Antes de empezar, anota cuántas filas tiene cada hoja: los resultados esperados
   - La fila vuelve a `evaluada` con `intentos` + 1.
   - `evaluaciones`: +0 (sigue habiendo 1 fila por `llave_dedup`).
   - `detalle_criterios`: +0 (sigue 1 fila por `id_evaluacion` + `id_criterio`). `planificarEscrituraResultados` solo escribe lo que falta.
+  - Alertas de calidad: **no se reenvían.** W2 lee `alertas` de `CONV-9005` ("Leer alertas de la conversación") y omite cada crítico que ya tiene una fila `calidad` con `estado_envio = enviada`. Telegram: 0 alertas de calidad nuevas; `alertas`: +0 filas de calidad. En Executions, "Preparar alertas de la evaluación" muestra `omitidas_ya_enviadas` igual al número de críticos.
+  - Excepción: si en la prueba 8 la alerta de ese crítico quedó `fallida`, ahora sí se envía y se registra una fila nueva.
 
 **13. Conversación atascada (sin costo, con el mock)**
 - Requisito: el mismo de la prueba 12.
@@ -383,6 +385,7 @@ Antes de empezar, anota cuántas filas tiene cada hoja: los resultados esperados
   - `log_errores`: +1 `fallo_nodo` (workflow `reproceso`, mensaje "más de 90 minutos en en_evaluacion") con `alerta_enviada = no`.
   - La fila pasa a `reproceso` y se reenvía en la misma corrida: termina en `evaluada`.
   - `evaluaciones`: +0. `detalle_criterios`: +0.
+  - Alertas de calidad: igual que en la prueba 12, no se reenvían las ya `enviada` (0 en Telegram, +0 filas de calidad en `alertas`).
 - Después: restaura la URL de OpenAI en "02 Evaluación" y desactiva el mock.
 
 **Prueba de punta a punta:**
@@ -417,6 +420,15 @@ Antes de empezar, anota cuántas filas tiene cada hoja: los resultados esperados
 - **99 Errores casi nunca identifica la conversación:** el Error Trigger de n8n 2.32.6 solo entrega `execution { id, url, error, lastNodeExecuted, mode, retryOf, executionContext }` y `workflow { id, name }` (ver `INVENTARIO_NODOS.md`, sección 5), sin los datos de la ejecución.
   - "99 Errores" pasa la conversación a `reproceso` solo si la `llave_dedup` aparece en el mensaje de error.
   - En el resto de los casos la red de seguridad es W4: una conversación que queda en `en_evaluacion` más de `evaluacion_tiempo_maximo_min` (90 min) se pasa a `reproceso` (prueba 13).
+- **Sin conexión a Google Sheets, algunos errores solo quedan en Executions** (lo observaste en las pruebas):
+  - **Qué pasa:** "04 Reproceso" falla en su primer nodo, "Leer hoja config". Se dispara "99 Errores", pero 99 también empieza leyendo `config` ("Leer hoja config") y falla ahí. Como 99 no tiene error workflow propio, ese error **no queda en `log_errores` ni llega a Telegram**. Lo mismo pasa con cualquier workflow que falle por Google mientras 99 no puede leer `config`.
+  - **Cómo detectarlo:** en n8n, **Executions**, filtra por estado **Error**. Busca ejecuciones de "99 Errores" que fallaron en "Leer hoja config" y la ejecución original del mismo momento (por ejemplo "04 Reproceso" en "Leer hoja config"). Revísalo después de cualquier corte de red o de Google.
+  - **Cómo se recupera** (según el flujo actual):
+    - "04 Reproceso": no cambia nada en las hojas cuando falla en su primera lectura. La siguiente corrida programada (cada 30 min) vuelve a intentar sola cuando hay conexión.
+    - Una conversación que "02 Evaluación" ya había pasado a `en_evaluacion` y se quedó ahí: W4 la toma como atascada cuando pasan más de `evaluacion_tiempo_maximo_min` (90 min) y la reenvía (prueba 13).
+    - Una conversación en `reproceso`: W4 la reenvía en su siguiente corrida.
+    - **No se recupera sola** una conversación que quedó en `pendiente`, porque W2 falló antes de marcarla `en_evaluacion` (en "Leer conversación" o en las lecturas de referencia). W4 solo lee `reproceso` y `en_evaluacion`. Para recuperarla: en `conversaciones`, cambia su `estado` a `reproceso` y ejecuta "04 Reproceso".
+    - Un payload que "01 Ingesta" no alcanzó a guardar: recupéralo desde Executions (siguiente punto).
 - **Escrituras de W1 sin salida de error propia:** "Insertar conversación", "Reactivar conversación" y "Crear filas de la versión" reintentan 3 veces. Si Sheets sigue fallando, la ejecución se detiene y "99 Errores" registra y alerta, pero el webhook ya había dado el acuse: la conversación no quedó guardada. Para recuperarla:
   1. En n8n, abre **Executions** y filtra por "01 Ingesta" con estado **Error**.
   2. Abre la ejecución fallida y haz clic en el nodo **"Webhook de ingesta"**.
@@ -436,6 +448,7 @@ Antes de empezar, anota cuántas filas tiene cada hoja: los resultados esperados
 - **Cierre del lote en W4:** `cierrePorLotes` agrupa por el `lote` que devuelve W2. Una evaluación que terminó en error no trae `lote` y no entra al resumen (su alerta operativa ya se envió).
 - **IDs del simulador y rango reservado para pruebas:** `CONV-9000` a `CONV-9999` está reservado para los archivos de `workflows/pruebas/` y las copias manuales (`RANGO_IDS_PRUEBA` en js/simulador.js). `generarIdsConversacion` toma el mayor ID de `escenarios`, `conversaciones` y `revision_humana`, **ignora los de ese rango** y le suma 1, sin generar nunca un ID dentro de él (de `CONV-8999` salta a `CONV-10000`). Así el simulador no choca con los archivos de prueba y ya no importa si corres primero el simulador o las pruebas. Si haces una copia manual de un payload, usa un ID libre de ese rango.
 - **Una alerta enviada puede quedar sin fila en `alertas` si Sheets falla:** "Escribir alertas (...)" reintenta 3 veces y, si sigue fallando, la ejecución continúa sin esa fila. En la cadena de errores, `log_errores` se escribe igual, con el resultado real del envío.
+- **Si falla la lectura de `alertas` en W2, se envía sin filtro:** "Leer alertas de la conversación" reintenta 3 veces y, si sigue fallando, la evaluación continúa (salida normal) sin quitar las alertas ya enviadas. Decisión: en ese punto la evaluación ya está guardada y marcada `evaluada`, y W4 no la volvería a tomar. Detenerse ahí perdería la alerta de un error crítico; seguir cuesta, a lo más, una alerta de calidad repetida. Esa falla no se registra en `log_errores`; se ve en Executions.
 - **W4 reenvía dos grupos por separado** (reproceso y atascadas): el cierre del lote puede salir en dos mensajes en la misma corrida.
 
 ## 7. Si algo falla

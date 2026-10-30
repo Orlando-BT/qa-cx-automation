@@ -390,7 +390,7 @@ test('rechazos del formulario incluyen la corrección concreta', () => {
   assert.match(con({ calidad_solicitada: 'excelente' }), /"excelente".*buena, regular, mala, aleatoria/);
   assert.match(con({ casos_dificiles: 'raro' }), /"raro".*amable_no_resuelve/);
   // semilla: rango y sorteo automático
-  assert.match(con({ semilla_sorteo: '-4' }), /semilla_sorteo "-4".*0 a 4294967295.*sorteo automático/);
+  assert.match(con({ semilla_sorteo: '-4' }), /semilla_sorteo "-4".*1 a 4294967295.*vacía \(o 0\) para sorteo automático/);
   // repetidos
   assert.match(con({ error_critico: `${crit},${crit}` }), /error_critico repetido.*una sola vez/);
   // crítico inexistente: lista los válidos

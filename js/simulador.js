@@ -648,11 +648,14 @@ function validarFormulario(formulario, { config, catalogo }) {
   const casos = separarLista(f.casos_dificiles);
   for (const c of casos) if (!CASOS_DIFICILES.includes(c)) errores.push(`casos_dificiles: "${c}" no es un caso difícil del glosario; escribe uno de: ${CASOS_DIFICILES.join(', ')} (varios separados por | o déjalo vacío)`);
 
+  // El campo número del Form Trigger de n8n entrega el vacío como 0 y no distingue "vacío" de "0":
+  // por eso 0 (número o "0") significa "sorteo automático", igual que vacío. La semilla explícita
+  // válida va de 1 a 4294967295 (crearAleatorio sí acepta 0 internamente; aquí no es elegible).
   let semilla = null;
-  if (!vacio(f.semilla_sorteo)) {
+  if (!vacio(f.semilla_sorteo) && Number(f.semilla_sorteo) !== 0) {
     semilla = Number(f.semilla_sorteo);
-    if (!Number.isInteger(semilla) || semilla < 0 || semilla > 4294967295) {
-      errores.push(`semilla_sorteo ${JSON.stringify(f.semilla_sorteo)} no es válida; escribe un entero de 0 a 4294967295 o déjala vacía para sorteo automático`);
+    if (!Number.isInteger(semilla) || semilla < 1 || semilla > 4294967295) {
+      errores.push(`semilla_sorteo ${JSON.stringify(f.semilla_sorteo)} no es válida; escribe un entero de 1 a 4294967295, o déjala vacía (o 0) para sorteo automático`);
       semilla = null;
     }
   }

@@ -304,6 +304,60 @@ test('filaAlertas rechaza valores fuera del glosario', () => {
   assert.throws(() => A.filaAlertas({ ...base, tipo_alerta: 'calibracion', nombre_metrica: 'x' }, { ok: true }, config, AHORA), /nombre_metrica/);
 });
 
+// --- No reenviar alertas de calidad ya enviadas --------------------------------
+
+const fila = (cambios) => ({ tipo_alerta: 'calidad', conversation_id: 'CONV-9005', id_criterio: 'critico.abandono', estado_envio: 'enviada', ...cambios });
+const envioCalidad = (conv = 'CONV-9005', crit = 'critico.abandono') => ({ tipo_alerta: 'calidad', conversation_id: conv, id_criterio: crit, texto: 'x' });
+const envioCosto = { tipo_alerta: 'costo', conversation_id: 'CONV-9005', texto: 'c' };
+
+test('filtrarAlertasCalidadYaEnviadas: sin filas previas deja todo igual', () => {
+  const envios = [envioCalidad(), envioCosto];
+  for (const filas of [[], undefined, null]) {
+    const r = A.filtrarAlertasCalidadYaEnviadas(envios, filas);
+    assert.deepEqual(r.envios, envios);
+    assert.equal(r.omitidas_ya_enviadas, 0);
+  }
+});
+
+test('filtrarAlertasCalidadYaEnviadas: omite solo la pareja conversación + crítico ya enviada', () => {
+  const r = A.filtrarAlertasCalidadYaEnviadas([envioCalidad()], [fila()]);
+  assert.deepEqual(r, { envios: [], omitidas_ya_enviadas: 1 });
+  // otro crítico, otra conversación y fila fallida: se envía
+  assert.equal(A.filtrarAlertasCalidadYaEnviadas([envioCalidad()], [fila({ id_criterio: 'critico.otro' })]).envios.length, 1);
+  assert.equal(A.filtrarAlertasCalidadYaEnviadas([envioCalidad()], [fila({ conversation_id: 'CONV-1' })]).envios.length, 1);
+  const fallida = A.filtrarAlertasCalidadYaEnviadas([envioCalidad()], [fila({ estado_envio: 'fallida' })]);
+  assert.equal(fallida.envios.length, 1);
+  assert.equal(fallida.omitidas_ya_enviadas, 0);
+  // una fila de costo con la misma conversación no cuenta
+  assert.equal(A.filtrarAlertasCalidadYaEnviadas([envioCalidad()], [fila({ tipo_alerta: 'costo' })]).envios.length, 1);
+});
+
+test('filtrarAlertasCalidadYaEnviadas: la alerta de costo nunca se filtra', () => {
+  const r = A.filtrarAlertasCalidadYaEnviadas([envioCalidad(), envioCosto], [fila(), fila({ tipo_alerta: 'costo', id_criterio: '' })]);
+  assert.deepEqual(r.envios, [envioCosto]);
+  assert.equal(r.omitidas_ya_enviadas, 1);
+});
+
+test('filtrarAlertasCalidadYaEnviadas: espacios y valores vacíos no truenan', () => {
+  const sucias = [null, undefined, {}, fila({ conversation_id: '', id_criterio: '' }), fila({ conversation_id: ' CONV-9005 ', id_criterio: ' critico.abandono ', estado_envio: ' enviada ' })];
+  const r = A.filtrarAlertasCalidadYaEnviadas([envioCalidad(), envioCalidad('CONV-9005 ', ' critico.abandono')], sucias);
+  assert.equal(r.envios.length, 0);
+  assert.equal(r.omitidas_ya_enviadas, 2);
+  assert.deepEqual(A.filtrarAlertasCalidadYaEnviadas(undefined, undefined), { envios: [], omitidas_ya_enviadas: 0 });
+});
+
+test('alertasDeEvaluacion con filas previas: omite la calidad repetida y conserva el costo', () => {
+  const e = evaluacionConCriticos('demo', [['critico.abandono', [5], 'sin respuesta']]);
+  const filas = [fila({ conversation_id: e.conversation_id })];
+  const r = A.alertasDeEvaluacion(e, evaluarAlertaCostoEvaluacion(0.05, config), config, filas);
+  assert.deepEqual(r.envios.map((x) => x.tipo_alerta), ['costo']);
+  assert.equal(r.omitidas_ya_enviadas, 1);
+  // en modo resumen_lote no se toca `acumular`
+  const l = evaluacionConCriticos('calibracion_v1', [['critico.abandono', [5], 'sin respuesta']]);
+  const rl = A.alertasDeEvaluacion(l, evaluarAlertaCostoEvaluacion(0.001, config), config, [fila({ conversation_id: l.conversation_id })]);
+  assert.equal(rl.acumular.length, 1);
+});
+
 // --- alertasDeEvaluacion y cierreDeLote --------------------------------------
 
 test('alertasDeEvaluacion: calidad inmediata (demo) y costo si dispara', () => {
@@ -323,7 +377,7 @@ test('alertasDeEvaluacion: en lote de calibración acumula la calidad y solo env
   const r = A.alertasDeEvaluacion(e, evaluarAlertaCostoEvaluacion(0.05, config), config);
   assert.deepEqual(r.envios.map((x) => x.tipo_alerta), ['costo']);
   assert.equal(r.acumular.length, 1);
-  assert.deepEqual(A.alertasDeEvaluacion({ ...evaluacionEjemplo, lote: 'demo' }, evaluarAlertaCostoEvaluacion(0.001, config), config), { envios: [], acumular: [] });
+  assert.deepEqual(A.alertasDeEvaluacion({ ...evaluacionEjemplo, lote: 'demo' }, evaluarAlertaCostoEvaluacion(0.001, config), config), { envios: [], acumular: [], omitidas_ya_enviadas: 0 });
 });
 
 test('la copia de evaluarAlertaCostoLote en alertas.js da lo mismo que la de costo.js', () => {

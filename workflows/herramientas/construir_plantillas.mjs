@@ -92,7 +92,7 @@ function code(w, nombre, fuentes, pegamento, pos, { modo = 'each', ...extra } = 
   return w.nodo(nombre, 'n8n-nodes-base.code', 2, parameters, pos, extra);
 }
 
-function hojaLeer(w, nombre, hoja, pos, { filtros = [], combinar = 'AND', unaVez = true, siempreSalida = false } = {}) {
+function hojaLeer(w, nombre, hoja, pos, { filtros = [], combinar = 'AND', unaVez = true, siempreSalida = false, alFallar } = {}) {
   const parameters = {
     authentication: 'oAuth2',
     documentId: rl(LIBRO, 'id'),
@@ -107,6 +107,7 @@ function hojaLeer(w, nombre, hoja, pos, { filtros = [], combinar = 'AND', unaVez
   const extra = { ...REINTENTO_NATIVO, credentials: CREDENCIALES.sheets };
   if (unaVez) extra.executeOnce = true;
   if (siempreSalida) extra.alwaysOutputData = true;
+  if (alFallar) extra.onError = alFallar;
   return w.nodo(nombre, 'n8n-nodes-base.googleSheets', 4.7, parameters, pos, extra);
 }
 
@@ -375,21 +376,31 @@ function w2() {
   const escDet = hojaEscribir(w, 'Escribir detalle_criterios', 'detalle_criterios', [34, -1], { alFallar: 'continueErrorOutput' });
   const evd = code(w, 'Conversación evaluada', ['ingesta'], 'conversacion_evaluada', [35, 0], { modo: 'all' });
   const upEv = hojaEscribir(w, 'Actualizar conversación: evaluada', 'conversaciones', [36, 0], { operacion: 'update', coincidir: ['llave_dedup'], alFallar: 'continueErrorOutput' });
-  const alr = code(w, 'Preparar alertas de la evaluación', ['alertas'], 'alertas_evaluacion', [37, 0], { modo: 'all' });
-  w.cadena(js6, js7, js8, leeEv, leeDet, plan, hayEv, sepEv, escEv, det, hayDet, sepDet, escDet, evd, upEv, alr);
+  // No reenviar alertas de calidad ya enviadas (sheets.md, hoja alertas): se leen las filas de esta
+  // conversación. alwaysOutputData: sin filas llega un ítem {} que js/alertas.js ignora.
+  // Si la lectura falla (tras 3 reintentos) se sigue SIN filtro (continueRegularOutput): la evaluación
+  // ya está guardada y marcada evaluada, y W4 no la volvería a tomar; detenerse aquí perdería la alerta
+  // de un error crítico. El costo de seguir es, a lo más, repetir una alerta de calidad.
+  const leeAl = hojaLeer(w, 'Leer alertas de la conversación', 'alertas', [37, 1], {
+    filtros: [['conversation_id', "={{ $('JS-8 Costo').first().json.evaluacion.conversation_id }}"]],
+    siempreSalida: true,
+    alFallar: 'continueRegularOutput',
+  });
+  const alr = code(w, 'Preparar alertas de la evaluación', ['alertas'], 'alertas_evaluacion', [38, 0], { modo: 'all' });
+  w.cadena(js6, js7, js8, leeEv, leeDet, plan, hayEv, sepEv, escEv, det, hayDet, sepDet, escDet, evd, upEv, leeAl, alr);
   w.une(hayEv, det, 1);
   w.une(hayDet, evd, 1);
-  const hay = si(w, '¿Hay alertas para enviar?', '$json.envios.length > 0', [38, 0]);
-  const sepAl = separar(w, 'Separar alertas', 'envios', [39, -1]);
-  const tg = telegram(w, 'Telegram: alerta de la evaluación', "$('Preparar alertas de la evaluación').first().json.config.telegram_destinatario", [40, -1]);
-  const filaAl = code(w, 'Fila alertas (evaluación)', ['alertas'], 'fila_alertas_evaluacion', [41, -1]);
-  const escAl = hojaEscribir(w, 'Escribir alertas (evaluación)', 'alertas', [42, -1], { alFallar: 'continueRegularOutput' });
+  const hay = si(w, '¿Hay alertas para enviar?', '$json.envios.length > 0', [39, 0]);
+  const sepAl = separar(w, 'Separar alertas', 'envios', [40, -1]);
+  const tg = telegram(w, 'Telegram: alerta de la evaluación', "$('Preparar alertas de la evaluación').first().json.config.telegram_destinatario", [41, -1]);
+  const filaAl = code(w, 'Fila alertas (evaluación)', ['alertas'], 'fila_alertas_evaluacion', [42, -1]);
+  const escAl = hojaEscribir(w, 'Escribir alertas (evaluación)', 'alertas', [43, -1], { alFallar: 'continueRegularOutput' });
   // Salida del sub-workflow: la leen W1 (disparador manual) y W4 para el cierre del lote.
   const res = setJson(
     w,
     'Resultado de la evaluación',
     "{ llave_dedup: $('JS-8 Costo').first().json.evaluacion.llave_dedup, conversation_id: $('JS-8 Costo').first().json.evaluacion.conversation_id, lote: $('JS-8 Costo').first().json.evaluacion.lote, estado: 'evaluada', costo_usd: $('JS-8 Costo').first().json.evaluacion.consumo.costo_usd, acumular: $('Preparar alertas de la evaluación').first().json.acumular }",
-    [43, 0],
+    [44, 0],
     { executeOnce: true }
   );
   w.cadena(alr, hay, sepAl, tg, filaAl, escAl, res);
@@ -569,7 +580,7 @@ function w0() {
     ['cantidad', 'number', 'Máximo: simulador_max_conversaciones'],
     ['lote', 'text', 'demo (calibracion_v1 está congelado)'],
     ['tipo_interaccion', 'dropdown', null, ['ce', 'sales']],
-    ['semilla_sorteo', 'number', 'Vacío = semilla nueva'],
+    ['semilla_sorteo', 'number', 'Vacío o 0 = semilla nueva'],
   ];
   const formFields = {
     values: campos.map(([etiqueta, tipo, ayuda, opciones]) => {

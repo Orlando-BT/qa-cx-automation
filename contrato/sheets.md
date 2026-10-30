@@ -38,7 +38,7 @@ Cada hoja con sus columnas exactas **en orden**, tipo de dato, descripción y qu
 | `evaluaciones` | evaluación | W2 | W3 |
 | `detalle_criterios` | sección o criterio de una evaluación | W2 | W3 |
 | `log_errores` | error | W0, W1, W2, W3, W4, WE | dueño |
-| `alertas` | alerta enviada | W0, W1, W2, W3, W4, WE | dueño |
+| `alertas` | alerta enviada | W0, W1, W2, W3, W4, WE | W2 (solo para no reenviar alertas de calidad, filtrado por `conversation_id`), dueño |
 | `metricas` | valor de métrica | W3 | dueño, tablero |
 
 ---
@@ -333,6 +333,8 @@ Una fila por sección (`tipo_criterio = seccion`) y una por cada elemento de `cr
 ## `alertas`
 
 Toda alerta enviada (o intentada) se registra aquí. El modo de las alertas de calidad se decide por lote (`config.md` sección 12): `demo` → `inmediato`; otro lote → `resumen_lote`.
+
+**Regla de no reenvío de alertas de calidad (decisión del dueño):** W2 lee esta hoja filtrada por `conversation_id` antes de enviar una alerta de calidad con envío inmediato. Si ya existe una fila con la misma llave (`conversation_id`, `id_criterio`), `tipo_alerta = calidad` y `estado_envio = enviada`, no la reenvía (por ejemplo, al reevaluar en reproceso). Una fila previa con `estado_envio = fallida` no cuenta: se reintenta. Solo una fila con `estado_envio = enviada` bloquea el reenvío (decisión del dueño). En modo `resumen_lote` no cambia nada (decisión del dueño). Si falla la lectura de la hoja `alertas`, W2 envía la alerta sin filtro, porque se prefiere una alerta repetida a una alerta de crítico perdida (decisión del dueño); esa falla queda en Executions de n8n, no en `log_errores`.
 
 | # | Columna | Tipo | Descripción | Escribe |
 |---|---|---|---|---|

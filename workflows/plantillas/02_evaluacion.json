@@ -1231,6 +1231,51 @@
     },
     {
       "parameters": {
+        "authentication": "oAuth2",
+        "documentId": {
+          "__rl": true,
+          "value": "<ID_LIBRO_SHEETS>",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "alertas",
+          "mode": "name"
+        },
+        "options": {},
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "conversation_id",
+              "lookupValue": "={{ $('JS-8 Costo').first().json.evaluacion.conversation_id }}"
+            }
+          ]
+        },
+        "combineFilters": "AND"
+      },
+      "id": "1c39e814-d292-42f5-84dc-05fadde427ea",
+      "name": "Leer alertas de la conversación",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        8880,
+        180
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<ASIGNAR_EN_N8N>",
+          "name": "Google Sheets QA"
+        }
+      },
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
         "jsCode": "// FUENTE: js/alertas.js\n// PEGAMENTO: pegamento/alertas_evaluacion.js\n"
       },
       "id": "2fbc1bd9-000e-4fc6-8f66-0b3cefe76d15",
@@ -1238,7 +1283,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        8880,
+        9120,
         0
       ]
     },
@@ -1272,7 +1317,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        9120,
+        9360,
         0
       ]
     },
@@ -1287,7 +1332,7 @@
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        9360,
+        9600,
         -180
       ]
     },
@@ -1305,7 +1350,7 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        9600,
+        9840,
         -180
       ],
       "retryOnFail": true,
@@ -1329,7 +1374,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        9840,
+        10080,
         -180
       ]
     },
@@ -1365,7 +1410,7 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        10080,
+        10320,
         -180
       ],
       "retryOnFail": true,
@@ -1390,7 +1435,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        10320,
+        10560,
         0
       ],
       "executeOnce": true
@@ -2295,7 +2340,7 @@
       "main": [
         [
           {
-            "node": "Preparar alertas de la evaluación",
+            "node": "Leer alertas de la conversación",
             "type": "main",
             "index": 0
           }
@@ -2303,6 +2348,17 @@
         [
           {
             "node": "Error al guardar resultados: a reproceso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer alertas de la conversación": {
+      "main": [
+        [
+          {
+            "node": "Preparar alertas de la evaluación",
             "type": "main",
             "index": 0
           }

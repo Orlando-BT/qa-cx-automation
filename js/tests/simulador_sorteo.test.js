@@ -201,6 +201,32 @@ test('semilla_sorteo del formulario: entero válido o rechazo', () => {
   assert.equal(validar({}).solicitud.semilla_sorteo, null);
 });
 
+test('semilla_sorteo: vacío o 0 (n8n no los distingue) = sorteo automático; explícita se respeta; inválidas se rechazan', () => {
+  for (const v of [0, '0', '', null, undefined]) {
+    const r = validar({ semilla_sorteo: v });
+    assert.equal(r.valido, true, JSON.stringify(v));
+    assert.equal(r.solicitud.semilla_sorteo, null, JSON.stringify(v));
+    // Con semilla null, el escenario guarda la semilla nueva inyectada (no 0).
+    const p = S.planificarEscenarios(r.solicitud, { config, catalogo, cuentas, idsExistentes: [], semillaNueva: 777, ahora: AHORA });
+    assert.equal(p.escenarios[0].escenario.semilla_sorteo, 777);
+    assert.notEqual(p.escenarios[0].escenario.semilla_sorteo, 0);
+  }
+  // Dos solicitudes con 0 y semillas nuevas distintas dan escenarios con semillas distintas.
+  const s0 = validar({ semilla_sorteo: 0 }).solicitud;
+  const a = S.planificarEscenarios(s0, { config, catalogo, cuentas, idsExistentes: [], semillaNueva: 111, ahora: AHORA });
+  const b = S.planificarEscenarios(s0, { config, catalogo, cuentas, idsExistentes: [], semillaNueva: 222, ahora: AHORA });
+  assert.notEqual(a.escenarios[0].escenario.semilla_sorteo, b.escenarios[0].escenario.semilla_sorteo);
+  // Explícita
+  assert.equal(validar({ semilla_sorteo: 12345 }).solicitud.semilla_sorteo, 12345);
+  assert.equal(validar({ semilla_sorteo: '4294967295' }).solicitud.semilla_sorteo, 4294967295);
+  // Rechazos
+  for (const v of [-1, 1.5, 'abc', 4294967296, '4294967296']) {
+    const r = validar({ semilla_sorteo: v });
+    assert.equal(r.valido, false, JSON.stringify(v));
+    assert.match(r.errores.join(' '), /semilla_sorteo.*1 a 4294967295/);
+  }
+});
+
 test('cantidad mayor que simulador_max_conversaciones se rechaza antes de sortear', () => {
   assert.equal(config.simulador_max_conversaciones, 5);
   assert.equal(validar({ cantidad: '5' }).valido, true);
