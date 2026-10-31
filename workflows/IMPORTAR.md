@@ -32,8 +32,8 @@ Las tres deben terminar sin fallas:
 
 **Estimación de costo de toda la sesión de pruebas** (sección 5), antes de cargar saldo. SUPUESTO: estimado, no medido.
 - Unas 5 evaluaciones con `gpt-6-luna` a ≈ 0.005 USD = ≈ 0.025 USD.
-- Unas 3 a 6 generaciones con `claude-haiku-5-5` a 0.005-0.010 USD = ≈ 0.015 a 0.06 USD.
-- Total ≈ **0.05 USD**, tope **0.10 USD**. La prueba 8 (mock) no llama a OpenAI y cuesta 0.
+- Unas 3 a 6 generaciones con `claude-haiku-5-5` con `generador_ce_v3`, a ≈ 0.006 a 0.0075 USD cada una = ≈ 0.02 a 0.045 USD (cifras de la sección 2.2).
+- Total ≈ **0.05 USD**. Tope de la sesión: **0.15 USD** (ampliado por decisión del dueño, ver sección 2.2). La prueba 8 (mock) no llama a OpenAI y cuesta 0.
 
 ## 1. Orden de importación y error workflow
 
@@ -126,10 +126,14 @@ Los totales de esta tabla los comprueba `workflows/tests/estructura.test.js` con
    - Value: la clave.
    - El encabezado `anthropic-version` no es secreto: lo pone el nodo desde `config.anthropic_version_api`.
 
-**Costo esperado de las pruebas de esta fase (SUPUESTO: estimado, no medido)**, antes de cargar saldo:
-- Generador `claude-haiku-5-5`: 0.10 USD por millón de tokens de entrada y 0.50 por millón de salida (tramo de prompts de hasta 100K tokens; precios en `contrato/config.md`). Peor caso ≈ 0.005 a 0.010 USD por conversación generada.
-- Evaluador `gpt-6-luna`: ≈ 0.005 USD por evaluación (`costo_estimado_por_evaluacion_usd`).
-- Sesión completa de pruebas: ≈ **0.05 USD**, con **tope de 0.10 USD**.
+**Costo esperado de las pruebas de esta fase**, antes de cargar saldo:
+- Generador `claude-haiku-5-5`: 0.10 USD por millón de tokens de entrada y 0.50 por millón de salida (tramo de prompts de hasta 100K tokens; precios en `contrato/config.md`).
+  - **Medido:** `generador_ce_v3` usa ≈ 20,400 tokens de entrada (v2 ≈ 17,900), es decir ≈ **0.0020 USD** de entrada por intento.
+  - **SUPUESTO (la parte de salida, no medida):** con `max_tokens_generador = 16000` y `esfuerzo_generador = medium`, un intento cuesta ≈ **0.006 a 0.0075 USD** en total.
+  - Si el primer intento se corta por `max_tokens`, ya no se reintenta (caso 9), así que un envío fallido cuesta un solo intento.
+- Evaluador `gpt-6-luna`: ≈ 0.005 USD por evaluación (`costo_estimado_por_evaluacion_usd`; SUPUESTO, estimado).
+- Sesión completa de pruebas: ≈ **0.05 USD**.
+- **Tope de la sesión: 0.15 USD.** Era 0.10 USD; el dueño lo amplió solo para terminar el caso 9. El gasto acumulado al 30-oct fue ≈ **0.073 USD**.
 - El saldo mínimo que permita la consola basta para esta fase.
 
 ### 2.3 Telegram
@@ -339,7 +343,12 @@ Antes de empezar, anota cuántas filas tiene cada hoja: los resultados esperados
   - `evaluaciones`: +1.
 - En el 3: al menos 1 alerta de calidad en Telegram, si el sistema detecta el crítico.
 - Si una generación no pasa la validación: un reintento; si vuelve a fallar, `log_errores` +1 `generacion_invalida` con alerta, y esa conversación no se guarda.
-- Costo total de las tres dentro del tope de 0.10 USD.
+- Costo total de las tres dentro del tope de la sesión (0.15 USD, sección 2.2).
+- **Si el generador se corta por `max_tokens`** (el razonamiento de Claude consumió el tope antes de terminar la conversación), W0 **no reintenta**: termina en `generacion_invalida` sin guardar la conversación, con un mensaje que dice subir `max_tokens_generador` (o bajar `esfuerzo_generador`).
+  - En `log_errores`: `tipo_error = generacion_invalida`, y en `detalle_json`, `motivo_lectura = max_tokens` y `sin_reintento = max_tokens`.
+  - Para ver la causa, abre la ejecución en **Executions**, nodo **"Claude: generar conversación"**, y revisa `stop_reason` (`max_tokens` confirma el corte) y `usage.output_tokens_details.thinking_tokens` (cuántos tokens se fueron en razonar).
+- **Prueba de medición (decisión del dueño):** en tu hoja `config` pon `max_tokens_generador = 16000` y deja `esfuerzo_generador = medium`; haz **1 envío** con `calidad_solicitada = regular` y `criterios_que_deben_fallar = diagnostico.preguntas_necesarias|comunicacion.redaccion`, y revisa `stop_reason` y `thinking_tokens` antes de seguir.
+- **Al terminar la medición:** el valor definitivo de `max_tokens_generador` y `esfuerzo_generador` se baja a `contrato/config.md` y `datos/config.csv` (lo hace `contrato-datos`, con tu aprobación), y la hoja `config` del libro debe quedar **igual** a `datos/config.csv`. No cambié el valor por defecto del repositorio.
 - El formulario solo acepta en `criterios_que_deben_fallar` subelementos que aplican a la tipificación del tema elegido; si escribes uno que no aplica, lo rechaza (como en el caso 10). Vacío = los sortea JS, también solo entre los aplicables.
 
 **10. Formulario inválido: lote congelado, cantidad máxima y criterio que no aplica**
@@ -401,6 +410,9 @@ Antes de empezar, anota cuántas filas tiene cada hoja: los resultados esperados
   - `evaluaciones`: +0. `detalle_criterios`: +0. Alertas de calidad: no se reenvían las ya `enviada`.
   - `CONV-0101` (y cualquier otra de `calibracion_v1`) **sigue en `pendiente`**, sin cambios ni registro: W4 nunca toma `calibracion_v1`.
 - Después: restaura la URL de OpenAI en "02 Evaluación" y desactiva el mock.
+
+### Medir antes de correr varios
+Cuando cambie el prompt del generador o su configuración (`max_tokens_generador`, `esfuerzo_generador`, la versión del prompt), haz **primero 1 envío** del simulador y revisa en Executions, nodo "Claude: generar conversación", `stop_reason` y `usage.output_tokens_details.thinking_tokens`. Solo si `stop_reason` no es `max_tokens` y queda margen, corre los 3 envíos del caso 9. Así un tope mal puesto cuesta un intento, no tres.
 
 **Prueba de punta a punta:**
 - El caso 2 recorre Ingesta > Evaluación > hojas y Telegram.

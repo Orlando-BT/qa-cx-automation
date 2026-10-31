@@ -591,12 +591,33 @@ test('decidirIntentoGeneracion: todo válido continúa; las advertencias no inva
   assert.equal(decidir({ verificacion: null }).accion, 'continuar');
 });
 
-test('decidirIntentoGeneracion: lectura incompleta reintenta una vez y luego es generacion_invalida', () => {
+test('decidirIntentoGeneracion: max_tokens no se reintenta (ni en el intento 0 ni en el 1)', () => {
   const lectura = { completa: false, motivo: 'max_tokens', texto: 'TEXTO-SECRETO-DE-LA-CONVERSACION' };
+  assert.equal(config.reintentos_generacion, 1);
+  for (const intento of [0, 1]) {
+    const r = decidir({ lectura, validacion: null, verificacion: null, intento_generacion: intento });
+    assert.equal(r.accion, 'generacion_invalida');
+    assert.equal(r.siguiente_intento, intento);
+    assert.match(r.registrar_error.mensaje_error, /^Generación inválida en el intento/);
+    assert.match(r.registrar_error.mensaje_error, /max_tokens_generador/);
+    assert.equal(r.registrar_error.detalle.sin_reintento, 'max_tokens');
+    assert.equal(r.registrar_error.detalle.motivo_lectura, 'max_tokens');
+    assert.equal(JSON.stringify(r).includes('TEXTO-SECRETO'), false);
+  }
+  // Con más reintentos configurados tampoco se reintenta.
+  assert.equal(decidir({ lectura, validacion: null, verificacion: null, config: { ...config, reintentos_generacion: 3 } }).accion, 'generacion_invalida');
+});
+
+test('decidirIntentoGeneracion: otro motivo de lectura incompleta sigue reintentando', () => {
+  const lectura = { completa: false, motivo: 'json_invalido', texto: 'TEXTO-SECRETO-DE-LA-CONVERSACION' };
   const primero = decidir({ lectura, validacion: null, verificacion: null });
   assert.equal(primero.accion, 'reintentar');
   assert.equal(primero.siguiente_intento, 1);
-  assert.equal(primero.registrar_error.detalle.motivo_lectura, 'max_tokens');
+  assert.equal(primero.registrar_error.detalle.motivo_lectura, 'json_invalido');
+  assert.equal(primero.registrar_error.detalle.sin_reintento, undefined);
+  const payloadMalo = decidir({ validacion: { valido: false, errores: [{ ruta: '$.x', mensaje: 'falta' }] }, verificacion: null });
+  assert.equal(payloadMalo.accion, 'reintentar');
+  assert.equal(payloadMalo.registrar_error.detalle.sin_reintento, undefined);
   const segundo = decidir({ lectura, validacion: null, verificacion: null, intento_generacion: 1 });
   assert.equal(segundo.accion, 'generacion_invalida');
   assert.equal(segundo.siguiente_intento, 1);

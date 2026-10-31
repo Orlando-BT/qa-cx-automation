@@ -354,3 +354,71 @@ Veredicto: aprobado con condiciones, 0 críticos.
 
 - Hecho: contrato, código, prompts y workflows en el checkpoint.
 - Falta: revisión del `revisor`; importación y guion de pruebas del dueño en su n8n (criterio de terminado: lote `demo` más los casos de prueba; `calibracion_v1` solo como pendiente); cierre y etiqueta `fase-2-cierre`. Resultados de esas pruebas: pendiente.
+
+### 12. Generador v3, primera prueba (caso 9) y cambio del reintento (30 y 31-oct-2026)
+
+Esta sección sigue abierta: la medición de la opción A (apartado 12.4) está pendiente. Los datos de consumo salen de las ejecuciones de n8n del dueño (solo campos de consumo); yo no las volví a consultar. No se cita ningún commit porque estos cambios aún no están guardados en uno (ver bitácora).
+
+#### 12.1 Qué pasó con `generador_ce_v3` (caso 9, 30-oct-2026)
+
+- Tres envíos con `generador_ce_v3` terminaron en `generacion_invalida` con el mensaje "lectura incompleta (max_tokens)" en los dos intentos de cada envío.
+- Datos medidos en los 6 intentos:
+  - `stop_reason` = `max_tokens` y `output_tokens` = 8000 en todos.
+  - Tokens de razonamiento: 7200, 8000, 6006, 8000, 8000 y 8000.
+  - Entrada: aproximadamente 20,400 tokens.
+  - Velocidad: aproximadamente 220 tokens por segundo, es decir, unos 35 s por intento de 8000 tokens. Está lejos del límite de 180 s (`tiempo_maximo_peticion_llm_ms`), así que el corte no fue por tiempo.
+- Referencia con `generador_ce_v2` en corridas que sí terminaron: razonamiento de 2,700 a 4,300 tokens y salida total de 4,100 a 6,400.
+- Causa: con `esfuerzo_generador` = `medium`, el razonamiento se cobra como salida y cuenta dentro del tope `max_tokens_generador` = 8000. v3 agrega una verificación final y una guía de fallas, y eso hace pensar casi el doble que v2. El razonamiento consumió el presupuesto antes de que el modelo terminara de escribir la conversación.
+
+#### 12.2 Error de estimación del orquestador
+
+- Entrada de v3: se estimó en 13,100 a 14,100 tokens (con un factor de 2.47 tokens por palabra) y lo real fue de aproximadamente 20,400. Entrada de v2: se estimó en 11,300 y lo real fue de aproximadamente 17,900. El factor real es cerca de 1.6 veces mayor que el supuesto.
+- Consecuencia en costo: el costo por intento estimado (0.0022 a 0.0040 USD) quedó bajo. Un intento cortado costó aproximadamente 0.0060 USD (0.0020 de entrada y 0.0040 de salida). Las 6 llamadas cortadas costaron aproximadamente 0.036 USD.
+- Lección: la estimación de tokens por palabras no sirve para este prompt; hay que usar el consumo medido en n8n.
+
+#### 12.3 Gasto acumulado de la sesión de pruebas de la Fase 2 (hasta el 30-oct-2026)
+
+Calculado desde las ejecuciones de n8n del 28 al 30 de octubre:
+
+| Concepto | Llamadas | Costo (USD) |
+|---|---|---|
+| Generador | 10 (6 cortadas) | 0.0545 |
+| Evaluador | 11 evaluaciones | 0.0182 |
+| Total | | 0.0727 |
+
+- No incluye los scripts de la Fase 1.
+- Las filas de la hoja `escenarios` no suman los intentos fallidos (ya se sabía: el costo de generación guarda solo el último intento, apartado 8), por eso esta cuenta sale de n8n y no de la hoja.
+- Decisión del dueño: aceptó superar el tope de 0.10 USD hasta 0.15 USD para terminar el caso 9.
+
+#### 12.4 Decisión del dueño (31-oct-2026): opción A
+
+- Arrancar con la opción A: `max_tokens_generador` = 16000 con `esfuerzo_generador` = `medium`. Se mide con 1 envío regular que pida `diagnostico.preguntas_necesarias` y `comunicacion.redaccion`, antes de los 3 regulares del caso 9.
+- Alternativas descartadas por ahora:
+  - B: `esfuerzo_generador` = `low` con tope de 8000. Es más barata, pero podría reducir el cumplimiento de la guía de fallas, que es justo lo que v3 busca.
+  - A+B: cambia dos variables a la vez y no se sabría cuál arregló o dañó el resultado.
+- Criterio de decisión: si el envío termina en `end_turn` con razonamiento por debajo de aproximadamente 12,000 tokens, se deja A; si no, se prueba B.
+- El valor por defecto de `contrato/config.md` y `datos/config.csv` sigue en 8000 hasta la medición. El dueño prueba 16000 en su hoja `config`.
+- Las estimaciones de salida de A y B son SUPUESTO. Resultado de la medición: pendiente.
+
+#### 12.5 Cambio del reintento del generador (decisión del dueño, 31-oct-2026)
+
+- Regla nueva en W0: si el primer intento del generador termina en `max_tokens`, no se reintenta. Pasa directo a `generacion_invalida` con un mensaje que indica subir `max_tokens_generador` o bajar `esfuerzo_generador`. En el código: `decidirIntentoGeneracion` en `js/simulador.js`, con `detalle.sin_reintento` = `max_tokens`.
+- `reintentos_generacion` sigue aplicando a las demás causas: JSON inválido, payload fuera del contrato y verificación (`verificarEscenarioGenerado`).
+- El evaluador conserva su regla actual: un reintento ante respuesta incompleta (`reintentos_respuesta_incompleta`, apartado 2).
+- Por qué difieren (razón que el dueño pidió dejar escrita):
+  - Generador: la causa del corte es determinista, porque depende de la combinación de prompt, esfuerzo y tope. Repetir la misma petición produjo el mismo corte las 6 veces, así que el reintento solo duplica el costo sin posibilidad de éxito. Se corrige cambiando la configuración.
+  - Evaluador: la respuesta incompleta fue intermitente en las pruebas de la Fase 1 (por ejemplo, el bloque `commentary` de la API aparecía a veces). Un reintento tiene probabilidad real de éxito, y por eso el evaluador usa una vez la regla.
+- Archivos tocados:
+  - `js/simulador.js` (`decidirIntentoGeneracion`).
+  - `js/tests/simulador_sorteo.test.js` (pruebas del nuevo caso). No ejecuté las pruebas; no reporto cuántas pasan.
+  - `contrato/config.md` y `datos/config.csv`: solo las descripciones de `reintentos_generacion` y `max_tokens_generador`, no sus valores.
+  - `workflows/00_simulador.json`: reensamblado por `workflows-n8n` con el código nuevo.
+- Alternativa descartada: mantener el reintento también en el generador "por simetría". Duplica el costo (aproximadamente 0.006 USD por intento cortado, medido) sin cambiar el resultado.
+
+#### 12.6 Quién hizo qué
+
+- `evaluador-llm`: `generador_ce_v3`.
+- `reglas-js`: cambio del reintento y pruebas.
+- `contrato-datos`: descripciones de config.
+- `workflows-n8n`: reensamblado de W0.
+- Orquestador: midió el consumo en las ejecuciones de n8n.

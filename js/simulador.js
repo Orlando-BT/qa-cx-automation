@@ -1115,7 +1115,14 @@ function verificarEscenarioGenerado(payload, escenario, extras, opciones = {}) {
  *                          la verificación NO invalidan). registrar_error = null.
  *   'reintentar'           hay un problema y intento_generacion < config.reintentos_generacion;
  *                          siguiente_intento = intento_generacion + 1.
- *   'generacion_invalida'  hay un problema y ya no quedan reintentos.
+ *   'generacion_invalida'  hay un problema y ya no quedan reintentos, o la lectura terminó por
+ *                          max_tokens (ver regla).
+ * Regla de max_tokens: si lectura.completa !== true y lectura.motivo === 'max_tokens', NO se
+ * reintenta aunque queden reintentos: reenviar la misma petición produce el mismo corte y solo
+ * duplica el costo. La causa se corrige subiendo max_tokens_generador (o bajando
+ * esfuerzo_generador) en config. El detalle lleva sin_reintento: 'max_tokens'. Las demás causas
+ * (JSON inválido, payload fuera del contrato, verificación, rechazo, otra lectura incompleta)
+ * conservan el reintento. El evaluador (JS-5) no cambia: ahí la causa era intermitente.
  * En las dos últimas, registrar_error tiene la forma de entrada de filaLogErrores (tipo_error
  * generacion_invalida). El detalle nunca lleva texto de la conversación: solo el motivo de la lectura
  * y las rutas y mensajes de las reglas que fallaron.
@@ -1140,8 +1147,15 @@ function decidirIntentoGeneracion({ lectura, validacion, verificacion, intento_g
   if (causas.length === 0) return { accion: 'continuar', siguiente_intento: intento, registrar_error: null };
 
   const maximo = config.reintentos_generacion;
-  const reintentar = Number.isInteger(maximo) && intento < maximo;
+  // Corte por max_tokens: repetir la misma petición se corta igual, así que no se reintenta
+  // aunque queden reintentos. Manda sobre cualquier otra causa.
+  const cortePorMaxTokens = !!lectura && lectura.completa !== true && lectura.motivo === 'max_tokens';
+  const reintentar = !cortePorMaxTokens && Number.isInteger(maximo) && intento < maximo;
+  if (cortePorMaxTokens) detalle.sin_reintento = 'max_tokens';
   const e = escenario || {};
+  const mensajeError = cortePorMaxTokens
+    ? `Generación inválida en el intento ${intento + 1}: la respuesta del generador se cortó por max_tokens; no se reintenta porque repetir la petición se corta igual. Sube max_tokens_generador en config (o baja esfuerzo_generador).`
+    : `Generación inválida en el intento ${intento + 1}: ${causas.join('; ')}${reintentar ? '. Se reintenta.' : '. Sin más reintentos.'}`;
   return {
     accion: reintentar ? 'reintentar' : 'generacion_invalida',
     siguiente_intento: reintentar ? intento + 1 : intento,
@@ -1149,7 +1163,7 @@ function decidirIntentoGeneracion({ lectura, validacion, verificacion, intento_g
       workflow: 'simulador',
       nodo: 'Decidir intento de generación',
       tipo_error: 'generacion_invalida',
-      mensaje_error: `Generación inválida en el intento ${intento + 1}: ${causas.join('; ')}${reintentar ? '. Se reintenta.' : '. Sin más reintentos.'}`,
+      mensaje_error: mensajeError,
       conversation_id: e.conversation_id,
       lote: e.lote,
       tipo_interaccion: e.tipo_interaccion,
