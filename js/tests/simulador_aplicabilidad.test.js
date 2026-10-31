@@ -191,3 +191,65 @@ test('todos los críticos de la rúbrica siguen produciendo escenarios válidos 
     for (let semilla = 1; semilla <= 12; semilla++) assert.equal(escenario({ calidad_solicitada: 'mala', errores_criticos_inyectados: [critico] }, semilla).valido, true, `${critico} ${semilla}`);
   }
 });
+
+// --- El código es igual a rubrica.md §8 (pares y reglas de aplicabilidad) ---------------------
+
+const fs = require('node:fs');
+const path = require('node:path');
+const TEXTO_RUBRICA = fs.readFileSync(path.join(__dirname, '..', '..', 'contrato', 'rubrica.md'), 'utf8');
+
+/** Pares "- Par: `a` + `b` | ..." de §8 (nuevos) y los 2 viejos que siguen en prosa. Orden dentro del par no importa. */
+function paresDeRubrica(texto) {
+  const seccion = texto.slice(texto.indexOf('## 8. Simulador'));
+  const nuevos = [...seccion.matchAll(/^- Par: `([a-z_.]+)` \+ `([a-z_.]+)` \|/gm)].map((m) => [m[1], m[2]]);
+  const viejos = [];
+  const linea = seccion.split('\n').find((l) => l.startsWith('- Pares que no pueden fallar juntos porque solo uno aplica')) || '';
+  const ids = [...linea.matchAll(/`([a-z_]+\.[a-z_]+)`/g)].map((m) => m[1]);
+  for (let i = 0; i + 1 < ids.length; i += 2) viejos.push([ids[i], ids[i + 1]]);
+  return [...viejos, ...nuevos];
+}
+const llavePar = (par) => [...par].sort().join(' + ');
+const conjuntoPares = (pares) => pares.map(llavePar).sort();
+
+/** Ids con "- Regla:" en §8. */
+const idsReglaDeRubrica = (texto) => [...texto.slice(texto.indexOf('## 8. Simulador')).matchAll(/^- Regla: `([a-z_.]+)` \|/gm)].map((m) => m[1]).sort();
+
+/** Ids que el código excluye por datos de W0: se prueba cada subelemento con filas y config adversas. */
+function idsExcluidosPorCodigo() {
+  const filas = [];
+  for (const requiere of ['si', 'no', 'segun_caso']) for (const campos of ['', 'a|b']) filas.push({ requiere_escalamiento: requiere, campos_obligatorios: campos, tipificacion_valida: 'x' });
+  return S.listarSubelementos('reglas_ce_v1').map((s) => s.id).filter((id) =>
+    filas.some((f) => S.motivoInaplicablePorFila(id, f, []) !== null) || S.motivoInaplicablePorConfig(id, { campana_vigente_activa: false }) !== null).sort();
+}
+
+test('rubrica.md §8: los pares del código (viejos + nuevos) son exactamente los de §8, sin importar el orden dentro del par', () => {
+  const delCodigo = [...S.PARES_EXCLUYENTES, ...S.PARES_EXCLUYENTES_DEDUCIDOS];
+  const deRubrica = paresDeRubrica(TEXTO_RUBRICA);
+  assert.equal(deRubrica.length, 11, '2 viejos + 9 nuevos');
+  assert.deepEqual(conjuntoPares(delCodigo), conjuntoPares(deRubrica));
+});
+
+test('rubrica.md §8: las reglas de aplicabilidad son exactamente los ids que el código excluye por datos de W0', () => {
+  assert.deepEqual(idsExcluidosPorCodigo(), idsReglaDeRubrica(TEXTO_RUBRICA));
+  assert.equal(idsReglaDeRubrica(TEXTO_RUBRICA).length, 4);
+});
+
+test('la comparación falla si se agrega o quita un par o una regla en un solo lado (texto alterado en memoria)', () => {
+  const delCodigo = conjuntoPares([...S.PARES_EXCLUYENTES, ...S.PARES_EXCLUYENTES_DEDUCIDOS]);
+  // Par agregado solo en la rúbrica.
+  const conParExtra = TEXTO_RUBRICA.replace(/^- Par: .*$/m, (l) => `${l}\n- Par: \`cierre.agradece\` + \`cierre.marca\` | motivo: inventado`);
+  assert.notDeepEqual(delCodigo, conjuntoPares(paresDeRubrica(conParExtra)));
+  // Par quitado solo de la rúbrica.
+  const sinPar = TEXTO_RUBRICA.replace(/^- Par: `recapitulacion\.informa_numero_caso`.*\n/m, '');
+  assert.notDeepEqual(delCodigo, conjuntoPares(paresDeRubrica(sinPar)));
+  // Par viejo en prosa cambiado.
+  const viejoAlterado = TEXTO_RUBRICA.replace('`ayuda_adicional.encuesta_caso_cerrado` (3.7: según', '`cierre.marca` (3.7: según');
+  assert.notDeepEqual(delCodigo, conjuntoPares(paresDeRubrica(viejoAlterado)));
+  // Regla agregada o quitada solo en la rúbrica.
+  const reglaExtra = TEXTO_RUBRICA.replace(/^- Regla: .*$/m, (l) => `${l}\n- Regla: \`cierre.marca\` | solo se pide si: inventado`);
+  assert.notDeepEqual(idsExcluidosPorCodigo(), idsReglaDeRubrica(reglaExtra));
+  const sinRegla = TEXTO_RUBRICA.replace(/^- Regla: `ayuda_adicional\.campana_vigente`.*\n/m, '');
+  assert.notDeepEqual(idsExcluidosPorCodigo(), idsReglaDeRubrica(sinRegla));
+  // Control: el texto sin alterar sí coincide (la prueba negativa no falla por otra causa).
+  assert.deepEqual(conjuntoPares([...S.PARES_EXCLUYENTES, ...S.PARES_EXCLUYENTES_DEDUCIDOS]), conjuntoPares(paresDeRubrica(TEXTO_RUBRICA)));
+});

@@ -349,18 +349,16 @@ const PARES_EXCLUYENTES = [
 ];
 
 /**
- * Pares ADICIONALES deducidos de la misma regla "no_aplica cuando" de la sección 3 (SUPUESTO: aún no
- * están listados en rubrica.md sección 8; contrato/ solo cambia con aprobación del dueño). Si falla
- * uno, el otro queda `no_aplica`:
- *  - seguimiento_en_plazo / encuesta: la primera exige caso NO cerrado y la encuesta exige cerrado.
- *  - informa_numero_caso / numero_caso_coincide: si el agente no comunica ningún número,
- *    `numero_caso_coincide` es no_aplica (y si comunica uno equivocado, `informa` cumple).
- *  - cierre_inactividad / lo que la inactividad anula: si el agente cierra por inactividad,
- *    `recapitula`, `uso_solucion_seguimiento` y toda la sección `ayuda_adicional` quedan no_aplica
- *    (rubrica.md 3.6, 3.7 y 3.10).
+ * Pares adicionales de contrato/rubrica.md §8 (líneas "- Par:", decisión del dueño del 30-oct-2026).
+ * Si falla uno, el otro queda `no_aplica`:
+ *  - encuesta / seguimiento_en_plazo: la encuesta exige caso cerrado y el seguimiento exige que no lo esté.
+ *  - informa_numero_caso / numero_caso_coincide: sin número comunicado no hay coincidencia que evaluar.
+ *  - cierre_inactividad / recapitula, uso_solucion_seguimiento y toda `ayuda_adicional`: el cierre por
+ *    inactividad deja esos subelementos en `no_aplica` (rubrica.md 3.6, 3.7 y 3.10).
+ * Una prueba compara estos pares con §8; hay que mantenerlos iguales en los dos lados.
  */
 const PARES_EXCLUYENTES_DEDUCIDOS = [
-  ['solucion.seguimiento_en_plazo', 'ayuda_adicional.encuesta'],
+  ['ayuda_adicional.encuesta', 'solucion.seguimiento_en_plazo'],
   ['recapitulacion.informa_numero_caso', 'recapitulacion.numero_caso_coincide'],
   ['recapitulacion.cierre_inactividad', 'recapitulacion.recapitula'],
   ['recapitulacion.cierre_inactividad', 'recapitulacion.uso_solucion_seguimiento'],
@@ -372,17 +370,16 @@ const PARES_EXCLUYENTES_DEDUCIDOS = [
 ];
 
 /**
- * Aplicabilidad que depende de DATOS QUE W0 YA CONOCE al sortear (rubrica.md, columna "no_aplica
- * cuando"). Si el subelemento quedaría `no_aplica`, no puede "fallar" y el escenario mentiría.
- * Devuelve el motivo (texto) o null si puede fallar. No toca lo que depende de lo que escriba el
- * generador (esperas, emoción neutral, una sola solicitud, cierre por inactividad...).
+ * Reglas de aplicabilidad de contrato/rubrica.md §8 (líneas "- Regla:", decisión del dueño del
+ * 30-oct-2026): datos que W0 ya conoce al sortear. Si el subelemento quedaría `no_aplica`, no puede
+ * "fallar" y el escenario mentiría. Devuelve el motivo (texto) o null si puede pedirse.
+ * No toca lo que depende de lo que escriba el generador (esperas, emoción neutral, etc.).
  *  - `config.campana_vigente_activa` (config): sin campaña, `campana_vigente` es no_aplica.
- *  - Fila del catálogo de la tipificación esperada (`fila`):
- *      escala_cuando_requiere es no_aplica si `requiere_escalamiento = no`;
- *      no_escala_innecesario es no_aplica si es `si`; con `segun_caso` decide el LLM al evaluar
- *      y el prompt del generador crea la situación, así que queda sorteable;
- *      campos_obligatorios es no_aplica si la fila no tiene campos (solo se revisa si el agente usa
- *      la tipificación esperada, es decir, sin critico.tipificacion_incorrecta).
+ *  - Fila del catálogo de la tipificación evaluada (`fila`):
+ *      escala_cuando_requiere solo si `requiere_escalamiento` es distinto de `no`;
+ *      no_escala_innecesario solo si es distinto de `si` (con `segun_caso` decide el LLM al evaluar);
+ *      campos_obligatorios solo si la fila tiene campos (con critico.tipificacion_incorrecta la
+ *      evaluada es la errónea del agente, que se elige después con campos).
  */
 function motivoInaplicablePorConfig(id, config) {
   if (id === 'ayuda_adicional.campana_vigente' && config && config.campana_vigente_activa !== true && config.campana_vigente_activa !== 'si') {
@@ -1287,6 +1284,7 @@ if (typeof module !== 'undefined' && module.exports) {
     sortearFallas,
     elegirTipificacionErronea,
     motivoInaplicablePorFila,
+    motivoInaplicablePorConfig,
     verificarEscenarioGenerado,
     decidirIntentoGeneracion,
     LOTES_CONGELADOS,

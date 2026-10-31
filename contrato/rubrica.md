@@ -553,7 +553,7 @@ Contenido revisado por el dueño el 24-oct-2026. Lo usa el sorteo de W0 (JS) cua
 
 Nota sobre `critico.no_genera_caso`: las tres filas son literales dado `estado_caso = sin_caso`. Que un `numero_caso` `null` implique `sin_caso` es el SUPUESTO del glosario (`estado_caso`), no de esta sección. `ayuda_adicional.encuesta_caso_cerrado` **no** se excluye: con `sin_caso` no es `no_aplica` (3.7 solo la anula si el estado es `cerrado` o si termina por inactividad), así que puede fallar.
 
-**Regla del simulador para `critico.tipificacion_incorrecta` (decisión del dueño):** cuando el escenario lleva este crítico, la tipificación del agente es siempre una categoría que **existe** en `catalogo_temas` y es distinta de la correcta para el tema. Por eso `solucion.campos_obligatorios` no queda anulado y se puede sortear sin restricción.
+**Regla del simulador para `critico.tipificacion_incorrecta` (decisión del dueño):** cuando el escenario lleva este crítico, la tipificación del agente es siempre una categoría que **existe** en `catalogo_temas` y es distinta de la correcta para el tema. Por eso `solucion.campos_obligatorios` no queda anulado **por el crítico**. Aun así, solo se pide como falla si la tipificación evaluada tiene `campos_obligatorios` en `catalogo_temas`: la elegida para el escenario o, con este crítico, la errónea que usa el agente (ver "Exclusiones por aplicabilidad", decisión del dueño, 30-oct-2026).
 
 **Combinaciones en sentido contrario (para el sorteo de fallas sin crítico). Todas SUPUESTO:**
 - `solucion.informacion_correcta` pedido como falla sin `critico.informacion_incorrecta`: la información incorrecta no debe tener impacto (sección 5), o se activaría el crítico.
@@ -561,3 +561,22 @@ Nota sobre `critico.no_genera_caso`: las tres filas son literales dado `estado_c
 - **Excepción para calidad `regular` (decisión del dueño):** sí se puede sortear `identidad.datos_coinciden` en su variante sin crítico: el cliente no alcanza `identidad_min_datos_correctos`, el agente no declina y no revela información de la cuenta (sección 4). El resto de `identidad.*` sigue bloqueado para `regular`.
 - `recapitulacion.tipificacion` pedido como falla activa `critico.tipificacion_incorrecta`; `apertura.toma_a_tiempo` activa `critico.no_toma_a_tiempo` (3.1).
 - Pares que no pueden fallar juntos porque solo uno aplica: `solucion.escala_cuando_requiere` y `solucion.no_escala_innecesario` (3.4: exactamente uno aplica); `ayuda_adicional.encuesta` y `ayuda_adicional.encuesta_caso_cerrado` (3.7: según `estado_caso` sea o no `cerrado`).
+
+**Pares adicionales que no se piden juntos como falla (decisión del dueño, 30-oct-2026).** Mismo criterio que los dos pares anteriores: si falla uno, la regla "`no_aplica` cuando" deja al otro en `no_aplica`. Una fila por par, con el formato exacto `- Par: `id_a` + `id_b` | motivo: ...` (dos IDs entre acentos graves tras `Par:`, separados por ` + `).
+- Par: `ayuda_adicional.encuesta` + `solucion.seguimiento_en_plazo` | motivo: la encuesta exige `estado_caso = cerrado` y el seguimiento exige que no lo esté (3.4, 3.7).
+- Par: `recapitulacion.informa_numero_caso` + `recapitulacion.numero_caso_coincide` | motivo: sin número de caso comunicado no hay coincidencia que evaluar (3.6).
+- Par: `recapitulacion.cierre_inactividad` + `recapitulacion.recapitula` | motivo: el cierre por inactividad deja la recapitulación en `no_aplica` (3.6, 3.10).
+- Par: `recapitulacion.cierre_inactividad` + `recapitulacion.uso_solucion_seguimiento` | motivo: el cierre por inactividad lo deja en `no_aplica` (3.6, 3.10).
+- Par: `recapitulacion.cierre_inactividad` + `ayuda_adicional.ofrece_ayuda_adicional` | motivo: el cierre por inactividad deja `ayuda_adicional` en `no_aplica` (3.7, 3.10).
+- Par: `recapitulacion.cierre_inactividad` + `ayuda_adicional.encuesta` | motivo: el cierre por inactividad deja `ayuda_adicional` en `no_aplica` (3.7, 3.10).
+- Par: `recapitulacion.cierre_inactividad` + `ayuda_adicional.canales_horarios` | motivo: el cierre por inactividad deja `ayuda_adicional` en `no_aplica` (3.7, 3.10).
+- Par: `recapitulacion.cierre_inactividad` + `ayuda_adicional.campana_vigente` | motivo: el cierre por inactividad deja `ayuda_adicional` en `no_aplica` (3.7, 3.10).
+- Par: `recapitulacion.cierre_inactividad` + `ayuda_adicional.encuesta_caso_cerrado` | motivo: el cierre por inactividad deja `ayuda_adicional` en `no_aplica` (3.7, 3.10).
+
+**Exclusiones por aplicabilidad según datos que W0 conoce (decisión del dueño, 30-oct-2026).** Un subelemento que quedaría `no_aplica` no puede pedirse como falla. W0 conoce la fila de `catalogo_temas` de la tipificación y `campana_vigente_activa` de `config`. Una fila por regla, con el formato `- Regla: `id` | solo se pide si: ...`.
+- Regla: `solucion.escala_cuando_requiere` | solo se pide si: `requiere_escalamiento` de la fila es distinto de `no` (`si` o `segun_caso`).
+- Regla: `solucion.no_escala_innecesario` | solo se pide si: `requiere_escalamiento` de la fila es distinto de `si` (`no` o `segun_caso`).
+- Regla: `solucion.campos_obligatorios` | solo se pide si: la tipificación evaluada tiene `campos_obligatorios` en `catalogo_temas`. La evaluada es la elegida para el escenario o, con `critico.tipificacion_incorrecta`, la errónea del agente. Hoy no tienen campos "Actualización de método de pago" y "Consulta de planes y promociones".
+- Regla: `ayuda_adicional.campana_vigente` | solo se pide si: `campana_vigente_activa` de `config` es verdadero.
+
+Con `segun_caso` ambos subelementos de escalamiento siguen siendo sorteables: decide el LLM al evaluar y el generador crea la situación (3.4, exactamente uno aplica).
