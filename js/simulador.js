@@ -264,9 +264,12 @@ const SUBELEMENTOS_POR_VERSION = {
 };
 
 /** Lista plana [{id, seccion, clase}] de los subelementos de una versión de reglas (clase null en identidad). */
+const CACHE_SUBELEMENTOS = {}; // la lista no cambia: se arma una vez por versión (el sorteo la consulta miles de veces)
+
 function listarSubelementos(versionReglas) {
   const def = SUBELEMENTOS_POR_VERSION[versionReglas];
   if (!def) return null;
+  if (CACHE_SUBELEMENTOS[versionReglas]) return CACHE_SUBELEMENTOS[versionReglas];
   const lista = [];
   for (const [seccion, texto] of Object.entries(def.secciones)) {
     for (const crudo of texto.split(' ')) {
@@ -275,6 +278,7 @@ function listarSubelementos(versionReglas) {
     }
   }
   for (const nombre of def.identidad.split(' ')) lista.push({ id: `identidad.${nombre}`, seccion: 'identidad', clase: null });
+  CACHE_SUBELEMENTOS[versionReglas] = lista;
   return lista;
 }
 
@@ -332,16 +336,71 @@ const ACTIVA_CRITICO = {
 /**
  * SUPUESTO del dueño (solo W0): `identidad.datos_coinciden` SÍ puede pedirse en calidad `regular`
  * en su variante SIN crítico: el cliente no alcanza el mínimo de datos acertados y el agente no
- * declina pero tampoco revela información de la cuenta. Solo se acepta si el dueño lo escribe en el
- * formulario; el sorteo automático no lo elige.
+ * declina pero tampoco revela información de la cuenta. Se acepta si el dueño lo escribe en el
+ * formulario y TAMBIÉN lo puede elegir el sorteo automático, pero solo en calidad `regular`
+ * (`sortearFallas` lo agrega a los candidatos de regular; en mala o buena no se sortea).
  */
 const VARIANTE_SIN_CRITICO = 'identidad.datos_coinciden';
 
-/** Pares que no pueden fallar juntos porque solo uno de los dos aplica (rubrica.md sección 8). */
+/** Pares que no pueden fallar juntos porque solo uno de los dos aplica (rubrica.md sección 8). Cada par es de DOS ids. */
 const PARES_EXCLUYENTES = [
   ['solucion.escala_cuando_requiere', 'solucion.no_escala_innecesario'],
   ['ayuda_adicional.encuesta', 'ayuda_adicional.encuesta_caso_cerrado'],
 ];
+
+/**
+ * Pares ADICIONALES deducidos de la misma regla "no_aplica cuando" de la sección 3 (SUPUESTO: aún no
+ * están listados en rubrica.md sección 8; contrato/ solo cambia con aprobación del dueño). Si falla
+ * uno, el otro queda `no_aplica`:
+ *  - seguimiento_en_plazo / encuesta: la primera exige caso NO cerrado y la encuesta exige cerrado.
+ *  - informa_numero_caso / numero_caso_coincide: si el agente no comunica ningún número,
+ *    `numero_caso_coincide` es no_aplica (y si comunica uno equivocado, `informa` cumple).
+ *  - cierre_inactividad / lo que la inactividad anula: si el agente cierra por inactividad,
+ *    `recapitula`, `uso_solucion_seguimiento` y toda la sección `ayuda_adicional` quedan no_aplica
+ *    (rubrica.md 3.6, 3.7 y 3.10).
+ */
+const PARES_EXCLUYENTES_DEDUCIDOS = [
+  ['solucion.seguimiento_en_plazo', 'ayuda_adicional.encuesta'],
+  ['recapitulacion.informa_numero_caso', 'recapitulacion.numero_caso_coincide'],
+  ['recapitulacion.cierre_inactividad', 'recapitulacion.recapitula'],
+  ['recapitulacion.cierre_inactividad', 'recapitulacion.uso_solucion_seguimiento'],
+  ['recapitulacion.cierre_inactividad', 'ayuda_adicional.ofrece_ayuda_adicional'],
+  ['recapitulacion.cierre_inactividad', 'ayuda_adicional.encuesta'],
+  ['recapitulacion.cierre_inactividad', 'ayuda_adicional.canales_horarios'],
+  ['recapitulacion.cierre_inactividad', 'ayuda_adicional.campana_vigente'],
+  ['recapitulacion.cierre_inactividad', 'ayuda_adicional.encuesta_caso_cerrado'],
+];
+
+/**
+ * Aplicabilidad que depende de DATOS QUE W0 YA CONOCE al sortear (rubrica.md, columna "no_aplica
+ * cuando"). Si el subelemento quedaría `no_aplica`, no puede "fallar" y el escenario mentiría.
+ * Devuelve el motivo (texto) o null si puede fallar. No toca lo que depende de lo que escriba el
+ * generador (esperas, emoción neutral, una sola solicitud, cierre por inactividad...).
+ *  - `config.campana_vigente_activa` (config): sin campaña, `campana_vigente` es no_aplica.
+ *  - Fila del catálogo de la tipificación esperada (`fila`):
+ *      escala_cuando_requiere es no_aplica si `requiere_escalamiento = no`;
+ *      no_escala_innecesario es no_aplica si es `si`; con `segun_caso` decide el LLM al evaluar
+ *      y el prompt del generador crea la situación, así que queda sorteable;
+ *      campos_obligatorios es no_aplica si la fila no tiene campos (solo se revisa si el agente usa
+ *      la tipificación esperada, es decir, sin critico.tipificacion_incorrecta).
+ */
+function motivoInaplicablePorConfig(id, config) {
+  if (id === 'ayuda_adicional.campana_vigente' && config && config.campana_vigente_activa !== true && config.campana_vigente_activa !== 'si') {
+    return 'config.campana_vigente_activa = no (no hay campaña vigente que mencionar)';
+  }
+  return null;
+}
+
+function motivoInaplicablePorFila(id, fila, criticos) {
+  if (!fila) return null;
+  const requiere = String(fila.requiere_escalamiento);
+  if (id === 'solucion.escala_cuando_requiere' && requiere === 'no') return 'requiere_escalamiento = no en catalogo_temas (no hay nada que escalar)';
+  if (id === 'solucion.no_escala_innecesario' && requiere === 'si') return 'requiere_escalamiento = si en catalogo_temas (la situación sí debe escalarse)';
+  if (id === 'solucion.campos_obligatorios' && !(criticos || []).includes('critico.tipificacion_incorrecta') && separarLista(fila.campos_obligatorios).length === 0) {
+    return 'la tipificación no tiene campos_obligatorios en catalogo_temas';
+  }
+  return null;
+}
 
 /** Ids pedibles como falla (no informativos) de una sección. */
 function validosDeSeccion(subelementos, seccion) {
@@ -361,7 +420,9 @@ function sugerirSubelementos(id, subelementos) {
  * Si `id` no puede pedirse como falla en este escenario devuelve el motivo (texto claro que
  * nombra el valor); si puede, null. Lo usan la validación del formulario Y el sorteo, para que
  * ambos apliquen exactamente las mismas reglas.
- * contexto: { version_reglas, criticos[], calidad, otros[] (otras fallas ya elegidas) }
+ * contexto: { version_reglas, criticos[], calidad, otros[] (otras fallas ya elegidas),
+ *   config (opcional: para campana_vigente_activa), filas[] (opcional: filas del catálogo posibles
+ *   para la tipificación esperada; se rechaza solo si el subelemento no aplicaría con NINGUNA) }
  */
 function motivoRechazoCriterio(id, contexto) {
   const subelementos = listarSubelementos(contexto.version_reglas);
@@ -383,10 +444,23 @@ function motivoRechazoCriterio(id, contexto) {
       return `"${id}" activaría ${activado}, que no se pidió; agrega ${activado} en error_critico (con calidad mala) o quita "${id}" de criterios_que_deben_fallar`;
     }
   }
-  for (const par of PARES_EXCLUYENTES) {
+  for (const par of [...PARES_EXCLUYENTES, ...PARES_EXCLUYENTES_DEDUCIDOS]) {
     if (par.includes(id)) {
       const otro = par.find((p) => p !== id);
-      if ((contexto.otros || []).includes(otro)) return `"${id}" y "${otro}" no pueden fallar juntos: solo uno de los dos aplica; quita uno de los dos de criterios_que_deben_fallar`;
+      if ((contexto.otros || []).includes(otro)) return `"${id}" y "${otro}" no pueden fallar juntos: solo uno de los dos aplica (si falla uno, el otro queda no_aplica); quita uno de los dos de criterios_que_deben_fallar`;
+    }
+  }
+  // Aplicabilidad que depende de datos que W0 ya conoce (config y fila del catálogo).
+  const porConfig = motivoInaplicablePorConfig(id, contexto.config);
+  if (porConfig) return `"${id}" no aplicaría porque ${porConfig}; quita "${id}" de criterios_que_deben_fallar`;
+  const filas = contexto.filas || [];
+  if (filas.length > 0) {
+    const motivos = filas.map((fila) => motivoInaplicablePorFila(id, fila, contexto.criticos));
+    if (motivos.every((m) => m !== null)) {
+      const donde = filas.length === 1
+        ? `la tipificación "${filas[0].tipificacion_valida}"`
+        : `ninguna de las tipificaciones posibles (${filas.length}: ${[...new Set(filas.map((f) => f.tipificacion_valida))].slice(0, 5).join(', ')}${filas.length > 5 ? '...' : ''})`;
+      return `"${id}" no aplicaría con ${donde}: ${motivos[0]}; elige otro tema (o deja tema vacío) o quita "${id}" de criterios_que_deben_fallar`;
     }
   }
   return null;
@@ -523,11 +597,13 @@ function enteroNoNegativo(valor, clave) {
  *  - regular: `generador_fallas_regular` subelementos COMPLEMENTARIOS de secciones distintas.
  *  - mala: `generador_fallas_mala` subelementos CLAVE (además del crítico, si hay).
  * Nunca informativos. Se descarta todo lo que `motivoRechazoCriterio` rechaza (combinaciones
- * incompatibles con los críticos, fallas que activarían un crítico no pedido y pares excluyentes).
+ * incompatibles con los críticos, fallas que activarían un crítico no pedido, pares excluyentes y
+ * subelementos que quedarían no_aplica por config o por la fila del catálogo de la tipificación;
+ * `filas` = [fila de la tipificación esperada]).
  * Orden de los sorteos (para que la semilla reproduzca el resultado): regular, por cada falla se
  * sortea la sección y luego el subelemento; mala, por cada falla el subelemento.
  */
-function sortearFallas({ calidad, criticos, versionReglas, config, aleatorio }) {
+function sortearFallas({ calidad, criticos, versionReglas, config, aleatorio, filas }) {
   const advertencias = [];
   if (calidad === 'buena') return { criterios: [], advertencias };
   const regular = calidad === 'regular';
@@ -538,7 +614,7 @@ function sortearFallas({ calidad, criticos, versionReglas, config, aleatorio }) 
   const elegidos = [];
   const candidatosDe = () =>
     listarSubelementos(versionReglas).filter(
-      (s) => esCandidato(s) && !elegidos.includes(s.id) && motivoRechazoCriterio(s.id, { version_reglas: versionReglas, criticos, calidad, otros: elegidos }) === null
+      (s) => esCandidato(s) && !elegidos.includes(s.id) && motivoRechazoCriterio(s.id, { version_reglas: versionReglas, criticos, calidad, otros: elegidos, config, filas }) === null
     );
   for (let i = 0; i < n; i++) {
     let candidatos = candidatosDe();
@@ -562,16 +638,29 @@ function sortearFallas({ calidad, criticos, versionReglas, config, aleatorio }) 
   return { criterios: elegidos, advertencias };
 }
 
-/** Valida una lista de fallas pedidas: cada una por separado y las combinaciones entre ellas. */
-function validarCriteriosPedidos(criterios, { versionReglas, criticos, calidad }) {
+/**
+ * Valida una lista de fallas pedidas: cada una por separado y las combinaciones entre ellas.
+ * `config` y `filas` (opcionales) activan la revisión de aplicabilidad por datos conocidos
+ * (ver motivoRechazoCriterio). Con varias filas posibles (tema o tipo sin tipificación todavía
+ * elegida) además exige que AL MENOS UNA fila admita todas las fallas pedidas a la vez.
+ */
+function validarCriteriosPedidos(criterios, { versionReglas, criticos, calidad, config, filas }) {
   const errores = [];
   const repetidos = criterios.filter((c, i) => criterios.indexOf(c) !== i);
   if (repetidos.length) errores.push(`criterios_que_deben_fallar repetido: ${[...new Set(repetidos)].join(', ')}; escribe cada subelemento una sola vez`);
   for (const id of criterios) {
-    const motivo = motivoRechazoCriterio(id, { version_reglas: versionReglas, criticos, calidad, otros: criterios.filter((c) => c !== id) });
+    const motivo = motivoRechazoCriterio(id, { version_reglas: versionReglas, criticos, calidad, otros: criterios.filter((c) => c !== id), config, filas });
     if (motivo) errores.push(`criterios_que_deben_fallar: ${motivo}`);
   }
+  if (errores.length === 0 && filas && filas.length > 1 && !filas.some((f) => filaAdmite(criterios, f, criticos))) {
+    errores.push(`criterios_que_deben_fallar: ninguna tipificación posible (${[...new Set(filas.map((f) => f.tipificacion_valida))].slice(0, 5).join(', ')}) admite a la vez ${criterios.join(', ')}; quita alguno o cambia el tema`);
+  }
   return errores;
+}
+
+/** true si la fila del catálogo admite que TODOS los subelementos fallen (ninguno quedaría no_aplica por la fila). */
+function filaAdmite(criterios, fila, criticos) {
+  return criterios.every((id) => motivoInaplicablePorFila(id, fila, criticos) === null);
 }
 
 // ---------------------------------------------------------------------------
@@ -665,7 +754,9 @@ function validarFormulario(formulario, { config, catalogo }) {
   if (criterios.length && config.version_reglas) {
     const criticosValidos = CRITICOS_POR_VERSION[config.version_reglas];
     for (const c of criticos) if (criticosValidos && !criticosValidos.includes(c)) errores.push(`error_critico: "${c}" no es un error crítico de ${config.version_reglas}; escribe uno de: ${criticosValidos.join(', ')} (o déjalo vacío)`);
-    errores.push(...validarCriteriosPedidos(criterios, { versionReglas: config.version_reglas, criticos, calidad }));
+    // Aplicabilidad: filas posibles = las del tema pedido o, sin tema, todas las del tipo (la tipificación se sortea después).
+    const filasPosibles = catalogoDelTipo(catalogo, tipo).filter((fila) => tema === null || fila.tema === tema);
+    errores.push(...validarCriteriosPedidos(criterios, { versionReglas: config.version_reglas, criticos, calidad, config, filas: filasPosibles }));
   }
 
   return {
@@ -723,9 +814,12 @@ function elegirCuenta(cuentas, aleatorio) {
  * catálogo (de otro tema) y que no es válida para el tema del escenario. Nunca una tipificación
  * inventada ni una de las válidas del mismo tema.
  */
-function elegirTipificacionErronea(filasCatalogo, tema, aleatorio) {
+function elegirTipificacionErronea(filasCatalogo, tema, aleatorio, exigirCampos = false) {
   const validas = new Set(filasCatalogo.filter((f) => f.tema === tema).map((f) => f.tipificacion_valida));
-  const candidatas = [...new Set(filasCatalogo.map((f) => f.tipificacion_valida))].filter((t) => !validas.has(t));
+  // Si se pidió que falle solucion.campos_obligatorios, la tipificación errónea que usa el agente
+  // debe tener campos obligatorios; si no, ese subelemento quedaría no_aplica (rubrica.md 3.4).
+  const conCampos = new Set(filasCatalogo.filter((f) => separarLista(f.campos_obligatorios).length > 0).map((f) => f.tipificacion_valida));
+  const candidatas = [...new Set(filasCatalogo.map((f) => f.tipificacion_valida))].filter((t) => !validas.has(t) && (!exigirCampos || conCampos.has(t)));
   if (candidatas.length === 0) return null;
   return elegirAleatorio(candidatas, aleatorio);
 }
@@ -805,9 +899,19 @@ function completarEscenario(solicitud, contexto) {
   if (calidad === 'aleatoria') calidad = criticos.length > 0 ? 'mala' : elegirAleatorio(CALIDADES_ESPERADAS, aleatorio);
 
   // 2. Tema y 3. tipificación
-  const temas = [...new Set(filasCatalogo.map((f) => f.tema))];
+  // Si el dueño pidió fallas que dependen de la fila del catálogo (escalamiento, campos obligatorios),
+  // solo se sortean temas y tipificaciones que las admiten. Sin esas fallas el filtro no quita nada,
+  // así que la secuencia de sorteos no cambia.
+  const pedidos = solicitud.criterios_que_deben_fallar || [];
+  const filasDelTema = solicitud.tema ? filasCatalogo.filter((f) => f.tema === solicitud.tema) : filasCatalogo;
+  const filasCompatibles = filasDelTema.filter((f) => filaAdmite(pedidos, f, criticos));
+  if (pedidos.length > 0 && filasCompatibles.length === 0) {
+    const detalle = validarCriteriosPedidos(pedidos, { versionReglas: config.version_reglas, criticos, calidad, config, filas: filasDelTema });
+    return { valido: false, errores: detalle.length ? detalle : [`criterios_que_deben_fallar: ninguna tipificación del catálogo admite a la vez ${pedidos.join(', ')}; quita alguno o cambia el tema`], advertencias, escenario: null, cuenta: null, extras: null };
+  }
+  const temas = [...new Set(filasCompatibles.map((f) => f.tema))];
   const tema = solicitud.tema || elegirAleatorio(temas, aleatorio);
-  const tipificaciones = filasCatalogo.filter((f) => f.tema === tema);
+  const tipificaciones = filasCompatibles.filter((f) => f.tema === tema);
   const tipificacion = tipificaciones.length === 1 ? tipificaciones[0] : elegirAleatorio(tipificaciones, aleatorio);
 
   // 4. Cuenta
@@ -816,10 +920,10 @@ function completarEscenario(solicitud, contexto) {
   // 5. Fallas: las del formulario (validadas con la calidad ya resuelta) o las sorteadas.
   let criterios = solicitud.criterios_que_deben_fallar || [];
   if (criterios.length > 0) {
-    errores.push(...validarCriteriosPedidos(criterios, { versionReglas: config.version_reglas, criticos, calidad }));
+    errores.push(...validarCriteriosPedidos(criterios, { versionReglas: config.version_reglas, criticos, calidad, config, filas: [tipificacion] }));
     if (errores.length) return { valido: false, errores, advertencias, escenario: null, cuenta: null, extras: null };
   } else {
-    const sorteo = sortearFallas({ calidad, criticos, versionReglas: config.version_reglas, config, aleatorio });
+    const sorteo = sortearFallas({ calidad, criticos, versionReglas: config.version_reglas, config, aleatorio, filas: [tipificacion] });
     criterios = sorteo.criterios;
     advertencias = advertencias.concat(sorteo.advertencias);
   }
@@ -827,7 +931,7 @@ function completarEscenario(solicitud, contexto) {
   // 6. Tipificación errónea del agente
   let tipificacionAgente = null;
   if (criticos.includes('critico.tipificacion_incorrecta')) {
-    tipificacionAgente = elegirTipificacionErronea(filasCatalogo, tema, aleatorio);
+    tipificacionAgente = elegirTipificacionErronea(filasCatalogo, tema, aleatorio, criterios.includes('solucion.campos_obligatorios'));
     if (!tipificacionAgente) return { valido: false, errores: ['No hay otra tipificación en el catálogo para usar como tipificación incorrecta'], advertencias, escenario: null, cuenta: null, extras: null };
   }
 
@@ -1172,6 +1276,7 @@ if (typeof module !== 'undefined' && module.exports) {
     INCOMPATIBLES_CON_CRITICO,
     ACTIVA_CRITICO,
     PARES_EXCLUYENTES,
+    PARES_EXCLUYENTES_DEDUCIDOS,
     VARIANTE_SIN_CRITICO,
     listarSubelementos,
     motivoRechazoCriterio,
@@ -1181,6 +1286,7 @@ if (typeof module !== 'undefined' && module.exports) {
     sortearFechaInicio,
     sortearFallas,
     elegirTipificacionErronea,
+    motivoInaplicablePorFila,
     verificarEscenarioGenerado,
     decidirIntentoGeneracion,
     LOTES_CONGELADOS,

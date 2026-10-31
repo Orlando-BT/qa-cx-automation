@@ -359,3 +359,59 @@ test('en_evaluacion atascada con el límite de reproceso superado: pasar_a_error
   assert.equal(r.registrar_error.tipo_error, 'fallo_nodo');
   assert.match(r.registrar_error.mensaje_error, /atascada/);
 });
+
+// --- W4 recoge conversaciones `pendiente` antiguas ---------------------------
+
+/** Fila pendiente cuyo actualizado_en fue hace `minutos` minutos respecto de AHORA. */
+function filaPendiente(minutos, cambios = {}) {
+  const antes = new Date(AHORA.getTime() - minutos * 60000);
+  return filaExistente('pendiente', { actualizado_en: antes.toISOString(), intentos: '0', ...cambios });
+}
+const conCalibracion = (valor) => ({ ...config, evaluar_al_ingerir_calibracion: valor });
+
+test('pendiente vieja de demo: marcar_atascada con el mismo trato que en_evaluacion y mensaje que dice pendiente', () => {
+  const r = I.decidirReproceso(filaPendiente(91), config, AHORA);
+  assert.equal(r.accion, 'marcar_atascada');
+  assert.equal(r.reenviar, true);
+  assert.equal(r.enviar_alerta, false);
+  assert.deepEqual(r.actualizacion, { llave_dedup: LLAVE, estado: 'reproceso', actualizado_en: MARCA });
+  assert.equal(r.registrar_error.tipo_error, 'fallo_nodo');
+  assert.match(r.registrar_error.mensaje_error, /en pendiente/);
+  assert.doesNotMatch(r.registrar_error.mensaje_error, /en en_evaluacion/);
+  assert.equal(r.registrar_error.detalle.estado_origen, 'pendiente');
+  // La atascada en en_evaluacion conserva su mensaje.
+  assert.match(I.decidirReproceso(filaAtascada(91), config, AHORA).registrar_error.mensaje_error, /en en_evaluacion/);
+});
+
+test('pendiente reciente o justo en el límite: ignorar; el límite sale de config', () => {
+  assert.equal(I.decidirReproceso(filaPendiente(5), config, AHORA).accion, 'ignorar');
+  assert.equal(I.decidirReproceso(filaPendiente(90), config, AHORA).accion, 'ignorar');
+  assert.equal(I.decidirReproceso(filaPendiente(40), { ...config, evaluacion_tiempo_maximo_min: 30 }, AHORA).accion, 'marcar_atascada');
+});
+
+test('pendiente vieja de calibracion_v2: ignorar con evaluar_al_ingerir_calibracion = no, marcar_atascada con = si', () => {
+  assert.equal(I.decidirReproceso(filaPendiente(500, { lote: 'calibracion_v2' }), conCalibracion(false), AHORA).accion, 'ignorar');
+  assert.equal(I.decidirReproceso(filaPendiente(500, { lote: 'calibracion_v2' }), conCalibracion(true), AHORA).accion, 'marcar_atascada');
+});
+
+test('pendiente vieja de calibracion_v1: ignorar siempre, incluso con evaluar_al_ingerir_calibracion = si', () => {
+  for (const valor of [false, true]) {
+    assert.equal(I.decidirReproceso(filaPendiente(5000, { lote: 'calibracion_v1' }), conCalibracion(valor), AHORA).accion, 'ignorar', String(valor));
+  }
+});
+
+test('pendiente con actualizado_en ilegible o lote desconocido: ignorar', () => {
+  assert.equal(I.decidirReproceso(filaPendiente(500, { actualizado_en: 'no es fecha' }), config, AHORA).accion, 'ignorar');
+  assert.equal(I.decidirReproceso(filaPendiente(500, { lote: 'otro' }), config, AHORA).accion, 'ignorar');
+});
+
+test('pendiente vieja que superó reproceso_max_intentos: pasar_a_error como la atascada', () => {
+  assert.equal(I.decidirReproceso(filaPendiente(120, { intentos: '3' }), config, AHORA).accion, 'marcar_atascada');
+  const r = I.decidirReproceso(filaPendiente(120, { intentos: '4' }), config, AHORA);
+  assert.equal(r.accion, 'pasar_a_error');
+  assert.equal(r.atascada, true);
+  assert.equal(r.enviar_alerta, true);
+  assert.deepEqual(r.actualizacion, { llave_dedup: LLAVE, estado: 'error', actualizado_en: MARCA });
+  assert.equal(r.registrar_error.tipo_error, 'fallo_nodo');
+  assert.match(r.registrar_error.mensaje_error, /atascada en pendiente/);
+});

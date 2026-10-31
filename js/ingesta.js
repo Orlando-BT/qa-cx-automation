@@ -348,6 +348,12 @@ function peorCasoDuracionEvaluacionSeg(config) {
  * `reproceso_max_intentos`, la acción es `pasar_a_error` (con `atascada: true`). Si no está atascada
  * (o su `actualizado_en` no se puede leer), `ignorar`.
  *
+ * Filas `pendiente` ANTIGUAS (W1 las guardó pero nadie lanzó la evaluación): mismo tratamiento que
+ * una atascada, con `estadoOrigen = pendiente` en el mensaje, SOLO si su lote se evalúa al ingerir
+ * (`debeEvaluarAlIngerir`, la misma función de W1). Se ignoran las recientes, las de lotes
+ * `calibracion_*` con evaluar_al_ingerir_calibracion = no, las de `calibracion_v1` (siempre) y las
+ * de `actualizado_en` ilegible.
+ *
  * Otros estados: `ignorar`.
  *
  * SUPUESTO: el contrato no define un tipo_error específico para "reproceso agotado"; se usa
@@ -355,17 +361,35 @@ function peorCasoDuracionEvaluacionSeg(config) {
  * otro valor del glosario en `opciones.tipo_error`. Una fila atascada que agota los reenvíos usa
  * `fallo_nodo`.
  */
+/** Lotes congelados que W4 nunca reevalúa por sí solo (se evalúan a mano en la Fase 4). */
+const LOTES_NUNCA_REPROCESAR = ['calibracion_v1'];
+
 function decidirReproceso(fila, config, ahora = new Date(), opciones = {}) {
   const intentos = Number(fila.intentos) || 0;
   const marca = marcaTiempoSistema(ahora, config.zona_horaria);
   let atascada = false;
+  let estadoOrigen = 'en_evaluacion';
 
-  if (fila.estado === 'en_evaluacion') {
+  if (fila.estado === 'en_evaluacion' || fila.estado === 'pendiente') {
+    // Una fila `pendiente` solo es candidata si su lote se evalúa al ingerir (misma función que W1):
+    // si no, está pendiente a propósito (calibración) y W4 no la toca. `calibracion_v1` está
+    // congelado: se evalúa solo a mano en la Fase 4, aunque evaluar_al_ingerir_calibracion = si.
+    if (fila.estado === 'pendiente') {
+      if (LOTES_NUNCA_REPROCESAR.includes(fila.lote)) return { accion: 'ignorar', llave_dedup: fila.llave_dedup, motivo: `el lote ${fila.lote} solo se evalúa a mano` };
+      let seEvalua = false;
+      try {
+        seEvalua = debeEvaluarAlIngerir(fila.lote, config);
+      } catch (e) {
+        return { accion: 'ignorar', llave_dedup: fila.llave_dedup, motivo: 'lote no reconocido' };
+      }
+      if (!seEvalua) return { accion: 'ignorar', llave_dedup: fila.llave_dedup, motivo: 'el lote no se evalúa al ingerir' };
+    }
     const desde = Date.parse(fila.actualizado_en);
     if (Number.isNaN(desde)) return { accion: 'ignorar', llave_dedup: fila.llave_dedup, motivo: 'actualizado_en no se puede leer' };
     const minutos = (ahora.getTime() - desde) / 60000;
     if (!(minutos > config.evaluacion_tiempo_maximo_min)) return { accion: 'ignorar', llave_dedup: fila.llave_dedup };
     atascada = true;
+    estadoOrigen = fila.estado;
   } else if (fila.estado !== 'reproceso') {
     return { accion: 'ignorar', llave_dedup: fila.llave_dedup };
   }
@@ -384,11 +408,11 @@ function decidirReproceso(fila, config, ahora = new Date(), opciones = {}) {
         workflow: 'reproceso',
         nodo: opciones.nodo || 'Decidir reproceso',
         tipo_error: 'fallo_nodo',
-        mensaje_error: `La conversación llevaba más de ${config.evaluacion_tiempo_maximo_min} minutos en en_evaluacion; se pasa a reproceso`,
+        mensaje_error: `La conversación llevaba más de ${config.evaluacion_tiempo_maximo_min} minutos en ${estadoOrigen}; se pasa a reproceso`,
         conversation_id: fila.conversation_id,
         lote: fila.lote,
         tipo_interaccion: fila.tipo_interaccion,
-        detalle: { llave_dedup: fila.llave_dedup, intentos, evaluacion_tiempo_maximo_min: config.evaluacion_tiempo_maximo_min },
+        detalle: { llave_dedup: fila.llave_dedup, intentos, estado_origen: estadoOrigen, evaluacion_tiempo_maximo_min: config.evaluacion_tiempo_maximo_min },
       },
     };
   }
@@ -405,11 +429,11 @@ function decidirReproceso(fila, config, ahora = new Date(), opciones = {}) {
       workflow: 'reproceso',
       nodo: opciones.nodo || 'Decidir reproceso',
       tipo_error: atascada ? 'fallo_nodo' : opciones.tipo_error || 'fallo_api',
-      mensaje_error: `La conversación agotó los reenvíos de reproceso (intentos ${intentos}, máximo ${config.reproceso_max_intentos})${atascada ? ' y estaba atascada en en_evaluacion' : ''}; pasa a error`,
+      mensaje_error: `La conversación agotó los reenvíos de reproceso (intentos ${intentos}, máximo ${config.reproceso_max_intentos})${atascada ? ` y estaba atascada en ${estadoOrigen}` : ''}; pasa a error`,
       conversation_id: fila.conversation_id,
       lote: fila.lote,
       tipo_interaccion: fila.tipo_interaccion,
-      detalle: { llave_dedup: fila.llave_dedup, intentos, reproceso_max_intentos: config.reproceso_max_intentos, atascada },
+      detalle: { llave_dedup: fila.llave_dedup, intentos, reproceso_max_intentos: config.reproceso_max_intentos, atascada, estado_origen: atascada ? estadoOrigen : 'reproceso' },
     },
   };
 }

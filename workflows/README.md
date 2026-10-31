@@ -70,7 +70,7 @@ Si editas un nodo Code o Set en la UI de n8n, la prueba de sincronía falla e in
 - **Telegram:** todos los nodos envían `texto_html` con `parse_mode = HTML`. Sin ese parámetro el nodo 1.2 usa Markdown y los guiones bajos de los IDs se pierden. En `alertas.texto_enviado` se guarda el texto plano.
 - **Code por ítem:** ningún nodo en modo "Run Once for Each Item" contiene `$input.first/last/all/itemMatching`, ni en comentarios: n8n lo rechaza con "Can't use .all() here". El ejecutor de pruebas aplica la misma regla.
 - **Escritura idempotente (W2):** antes de escribir se leen las filas de esa `llave_dedup` en `evaluaciones` y de ese `id_evaluacion` en `detalle_criterios`, y `planificarEscrituraResultados` devuelve solo las que faltan.
-- **Atascadas (W4):** lee las conversaciones en `reproceso` y en `en_evaluacion`. `decidirReproceso` marca como atascadas las de más de `evaluacion_tiempo_maximo_min` minutos y las reenvía.
+- **Atascadas (W4):** "Leer conversaciones por recuperar" trae las filas en `reproceso`, `en_evaluacion` y `pendiente`. `decidirReproceso` marca como atascadas las `en_evaluacion` y las `pendiente` de más de `evaluacion_tiempo_maximo_min` minutos (las `pendiente` solo de lotes que se evalúan al ingerir, nunca `calibracion_v1`) y las reenvía.
 - **No reenvío de alertas de calidad (W2):** "Leer alertas de la conversación" trae las filas de `alertas` de esa conversación y `alertasDeEvaluacion` omite los críticos ya `enviada` (las `fallida` se reintentan). Si la lectura falla, sigue sin filtro (continueRegularOutput): es preferible repetir una alerta a perder la de un crítico.
 - **Alertas de calidad:**
   - Lote `demo`: inmediatas desde W2.

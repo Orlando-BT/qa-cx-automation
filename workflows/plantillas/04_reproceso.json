@@ -102,13 +102,17 @@
             {
               "lookupColumn": "estado",
               "lookupValue": "en_evaluacion"
+            },
+            {
+              "lookupColumn": "estado",
+              "lookupValue": "pendiente"
             }
           ]
         },
         "combineFilters": "OR"
       },
-      "id": "63b4a330-ddfb-44a0-8355-d1a11e1649d1",
-      "name": "Leer conversaciones en reproceso o en evaluación",
+      "id": "9bd23927-b17c-4ac7-8fc3-0d3738b4aec2",
+      "name": "Leer conversaciones por recuperar",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
@@ -798,14 +802,14 @@
       "main": [
         [
           {
-            "node": "Leer conversaciones en reproceso o en evaluación",
+            "node": "Leer conversaciones por recuperar",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Leer conversaciones en reproceso o en evaluación": {
+    "Leer conversaciones por recuperar": {
       "main": [
         [
           {

@@ -1,4 +1,6 @@
 // Valores del generador (W0, paso 3a). Modo "Run Once for Each Item". Fuente: js/construccion_prompt.js.
+// La plantilla (prompts/generador_ce_vN.md, nodo "Plantilla generador", antes en la cadena) dice qué
+// marcadores llenar.
 const item = $input.item.json; // { escenario, cuenta, extras } de completarEscenario
 const config = $('Config cargada').first().json;
 const valores = valoresGenerador({
@@ -10,5 +12,6 @@ const valores = valoresGenerador({
   listas: $('Leer hoja listas').all().map((i) => i.json),
   config,
   tipo_interaccion: item.escenario.tipo_interaccion,
+  plantilla: $('Plantilla generador').first().json.plantilla_generador,
 });
 return { json: { ...item, config, valores_generador: valores, intento_generacion: 0 } };

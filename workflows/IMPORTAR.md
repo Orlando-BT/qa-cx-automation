@@ -73,6 +73,7 @@ Cada workflow (menos "99 Errores" y el mock) trae `settings.errorWorkflow`. Conf
 ### 1.4 Actualizar un workflow ya importado (sin perder los IDs)
 Úsalo cada vez que cambien `js/`, `workflows/pegamento/`, `prompts/` o las plantillas. Reimporta **sobre el workflow existente**: crear uno nuevo daría otro ID y rompería `<ID_WORKFLOW_ERRORES>`, `<ID_WORKFLOW_EVALUACION>` y el error workflow de los demás.
 
+0. **Antes de reimportar esta versión:** en tu hoja `config`, cambia `version_prompt_generador` (fila `ce`) a `generador_ce_v3`. El nodo "Plantilla generador" ahora lleva `prompts/generador_ce_v3.md`; si la hoja sigue en `generador_ce_v2`, `leerPlantilla` (js/construccion_prompt.js) detiene "Construir petición generador" porque la versión de la plantilla no coincide con la de `config`. Si cambian otras claves en `datos/config.csv`, cópialas también a tu hoja.
 1. Desde la raíz del repo, en este orden:
    ```bash
    node workflows/herramientas/construir_plantillas.mjs
@@ -332,16 +333,17 @@ Antes de empezar, anota cuántas filas tiene cada hoja: los resultados esperados
   2. `calidad_solicitada = regular`.
   3. `calidad_solicitada = mala` con `error_critico = critico.no_genera_caso`.
 - Esperado por envío:
-  - `escenarios`: +1 `demo` con modelo, `version_prompt_generador = generador_ce_v2`, tokens, costo y `semilla_sorteo`.
+  - `escenarios`: +1 `demo` con modelo, `version_prompt_generador = generador_ce_v3`, tokens, costo y `semilla_sorteo`.
   - `revision_humana`: +1 `lote = demo` en `pendiente`, con las columnas `h_*` vacías y sin verdad del escenario.
   - `conversaciones`: +1 `evaluada`.
   - `evaluaciones`: +1.
 - En el 3: al menos 1 alerta de calidad en Telegram, si el sistema detecta el crítico.
 - Si una generación no pasa la validación: un reintento; si vuelve a fallar, `log_errores` +1 `generacion_invalida` con alerta, y esa conversación no se guarda.
 - Costo total de las tres dentro del tope de 0.10 USD.
+- El formulario solo acepta en `criterios_que_deben_fallar` subelementos que aplican a la tipificación del tema elegido; si escribes uno que no aplica, lo rechaza (como en el caso 10). Vacío = los sortea JS, también solo entre los aplicables.
 
-**10. Formulario inválido: lote congelado y cantidad máxima**
-- Cómo: formulario con `lote = calibracion_v1`. Después, otro con `cantidad = 6`.
+**10. Formulario inválido: lote congelado, cantidad máxima y criterio que no aplica**
+- Cómo: formulario con `lote = calibracion_v1`. Después, otro con `cantidad = 6`. Opcional: otro con un `tema` y, en `criterios_que_deben_fallar`, un subelemento que no aplica a la tipificación de ese tema.
 - Esperado por envío:
   - La pantalla muestra **"Formulario rechazado"** con los motivos que devuelve `validarFormulario` (qué corregir), antes de llamar a la API.
   - `log_errores`: +1 con `tipo_error = formulario_invalido` (workflow `simulador`) y `alerta_enviada = no`.
@@ -386,12 +388,24 @@ Antes de empezar, anota cuántas filas tiene cada hoja: los resultados esperados
   - La fila pasa a `reproceso` y se reenvía en la misma corrida: termina en `evaluada`.
   - `evaluaciones`: +0. `detalle_criterios`: +0.
   - Alertas de calidad: igual que en la prueba 12, no se reenvían las ya `enviada` (0 en Telegram, +0 filas de calidad en `alertas`).
+
+**14. Pendiente vieja recuperada por W4 (sin costo, con el mock)**
+- Requisito: el mismo de la prueba 12.
+- Cómo:
+  1. En la fila de `CONV-9005`, pon `estado = pendiente` y un `actualizado_en` de hace más de 90 minutos (`evaluacion_tiempo_maximo_min`), por ejemplo `2026-10-24T08:00:00-06:00`. Así queda una conversación `demo` que W2 no alcanzó a tomar.
+  2. Si hiciste el caso 11, deja la fila `CONV-0101` de `calibracion_v1` en `pendiente` (puede tener cualquier `actualizado_en`).
+  3. Ejecuta "04 Reproceso" a mano.
+- Esperado:
+  - `log_errores`: +1 `fallo_nodo` (workflow `reproceso`) con `alerta_enviada = no`, solo para `CONV-9005`.
+  - `CONV-9005` pasa a `reproceso` y se reenvía en la misma corrida: termina en `evaluada`.
+  - `evaluaciones`: +0. `detalle_criterios`: +0. Alertas de calidad: no se reenvían las ya `enviada`.
+  - `CONV-0101` (y cualquier otra de `calibracion_v1`) **sigue en `pendiente`**, sin cambios ni registro: W4 nunca toma `calibracion_v1`.
 - Después: restaura la URL de OpenAI en "02 Evaluación" y desactiva el mock.
 
 **Prueba de punta a punta:**
 - El caso 2 recorre Ingesta > Evaluación > hojas y Telegram.
 - El caso 9 recorre Simulador > Ingesta > Evaluación.
-- Los casos 7a, 7b, 12 y 13 recorren la cola de reproceso.
+- Los casos 7a, 7b, 12, 13 y 14 recorren la cola de reproceso.
 - El caso 11 confirma que una conversación del lote de calibración entra y queda en espera, sin gastar en evaluación antes de tu calificación.
 
 ### Qué reportar (solo totales)
@@ -405,13 +419,15 @@ Antes de empezar, anota cuántas filas tiene cada hoja: los resultados esperados
 
 - **Schedule de W4 fijo en 30 minutos:** un Schedule Trigger no puede leer la hoja. Si cambias `reproceso_intervalo_min`, cambia también el nodo "Programado (reproceso_intervalo_min)".
 - **Cuota de Google Sheets:**
-  - Cada evaluación lee 8 hojas o filtros y escribe de 4 a 6 veces.
+  - Cada evaluación lee 9 hojas o filtros (incluida `alertas` de la conversación) y escribe de 4 a 6 veces.
+  - Cada corrida de "04 Reproceso" lee todas las filas en `reproceso`, `en_evaluacion` y `pendiente`, incluidas las 24 de `calibracion_v1` (que ignora). Es una sola lectura por corrida, cada 30 minutos: el número de llamadas no crece, solo el tamaño de la respuesta.
   - En `demo` no es problema. En un lote completo (24 seguidas) podría acercarse al límite de lecturas por minuto de la API de Google.
   - Los nodos de Sheets reintentan 3 veces con 3 s de espera.
   - Si en la Fase 4 aparece un error de cuota, la mitigación es pasar los datos de referencia desde el workflow que llama.
 - **El mock requiere cambiar la URL en W2:** las pruebas 8, 12 y 13 exigen cambiar a mano la URL del nodo "OpenAI: evaluar conversación" y restaurarla después. No exportes ese cambio.
 - **Plantilla del evaluador fija en v1:** el nodo "Plantilla evaluador" lleva `prompts/evaluador_ce_v1.md`. Para evaluar con v2 en la Fase 4 hay que cambiar esa ruta en `construir_plantillas.mjs`, reensamblar y reimportar, además de cambiar `config.version_prompt`. Si no coinciden, `leerPlantilla` detiene el nodo.
 - **Costo de generación solo del último intento:** si una generación se reintentó, `escenarios` guarda los tokens y el costo del intento que se quedó. El descartado no se suma. Sin tokens o con precios `por_verificar`, la celda queda vacía (`calcularCostoGeneracion` devuelve null).
+- **Semillas guardadas antes del cambio de criterios aplicables:** desde que el sorteo solo elige criterios que aplican a la tipificación, una `semilla_sorteo` guardada antes en `escenarios` puede no reproducir el mismo escenario.
 - **Reproducir un escenario exige el mismo "ahora":** la misma `semilla_sorteo` repite calidad, tema, cuenta y fallas, pero la fecha de inicio se sortea relativa a la hora del envío (`simulador_dias_atras`). Para reproducir todo hay que usar la misma hora de referencia.
 - **Supuestos de nombres en el Form Trigger y en Set:**
   - El formulario usa la versión 2.2: las claves del JSON son las etiquetas de los campos, que se llaman igual que los campos del contrato (`calidad_solicitada`, etc.).
@@ -427,7 +443,8 @@ Antes de empezar, anota cuántas filas tiene cada hoja: los resultados esperados
     - "04 Reproceso": no cambia nada en las hojas cuando falla en su primera lectura. La siguiente corrida programada (cada 30 min) vuelve a intentar sola cuando hay conexión.
     - Una conversación que "02 Evaluación" ya había pasado a `en_evaluacion` y se quedó ahí: W4 la toma como atascada cuando pasan más de `evaluacion_tiempo_maximo_min` (90 min) y la reenvía (prueba 13).
     - Una conversación en `reproceso`: W4 la reenvía en su siguiente corrida.
-    - **No se recupera sola** una conversación que quedó en `pendiente`, porque W2 falló antes de marcarla `en_evaluacion` (en "Leer conversación" o en las lecturas de referencia). W4 solo lee `reproceso` y `en_evaluacion`. Para recuperarla: en `conversaciones`, cambia su `estado` a `reproceso` y ejecuta "04 Reproceso".
+    - Una conversación que quedó en `pendiente` porque W2 falló antes de marcarla `en_evaluacion` (en "Leer conversación" o en las lecturas de referencia): si su lote se evalúa al ingerir (`demo`), W4 la pasa a `reproceso` y la reenvía cuando su `actualizado_en` tiene más de 90 minutos (prueba 14).
+    - **No se recuperan solas** las `pendiente` de lotes que no se evalúan al ingerir ni las de `calibracion_v1`: están pendientes a propósito y se evalúan con el disparador manual de W1 (Fase 4).
     - Un payload que "01 Ingesta" no alcanzó a guardar: recupéralo desde Executions (siguiente punto).
 - **Escrituras de W1 sin salida de error propia:** "Insertar conversación", "Reactivar conversación" y "Crear filas de la versión" reintentan 3 veces. Si Sheets sigue fallando, la ejecución se detiene y "99 Errores" registra y alerta, pero el webhook ya había dado el acuse: la conversación no quedó guardada. Para recuperarla:
   1. En n8n, abre **Executions** y filtra por "01 Ingesta" con estado **Error**.

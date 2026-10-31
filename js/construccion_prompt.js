@@ -112,9 +112,24 @@ function formatearCatalogo(catalogoTemas, tipoInteraccion) {
   return lineas.join('\n');
 }
 
-// Base de conocimiento completa (D3). Una celda vacía se muestra como
-// "(sin información)" para que el modelo no confunda "no hay casos de
-// escalamiento" con "no me dieron esa parte".
+// Un artículo de la base, con el mismo formato que usa el evaluador. Una celda
+// vacía se muestra como "(sin información)" para que el modelo no confunda "no
+// hay casos de escalamiento" con "no me dieron esa parte". Lo usan
+// formatearBaseConocimiento() (evaluador y generador) y articuloDelTema()
+// (generador v3), así el artículo del tema se ve igual que en la base completa.
+function formatearArticulo(a) {
+  const celda = (v) => (v === undefined || v === null || String(v).trim() === '' ? '(sin información)' : String(v).trim());
+  return [
+    `## ${a.id_articulo} | ${celda(a.titulo)}`,
+    `Tema: ${celda(a.tema)}`,
+    `Contenido: ${celda(a.contenido)}`,
+    `Plazos: ${celda(a.plazos)}`,
+    `Casos de escalamiento: ${celda(a.casos_escalamiento)}`,
+    `Promociones autorizadas: ${celda(a.promociones_autorizadas)}`,
+  ].join('\n');
+}
+
+// Base de conocimiento completa (D3), ordenada por id_articulo.
 function formatearBaseConocimiento(baseConocimiento, tipoInteraccion) {
   const filas = filtrarPorTipo(baseConocimiento, tipoInteraccion)
     .slice()
@@ -122,19 +137,7 @@ function formatearBaseConocimiento(baseConocimiento, tipoInteraccion) {
   if (filas.length === 0) {
     throw new Error(`No hay artículos en base_conocimiento para tipo_interaccion ${tipoInteraccion}.`);
   }
-  const celda = (v) => (v === undefined || v === null || String(v).trim() === '' ? '(sin información)' : String(v).trim());
-  return filas
-    .map((a) =>
-      [
-        `## ${a.id_articulo} | ${celda(a.titulo)}`,
-        `Tema: ${celda(a.tema)}`,
-        `Contenido: ${celda(a.contenido)}`,
-        `Plazos: ${celda(a.plazos)}`,
-        `Casos de escalamiento: ${celda(a.casos_escalamiento)}`,
-        `Promociones autorizadas: ${celda(a.promociones_autorizadas)}`,
-      ].join('\n')
-    )
-    .join('\n\n');
+  return filas.map(formatearArticulo).join('\n\n');
 }
 
 // -----------------------------------------------------------------------------
@@ -418,10 +421,12 @@ function agregarReintento(cuerpo, textoRespuestaAnterior, mensajeErrores) {
 //   anthropic-version: config.anthropic_version_api (2026-10-21; ver api/versioning.md)
 //   content-type: application/json
 //
-// La versión del prompt sale de config.version_prompt_generador (generador_ce_v2
-// desde el 24-oct-2026; generador_ce_v1 sigue funcionando si config apunta a
-// ella). leerPlantilla() detiene el nodo si el texto pegado no es de esa versión.
-// Solo se envían los bloques INSTRUCCIONES (system) y ENTRADA (único mensaje user).
+// La versión del prompt sale de config.version_prompt_generador (generador_ce_v3
+// desde el 30-oct-2026; generador_ce_v1 y generador_ce_v2 siguen funcionando si
+// config apunta a ellas). leerPlantilla() detiene el nodo si el texto pegado no
+// es de esa versión. Solo se envían los bloques INSTRUCCIONES (system) y ENTRADA
+// (único mensaje user). El bloque GUIA_FALLAS de v3 NO se envía completo:
+// guiaFallas() copia solo las líneas de los criterios pedidos.
 
 // Valores de output_config.effort que documenta la Messages API (OutputConfig).
 const ESFUERZOS_GENERADOR = ['low', 'medium', 'high', 'xhigh', 'max'];
@@ -430,7 +435,7 @@ const ESFUERZOS_GENERADOR = ['low', 'medium', 'high', 'xhigh', 'max'];
 //   plantilla, // texto completo de prompts/generador_ce_vN.md (N según config)
 //   esquema,   // prompts/generador_payload_salida.schema.json (objeto)
 //   valores,   // { CONVERSATION_ID: ..., CUENTA: ..., ... } todos los marcadores <<...>>
-//              // de la plantilla (13 en v1; 15 en v2, ver valoresExtrasGenerador)
+//              // de la plantilla (13 en v1, 15 en v2, 17 en v3; ver valoresGenerador)
 //   config,    // claves ya resueltas para el tipo (modelo_generador,
 //              // version_prompt_generador, max_tokens_generador, esfuerzo_generador)
 // }
@@ -497,10 +502,10 @@ function valoresExtrasGenerador(extras, tipificacionEsperada) {
   };
 }
 
-// Valores de TODOS los marcadores del prompt del generador (13 de v1 + 2 de v2),
-// con los formatos de la tabla "Marcadores que llena W0" de
-// prompts/generador_ce_v2.md. Entrada: la salida de completarEscenario
-// (js/simulador.js, reglas-js) más las hojas de referencia.
+// Valores de los marcadores del prompt del generador, con los formatos de la
+// tabla "Marcadores que llena W0" de prompts/generador_ce_v3.md. Entrada: la
+// salida de completarEscenario (js/simulador.js, reglas-js), las hojas de
+// referencia y el texto de la plantilla.
 //   escenario  { conversation_id, calidad_esperada, tema_esperado, tipificacion_esperada,
 //                errores_criticos_inyectados[], criterios_que_deben_fallar[], casos_dificiles[] }
 //   extras     { fecha_hora_inicio, tipificacion_agente_prevista|null, variante_datos_coinciden_sin_critico }
@@ -508,8 +513,18 @@ function valoresExtrasGenerador(extras, tipificacionEsperada) {
 //   catalogo_temas, base_conocimiento, listas: filas de las hojas
 //   config     claves ya resueltas (JS-1: listas como arreglo, booleanos true/false)
 //   tipo_interaccion  "ce"
+//   plantilla  texto completo de prompts/generador_ce_vN.md (el mismo que recibe
+//              construirPeticionGenerador)
 // Listas vacías -> "ninguno". Un dato obligatorio que falta -> error explícito
 // (mejor detener W0 que mandar un prompt incompleto al modelo).
+//
+// Cómo se adapta a la versión (v1, v2 o v3): por los MARCADORES PRESENTES en el
+// bloque ENTRADA de la plantilla. valoresGenerador lee ese bloque, encuentra los
+// <<NOMBRE>> que contiene y calcula solo esos (13 en v1, 15 en v2, 17 en v3).
+// Así no hay una tabla "versión -> marcadores" que mantener a mano: la plantilla
+// pegada en n8n es la única fuente. Un marcador que JS no conoce detiene W0.
+// Cada valor se calcula solo si su marcador está en la plantilla: v1 no exige
+// los extras de v2 ni el artículo del tema de v3.
 const CAMPOS_CUENTA_GENERADOR = ['cuenta_id', 'titular', 'razon_social', 'rfc', 'correo', 'telefono', 'giro', 'tamano'];
 const TIPOS_LISTA_GENERADOR = ['frase_criterio', 'termino_prohibido', 'frase_negativa', 'vicio_lenguaje', 'palabra_altisonante'];
 const CLAVES_CONFIG_GENERADOR = [
@@ -518,6 +533,17 @@ const CLAVES_CONFIG_GENERADOR = [
   'apertura_mensajes_agente', 'apertura_privacidad_mensajes_agente', 'cierre_mensajes_agente', 'identidad_min_datos_correctos',
   'campana_vigente_activa', 'canales_oficiales_correos', 'canales_oficiales_telefonos', 'rfc_genericos_permitidos',
   'enmascarado_correo_visibles_inicio', 'enmascarado_telefono_visibles_final', 'enmascarado_rfc_visibles_final',
+  // Desde generador_ce_v3 (30-oct-2026): umbrales que nombra la guía de fallas.
+  'mayusculas_min_palabras_consecutivas', 'mayusculas_min_longitud_palabra', 'ortografia_umbral_graves',
+  'ortografia_umbral_menores', 'signos_apertura_max_omisiones',
+];
+// Todos los marcadores que sabe llenar valoresGenerador (13 de v1 + 2 de v2 + 2 de v3).
+const MARCADORES_GENERADOR = [
+  'CONVERSATION_ID', 'CUENTA', 'FECHA_HORA_INICIO', 'TEMA_ESPERADO', 'TIPIFICACION_ESPERADA', 'CALIDAD_ESPERADA',
+  'ERRORES_CRITICOS_INYECTADOS', 'CRITERIOS_QUE_DEBEN_FALLAR', 'CASOS_DIFICILES', 'CATALOGO_TEMAS', 'BASE_CONOCIMIENTO',
+  'FRASES_REFERENCIA', 'PARAMETROS_CONFIG',
+  'TIPIFICACION_AGENTE', 'VARIANTE_IDENTIDAD',
+  'ARTICULO_DEL_TEMA', 'GUIA_FALLAS',
 ];
 const CALIDADES_GENERADOR = ['buena', 'regular', 'mala'];
 
@@ -560,37 +586,124 @@ function formatearFrasesReferencia(listas, tipoInteraccion) {
   return [...porClave].map(([clave, valores]) => `${clave}: ${valores.join(' | ')}`).join('\n');
 }
 
-function valoresGenerador({ escenario, extras, cuenta, catalogo_temas, base_conocimiento, listas, config, tipo_interaccion } = {}) {
+// ARTICULO_DEL_TEMA (generador v3): el artículo de base_conocimiento que
+// corresponde a la tipificación ESPERADA (no a la del agente: con
+// critico.tipificacion_incorrecta la conversación sigue tratando la situación
+// esperada). Une las dos hojas por id_articulo de catalogo_temas.
+// sheets.md garantiza que tipificacion_valida es única dentro de tipo ∪ todos,
+// así que la fila es una sola. Detiene W0 con un error explícito si:
+//   - no hay exactamente 1 fila activa (tipo ∪ todos) con esa tipificación;
+//   - el tema de esa fila no es temaEsperado;
+//   - la fila no tiene id_articulo;
+//   - no hay exactamente 1 artículo con ese id en base_conocimiento (tipo ∪ todos).
+// No hay respaldo "(sin artículo)": sin artículo volvería la falla que v3 corrige.
+function articuloDelTema(catalogoTemas, baseConocimiento, tipificacionEsperada, temaEsperado, tipoInteraccion) {
+  const tipificacion = textoObligatorio(tipificacionEsperada, 'la tipificación esperada');
+  const tema = textoObligatorio(temaEsperado, 'el tema esperado');
+  const tipo = textoObligatorio(tipoInteraccion, 'tipo_interaccion');
+  const filas = filtrarPorTipo(catalogoTemas, tipo)
+    .filter(esActivo)
+    .filter((f) => String(f.tipificacion_valida ?? '').trim() === tipificacion);
+  if (filas.length !== 1) {
+    throw new Error(
+      `catalogo_temas debe tener exactamente 1 fila activa (${tipo} o todos) con tipificacion_valida "${tipificacion}" y tiene ${filas.length}: no se puede elegir el artículo del tema.`
+    );
+  }
+  const fila = filas[0];
+  if (String(fila.tema ?? '').trim() !== tema) {
+    throw new Error(`La tipificación "${tipificacion}" pertenece al tema "${fila.tema}" en catalogo_temas, no a "${tema}" (tema esperado del escenario).`);
+  }
+  const id = String(fila.id_articulo ?? '').trim();
+  if (id === '') throw new Error(`La fila de catalogo_temas de "${tipificacion}" no tiene id_articulo: no se puede elegir el artículo del tema.`);
+  const articulos = filtrarPorTipo(baseConocimiento, tipo).filter((a) => String(a.id_articulo ?? '').trim() === id);
+  if (articulos.length !== 1) {
+    throw new Error(`base_conocimiento debe tener exactamente 1 artículo ${id} (${tipo} o todos) y tiene ${articulos.length}: no se puede armar el artículo del tema de "${tipificacion}".`);
+  }
+  return formatearArticulo(articulos[0]);
+}
+
+// GUIA_FALLAS (generador v3): de la guía completa que vive en la plantilla
+// (bloque <!-- INICIO_GUIA_FALLAS --> ... <!-- FIN_GUIA_FALLAS -->, que NO se
+// envía), copia solo las líneas de los criterios pedidos, en el orden pedido.
+//   - Una línea de la guía tiene la forma "- seccion.subelemento: texto". Las
+//     líneas que no empiezan con "- " son títulos y se ignoran; una que empieza
+//     con "- " pero no tiene esa forma, o un criterio repetido, detiene W0.
+//   - Sin criterios -> 'ninguno'.
+//   - Un criterio pedido sin línea en la guía -> error (mejor detener W0 que
+//     pedir una falla sin instrucciones).
+// criterios: arreglo (de completarEscenario) o texto "a|b".
+function guiaFallas(plantilla, criterios) {
+  if (typeof plantilla !== 'string' || plantilla.trim() === '') throw new Error('Falta la plantilla del generador para leer la guía de fallas.');
+  const bloque = extraerBloque(plantilla.replace(/\r\n/g, '\n'), 'GUIA_FALLAS');
+  const lineas = new Map();
+  for (const cruda of bloque.split('\n')) {
+    const linea = cruda.trim();
+    if (!linea.startsWith('- ')) continue;
+    const m = linea.match(/^- ([a-z_]+\.[a-z_]+): \S/);
+    if (!m) throw new Error(`La guía de fallas tiene una línea mal formada (se espera "- seccion.subelemento: ..."): "${linea.slice(0, 80)}".`);
+    if (lineas.has(m[1])) throw new Error(`La guía de fallas tiene dos líneas para ${m[1]}.`);
+    lineas.set(m[1], linea);
+  }
+  const pedidos = [...new Set(leerListaConfig(criterios))];
+  if (pedidos.length === 0) return 'ninguno';
+  const faltan = pedidos.filter((c) => !lineas.has(c));
+  if (faltan.length) {
+    throw new Error(`La guía de fallas de la plantilla no tiene línea para: ${faltan.join(', ')}. Agrega la línea en el bloque GUIA_FALLAS del prompt o quita el criterio del escenario.`);
+  }
+  return pedidos.map((c) => lineas.get(c)).join('\n');
+}
+
+// Marcadores <<NOMBRE>> del bloque ENTRADA de una plantilla, sin repetir, en orden de aparición.
+function marcadoresDePlantilla(plantilla) {
+  const { plantilla_entrada } = leerPlantilla(plantilla);
+  return [...new Set((plantilla_entrada.match(/<<[A-Z_]+>>/g) || []).map((m) => m.slice(2, -2)))];
+}
+
+function valoresGenerador({ escenario, extras, cuenta, catalogo_temas, base_conocimiento, listas, config, tipo_interaccion, plantilla } = {}) {
   if (!escenario || typeof escenario !== 'object') throw new Error('Falta el escenario (completarEscenario).');
   if (!cuenta || typeof cuenta !== 'object') throw new Error('Falta la cuenta elegida.');
   if (!config || typeof config !== 'object') throw new Error('Falta config.');
+  if (typeof plantilla !== 'string' || plantilla.trim() === '') {
+    throw new Error('Falta la plantilla del generador (texto completo de prompts/generador_ce_vN.md): valoresGenerador la necesita para saber qué marcadores llenar.');
+  }
   const tipo = textoObligatorio(tipo_interaccion, 'tipo_interaccion');
   const calidad = textoObligatorio(escenario.calidad_esperada, 'escenario.calidad_esperada');
   if (!CALIDADES_GENERADOR.includes(calidad)) throw new Error(`escenario.calidad_esperada debe ser buena, regular o mala (ya resuelta) y vale ${JSON.stringify(calidad)}.`);
   const tipificacionEsperada = textoObligatorio(escenario.tipificacion_esperada, 'escenario.tipificacion_esperada');
 
-  const lineasCuenta = CAMPOS_CUENTA_GENERADOR.map((c) => `${c}: ${textoObligatorio(cuenta[c], `cuenta.${c}`)}`);
-  const lineasConfig = CLAVES_CONFIG_GENERADOR.map((c) => {
-    if (config[c] === undefined || config[c] === null) throw new Error(`Falta config.${c} para el prompt del generador.`);
-    return `${c}: ${valorConfigTexto(config[c])}`;
-  });
+  const marcadores = marcadoresDePlantilla(plantilla);
+  const desconocidos = marcadores.filter((m) => !MARCADORES_GENERADOR.includes(m));
+  if (desconocidos.length) {
+    throw new Error(`La plantilla del generador tiene marcadores que valoresGenerador no sabe llenar: ${desconocidos.map((m) => `<<${m}>>`).join(', ')}.`);
+  }
 
-  return {
-    CONVERSATION_ID: textoObligatorio(escenario.conversation_id, 'escenario.conversation_id'),
-    CUENTA: lineasCuenta.join('\n'),
-    FECHA_HORA_INICIO: textoObligatorio(extras && extras.fecha_hora_inicio, 'extras.fecha_hora_inicio'),
-    TEMA_ESPERADO: textoObligatorio(escenario.tema_esperado, 'escenario.tema_esperado'),
-    TIPIFICACION_ESPERADA: tipificacionEsperada,
-    CALIDAD_ESPERADA: calidad,
-    ERRORES_CRITICOS_INYECTADOS: listaOninguno(escenario.errores_criticos_inyectados),
-    CRITERIOS_QUE_DEBEN_FALLAR: listaOninguno(escenario.criterios_que_deben_fallar),
-    CASOS_DIFICILES: listaOninguno(escenario.casos_dificiles),
-    CATALOGO_TEMAS: formatearCatalogoGenerador(catalogo_temas, tipo),
-    BASE_CONOCIMIENTO: formatearBaseConocimiento(base_conocimiento, tipo),
-    FRASES_REFERENCIA: formatearFrasesReferencia(listas, tipo),
-    PARAMETROS_CONFIG: lineasConfig.join('\n'),
-    ...valoresExtrasGenerador(extras, tipificacionEsperada),
+  // Un cálculo por marcador; solo se ejecutan los de la plantilla.
+  let extrasCalculados = null;
+  const extrasV2 = () => (extrasCalculados = extrasCalculados || valoresExtrasGenerador(extras, tipificacionEsperada));
+  const calculos = {
+    CONVERSATION_ID: () => textoObligatorio(escenario.conversation_id, 'escenario.conversation_id'),
+    CUENTA: () => CAMPOS_CUENTA_GENERADOR.map((c) => `${c}: ${textoObligatorio(cuenta[c], `cuenta.${c}`)}`).join('\n'),
+    FECHA_HORA_INICIO: () => textoObligatorio(extras && extras.fecha_hora_inicio, 'extras.fecha_hora_inicio'),
+    TEMA_ESPERADO: () => textoObligatorio(escenario.tema_esperado, 'escenario.tema_esperado'),
+    TIPIFICACION_ESPERADA: () => tipificacionEsperada,
+    CALIDAD_ESPERADA: () => calidad,
+    ERRORES_CRITICOS_INYECTADOS: () => listaOninguno(escenario.errores_criticos_inyectados),
+    CRITERIOS_QUE_DEBEN_FALLAR: () => listaOninguno(escenario.criterios_que_deben_fallar),
+    CASOS_DIFICILES: () => listaOninguno(escenario.casos_dificiles),
+    CATALOGO_TEMAS: () => formatearCatalogoGenerador(catalogo_temas, tipo),
+    BASE_CONOCIMIENTO: () => formatearBaseConocimiento(base_conocimiento, tipo),
+    FRASES_REFERENCIA: () => formatearFrasesReferencia(listas, tipo),
+    PARAMETROS_CONFIG: () =>
+      CLAVES_CONFIG_GENERADOR.map((c) => {
+        if (config[c] === undefined || config[c] === null) throw new Error(`Falta config.${c} para el prompt del generador.`);
+        return `${c}: ${valorConfigTexto(config[c])}`;
+      }).join('\n'),
+    TIPIFICACION_AGENTE: () => extrasV2().TIPIFICACION_AGENTE,
+    VARIANTE_IDENTIDAD: () => extrasV2().VARIANTE_IDENTIDAD,
+    ARTICULO_DEL_TEMA: () => articuloDelTema(catalogo_temas, base_conocimiento, tipificacionEsperada, escenario.tema_esperado, tipo),
+    GUIA_FALLAS: () => guiaFallas(plantilla, escenario.criterios_que_deben_fallar),
   };
+  return Object.fromEntries(marcadores.map((m) => [m, calculos[m]()]));
 }
 
 // Etiqueta corta de la API (minúsculas, dígitos y guion bajo). Cualquier otra
@@ -709,6 +822,7 @@ const exportados = {
   leerPlantilla,
   filtrarPorTipo,
   formatearCatalogo,
+  formatearArticulo,
   formatearBaseConocimiento,
   formatearConversacion,
   llenarPlantillaEntrada,
@@ -724,6 +838,11 @@ const exportados = {
   valoresExtrasGenerador,
   formatearCatalogoGenerador,
   formatearFrasesReferencia,
+  articuloDelTema,
+  guiaFallas,
+  marcadoresDePlantilla,
+  MARCADORES_GENERADOR,
+  CLAVES_CONFIG_GENERADOR,
   valoresGenerador,
   leerRespuestaGenerador,
 };
@@ -784,7 +903,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = exportados
 // BLOQUE PARA LOS NODOS CODE DEL WORKFLOW 0 (Simulador) — generador
 // -----------------------------------------------------------------------------
 // Se pegan las funciones de este archivo (igual que arriba). La plantilla
-// prompts/generador_ce_v2.md (la de config.version_prompt_generador) va en un nodo Set "Plantilla generador" (campo
+// prompts/generador_ce_v3.md (la de config.version_prompt_generador) va en un nodo Set "Plantilla generador" (campo
 // plantilla_generador, modo FIJO) y el esquema
 // prompts/generador_payload_salida.schema.json en un nodo Set "Esquema
 // generador" (campo JSON esquema_generador). Los nombres de nodos y de campos
@@ -803,11 +922,12 @@ if (typeof module !== 'undefined' && module.exports) module.exports = exportados
 //   listas: $('Leer hoja listas').all().map((i) => i.json),
 //   config: item.config,
 //   tipo_interaccion: item.escenario.tipo_interaccion,
+//   plantilla: $('Plantilla generador').first().json.plantilla_generador, // decide qué marcadores llenar (v1, v2 o v3)
 // });
 // const cuerpo = construirPeticionGenerador({
 //   plantilla: $('Plantilla generador').first().json.plantilla_generador,
 //   esquema: $('Esquema generador').first().json.esquema_generador,
-//   valores,                          // los 15 marcadores de generador_ce_v2
+//   valores,                          // los marcadores de la plantilla (17 en generador_ce_v3)
 //   config: item.config,              // modelo_generador, version_prompt_generador, max_tokens_generador, esfuerzo_generador
 // });
 // // Encabezados del HTTP Request: x-api-key (credencial de n8n) y

@@ -175,7 +175,9 @@ test('construirPeticionGenerador con las filas reales de datos/config.csv', () =
   const config = configCE();
   // La plantilla es la de config.version_prompt_generador (v2 desde el 24-oct-2026).
   const plantilla = fs.readFileSync(path.join(RAIZ, 'prompts', `${config.version_prompt_generador}.md`), 'utf8');
-  const c = peticionGen({ config, plantilla, valores: VALORES_V2 });
+  // Valores ficticios para los marcadores que tenga esa versión (15 en v2, 17 en v3).
+  const valores = Object.fromEntries(js4.marcadoresDePlantilla(plantilla).map((m) => [m, `valor de ${m}`]));
+  const c = peticionGen({ config, plantilla, valores });
   assert.equal(c.model, 'claude-haiku-5-5');
   assert.strictEqual(c.max_tokens, 8000);
   assert.equal(c.output_config.effort, 'medium'); // esfuerzo_generador (ce)
@@ -407,18 +409,21 @@ const datosValores = (extra = {}) => ({
   listas: DATOS.listas,
   config: configCE(),
   tipo_interaccion: 'ce',
+  plantilla: PLANTILLA_V2, // valoresGenerador llena los marcadores de esta plantilla (15 en v2)
   ...extra,
 });
 
-test('valoresGenerador devuelve exactamente los 15 marcadores de v2 y la plantilla llenada no deja <<', () => {
+test('valoresGenerador con la plantilla v2 devuelve exactamente sus 15 marcadores y la plantilla llenada no deja <<', () => {
   const v = js4.valoresGenerador(datosValores());
   assert.deepEqual(Object.keys(v).sort(), [...MARCADORES_V2].sort());
   for (const [k, x] of Object.entries(v)) assert.ok(typeof x === 'string' && x.trim() !== '', `${k} vacío`);
   const config = { ...configCE(), version_prompt_generador: 'generador_ce_v2' };
   const c = peticionGen({ plantilla: PLANTILLA_V2, valores: v, config });
   assert.doesNotMatch(c.messages[0].content, /<<|>>/);
-  // También llena v1 (con sus 13 marcadores).
-  const v1 = Object.fromEntries(MARCADORES.map((m) => [m, v[m]]));
+  // Con la plantilla v1 devuelve sus 13 marcadores, con los mismos valores.
+  const v1 = js4.valoresGenerador(datosValores({ plantilla: PLANTILLA }));
+  assert.deepEqual(Object.keys(v1).sort(), [...MARCADORES].sort());
+  for (const m of MARCADORES) assert.equal(v1[m], v[m], m);
   assert.doesNotMatch(peticionGen({ valores: v1 }).messages[0].content, /<<|>>/);
 });
 
@@ -448,9 +453,10 @@ test('valoresGenerador: formatos de la tabla de marcadores', () => {
   if (sigla) assert.ok(!fr.some((l) => l.startsWith(`${sigla.clave_lista}: `)), 'sigla_permitida no va al generador');
   const regex = DATOS.listas.find((f) => f.es_regex === 'si' && f.activo === 'si' && f.tipo_interaccion !== 'sales');
   if (regex) assert.ok(v.FRASES_REFERENCIA.includes(`${regex.valor} (regex)`));
-  // Config: 19 claves, booleanos como si/no y listas con ", ".
+  // Config: 24 claves (19 + 5 de v3), booleanos como si/no y listas con ", ".
   const pc = v.PARAMETROS_CONFIG.split('\n');
-  assert.equal(pc.length, 19);
+  assert.equal(pc.length, 24);
+  assert.deepEqual(pc.map((l) => l.split(': ')[0]), js4.CLAVES_CONFIG_GENERADOR);
   assert.match(v.PARAMETROS_CONFIG, /^marca: Contamix$/m);
   assert.match(v.PARAMETROS_CONFIG, /^campana_vigente_activa: (si|no)$/m);
   assert.match(v.PARAMETROS_CONFIG, /^rfc_genericos_permitidos: XAXX010101000, XEXX010101000$/m);
@@ -488,4 +494,9 @@ test('valoresGenerador: listas con valores y errores explícitos por datos falta
   assert.throws(() => js4.valoresGenerador(datosValores({ extras: { ...EXTRAS_EJEMPLO, fecha_hora_inicio: '' } })), /fecha_hora_inicio/);
   assert.throws(() => js4.valoresGenerador(datosValores({ listas: [] })), /frases activas/);
   assert.throws(() => js4.valoresGenerador(datosValores({ escenario: undefined })), /escenario/);
+  assert.throws(() => js4.valoresGenerador(datosValores({ plantilla: undefined })), /Falta la plantilla del generador/);
+  assert.throws(
+    () => js4.valoresGenerador(datosValores({ plantilla: PLANTILLA_V2.replace('<!-- FIN_ENTRADA -->', '<<OTRO_MARCADOR>>\n<!-- FIN_ENTRADA -->') })),
+    /no sabe llenar: <<OTRO_MARCADOR>>/
+  );
 });

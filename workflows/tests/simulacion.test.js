@@ -490,7 +490,10 @@ test('W0: formulario -> escenario -> petición a Claude -> filas y POST sin la v
   const [plan] = await e.correr('Completar escenario', [{}]);
   assert.equal(plan.valido, true, JSON.stringify(plan.errores));
   const [vg] = await e.correr('Valores del generador', plan.escenarios);
-  assert.equal(Object.keys(vg.valores_generador).length, 15);
+  // Un valor por marcador de la plantilla de config (hoy prompts/generador_ce_v3.md).
+  const { marcadoresDePlantilla } = require('../../js/construccion_prompt');
+  const plantillaGen = e.valorSet('Plantilla generador').plantilla_generador;
+  assert.deepEqual(Object.keys(vg.valores_generador).sort(), [...new Set(marcadoresDePlantilla(plantillaGen))].sort());
   const [cp] = await e.correr('Construir petición generador', [vg]);
   assert.equal(cp.peticion_claude.model, CONFIG_CE.modelo_generador);
   e.fijar('Preparar llamada Claude', [cp]);
@@ -628,6 +631,27 @@ test('W4: decisiones, actualizaciones y registro', async () => {
   const { fila: logA } = await cadenaErrores(w4, wf, atascada);
   assert.equal(logA.tipo_error, 'fallo_nodo');
   assert.equal(logA.alerta_enviada, 'no');
+  // Pendiente vieja: la lectura trae también estado = pendiente (filtros con OR).
+  const lectura = wf.nodes.find((n) => n.name === 'Leer conversaciones por recuperar');
+  assert.equal(lectura.parameters.combineFilters, 'OR');
+  assert.deepEqual(lectura.parameters.filtersUI.values.map((f) => f.lookupValue).sort(), ['en_evaluacion', 'pendiente', 'reproceso']);
+  // Demo (se evalúa al ingerir): pasa a reproceso, se registra fallo_nodo sin alerta y se reenvía.
+  const [pendDemo] = await w4.correr('Decidir reproceso', [{ ...fila, estado: 'pendiente', intentos: 0, actualizado_en: vieja }]);
+  assert.equal(pendDemo.accion, 'marcar_atascada');
+  assert.equal(pendDemo.actualizacion.estado, 'reproceso');
+  const actP = w4.correrSetJson('Actualización a reproceso (atascada)', [pendDemo]);
+  await verEscritura(w4, wf, 'Pasar atascada a reproceso', 'Actualización a reproceso (atascada)', actP);
+  assert.deepEqual(wf.connections['Pasar atascada a reproceso'].main[0].map((d) => d.node), ['Datos para evaluación'], 'se reenvía en la misma corrida');
+  const [datosP] = w4.correrSetJson('Datos para evaluación', [pendDemo]);
+  assert.deepEqual(datosP, { llave_dedup: pendDemo.llave_dedup });
+  const { fila: logP } = await cadenaErrores(w4, wf, pendDemo);
+  assert.equal(logP.tipo_error, 'fallo_nodo');
+  assert.equal(logP.alerta_enviada, 'no');
+  // calibracion_v1: siempre se ignora, aunque sea vieja.
+  const calib = filaConversaciones({ ...PAYLOAD, conversation_id: 'CONV-0101' }, 'calibracion_v1', { version_reglas: 'reglas_ce_v1', version_prompt: 'evaluador_ce_v1' }, CONFIG_CE, new Date());
+  const [pendCal] = await w4.correr('Decidir reproceso', [{ ...calib, estado: 'pendiente', intentos: 0, actualizado_en: vieja }]);
+  assert.equal(pendCal.accion, 'ignorar');
+  assert.equal(pendCal.actualizacion, undefined);
   const [reciente] = await w4.correr('Decidir reproceso', [{ ...fila, estado: 'en_evaluacion', intentos: 1, actualizado_en: new Date().toISOString() }]);
   assert.equal(reciente.accion, 'ignorar');
   // Cierre por lotes: los resultados de W2 traen `lote`.

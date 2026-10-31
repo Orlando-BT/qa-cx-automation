@@ -433,7 +433,7 @@
         0
       ],
       "executeOnce": true,
-      "notes": "RELLENO plantilla_generador <- prompts/generador_ce_v2.md"
+      "notes": "RELLENO plantilla_generador <- prompts/generador_ce_v3.md"
     },
     {
       "parameters": {

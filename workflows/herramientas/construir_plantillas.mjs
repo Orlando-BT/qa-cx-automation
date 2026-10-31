@@ -531,10 +531,13 @@ function w4() {
   w.une(prog, cfg);
   w.une(man, cfg);
   const cc = code(w, 'Config cargada', ['normalizacion'], 'config_todos', [2, 0], { modo: 'all' });
-  const rep = hojaLeer(w, 'Leer conversaciones en reproceso o en evaluación', 'conversaciones', [3, 0], {
+  // pendiente: decidirReproceso solo toma las viejas de lotes que se evalúan al ingerir (nunca
+  // calibracion_v1); las demás las ignora. La lectura trae todas las pendientes, incluidas las de calibración.
+  const rep = hojaLeer(w, 'Leer conversaciones por recuperar', 'conversaciones', [3, 0], {
     filtros: [
       ['estado', 'reproceso'],
       ['estado', 'en_evaluacion'],
+      ['estado', 'pendiente'],
     ],
     combinar: 'OR',
   });
@@ -609,7 +612,7 @@ function w0() {
     ['Leer hoja conversaciones', 'conversaciones', true],
     ['Leer hoja revision_humana', 'revision_humana', true],
   ].map(([n, h, s], i) => hojaLeer(w, n, h, [2 + i, 0], { siempreSalida: s }));
-  const pl = setRelleno(w, 'Plantilla generador', 'plantilla_generador', 'prompts/generador_ce_v2.md', 'string', [10, 0]);
+  const pl = setRelleno(w, 'Plantilla generador', 'plantilla_generador', 'prompts/generador_ce_v3.md', 'string', [10, 0]);
   const es = setRelleno(w, 'Esquema generador', 'esquema_generador', 'prompts/generador_payload_salida.schema.json', 'object', [11, 0]);
   const cg = code(w, 'Config general', ['normalizacion'], 'config_general_simulador', [12, 0], { modo: 'all' });
   const vf = code(w, 'Validar formulario', ['simulador'], 'validar_formulario', [13, 0], { modo: 'all' });

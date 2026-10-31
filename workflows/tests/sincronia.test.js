@@ -102,6 +102,9 @@ test('fixture: el ensamblado cumple las reglas, conserva marcadores y es idempot
 test('fixture: los nodos Set quedan con el texto exacto de prompts/ y contrato/, sin {{ ni ${', async () => {
   const { ensamblarWorkflow } = await ens();
   const generado = ensamblarWorkflow(leerJson(FIXTURE));
+  // Estas rutas son las de la plantilla de PRUEBA (fixtures/): solo comprueban que el ensamblador copia
+  // el archivo exacto. La versión que usan los workflows reales se compara con datos/config.csv en
+  // 'los Set de prompts de W0 y W2 usan la versión de datos/config.csv'.
   const casos = [
     ['Plantilla evaluador', 'plantilla_evaluador', 'prompts/evaluador_ce_v1.md'],
     ['Esquema LLM', 'esquema_llm', 'contrato/llm_output.schema.json'],
@@ -115,6 +118,22 @@ test('fixture: los nodos Set quedan con el texto exacto de prompts/ y contrato/,
     assert.ok(!a.value.includes('{{') && !a.value.includes('${'), `${ruta} contiene {{ o \${`);
     assert.ok(!a.value.startsWith('='), `${ruta} empieza con "="`);
     if (a.type === 'object') JSON.parse(a.value);
+  }
+});
+
+test('los Set de prompts de W0 y W2 usan la versión de datos/config.csv', () => {
+  const { DATOS } = require('../../js/tests/ayudas');
+  const valor = (clave) => (DATOS.config.find((f) => f.clave === clave && f.tipo_interaccion === 'ce') || {}).valor;
+  const casos = [
+    ['00_simulador.json', 'Plantilla generador', 'plantilla_generador', valor('version_prompt_generador')],
+    ['02_evaluacion.json', 'Plantilla evaluador', 'plantilla_evaluador', valor('version_prompt')],
+  ];
+  for (const [archivo, nombre, campo, version] of casos) {
+    assert.ok(version, `falta la versión en datos/config.csv para ${nombre}`);
+    const n = nodo(leerJson(path.join(DIR_WF, archivo)), nombre);
+    assert.equal(n.notes, `RELLENO ${campo} <- prompts/${version}.md`, `${archivo} "${nombre}" debe usar prompts/${version}.md (config)`);
+    const esperado = fs.readFileSync(path.join(RAIZ, 'prompts', `${version}.md`), 'utf8').replace(/\r\n/g, '\n').replace(/\n+$/, '') + '\n';
+    assert.equal(n.parameters.assignments.assignments.find((a) => a.name === campo).value, esperado);
   }
 });
 
