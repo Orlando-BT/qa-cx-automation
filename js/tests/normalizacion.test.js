@@ -57,7 +57,7 @@ test('config Fase 2: las claves nuevas de tipo entero cargan como número entero
   const c = configCE();
   const esperados = {
     max_tokens_evaluador: 8000,
-    max_tokens_generador: 8000,
+    max_tokens_generador: 16000,
     reproceso_max_intentos: 3,
     reproceso_intervalo_min: 30,
     reintentos_conexion_api: 3,

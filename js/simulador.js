@@ -635,6 +635,75 @@ function sortearFallas({ calidad, criticos, versionReglas, config, aleatorio, fi
   return { criterios: elegidos, advertencias };
 }
 
+// ---------------------------------------------------------------------------
+// Nota esperada (predicción con el mismo scoring de JS-7)
+// ---------------------------------------------------------------------------
+
+/**
+ * Máximo de re-sorteos de fallas cuando la nota esperada no cae en la banda de la calidad pedida.
+ * Constante de código (no es regla de negocio): solo evita un ciclo infinito si la config hace
+ * imposible la banda (por ejemplo, umbrales que ninguna combinación alcanza).
+ */
+const MAX_INTENTOS_SORTEO_FALLAS = 30;
+
+/**
+ * Predice la nota que JS-7 daría si el evaluador acierta TODAS las fallas pedidas y nada más.
+ * Por qué existe: con el scoring por secciones, algunas combinaciones de fallas complementarias
+ * nunca bajan de 80 (la sección queda "parcial" o una sección chica absorbe la falla) y la
+ * conversación pedida "regular" sale "buena". Predecirlo evita generar conversaciones (y gastar
+ * en la API) cuyo resultado no puede coincidir con la calidad pedida.
+ *
+ * Arma la lista completa de subelementos de la versión de reglas:
+ *  - los pedidos -> no_cumple;
+ *  - los que ya se sabe que quedan no_aplica (config, fila del catálogo, pares que se anulan) -> no_aplica;
+ *  - el resto -> cumple.
+ * Los errores críticos inyectados se marcan `detectado` (nota_final = 0, calidad mala, D2).
+ *
+ * El scoring NO se importa (en n8n varios archivos comparten ámbito): llega por parámetro como
+ * `scoring = { obtenerRubrica, calcularSecciones, calcularResultado }` (funciones de js/scoring.js).
+ * Supuesto: lo que depende de la conversación generada (esperas, inactividad, etc.) queda `cumple`.
+ * Devuelve { nota, calidad, tiene_critico }.
+ */
+function notaEsperada(criteriosQueFallan, { versionReglas, criticos = [], config, fila = null, scoring }) {
+  if (!scoring) throw new Error('notaEsperada: falta scoring (obtenerRubrica, calcularSecciones, calcularResultado de js/scoring.js)');
+  const rubrica = scoring.obtenerRubrica(versionReglas);
+  const pedidos = new Set(criteriosQueFallan || []);
+  // Si falla uno de un par excluyente, el otro queda no_aplica (rubrica.md sección 8).
+  const anulados = new Set();
+  for (const [a, b] of [...PARES_EXCLUYENTES, ...PARES_EXCLUYENTES_DEDUCIDOS]) {
+    if (pedidos.has(a) && !pedidos.has(b)) anulados.add(b);
+    if (pedidos.has(b) && !pedidos.has(a)) anulados.add(a);
+  }
+  const criterios = [];
+  for (const s of rubrica.secciones) {
+    for (const [sub, origen, clase] of s.subelementos) {
+      const id = `${s.id}.${sub}`;
+      let resultado = 'cumple';
+      if (pedidos.has(id)) resultado = 'no_cumple';
+      else if (anulados.has(id) || motivoInaplicablePorConfig(id, config) || motivoInaplicablePorFila(id, fila, criticos)) resultado = 'no_aplica';
+      criterios.push({ id_criterio: id, tipo_criterio: 'subelemento', seccion: s.id, origen, clasificacion: clase, resultado });
+    }
+  }
+  for (const c of criticos) criterios.push({ id_criterio: c, tipo_criterio: 'critico', seccion: 'critico', origen: 'JS', resultado: 'detectado' });
+  const secciones = scoring.calcularSecciones(criterios, rubrica, config);
+  const r = scoring.calcularResultado(secciones, criterios, config);
+  return { nota: r.nota_final, calidad: r.calidad, tiene_critico: r.tiene_error_critico };
+}
+
+/** Mensaje para el dueño cuando las fallas del formulario no producen la calidad pedida. */
+function mensajeNotaFueraDeBanda(criterios, calidadPedida, esperada, config) {
+  const lista = criterios.join(' + ');
+  const unica = criterios.length === 1 ? ' como única falla' : '';
+  const sugerencias = {
+    regular: esperada.calidad === 'buena'
+      ? 'agrega otra falla complementaria (p. ej. de diagnóstico o solución, secciones de más peso) o deja criterios_que_deben_fallar vacío para sorteo automático'
+      : 'quita alguna falla o cámbiala por una complementaria de menor peso, o deja criterios_que_deben_fallar vacío para sorteo automático',
+    mala: 'agrega una falla de un subelemento clave (p. ej. solucion.informacion_correcta) o un error crítico, o deja criterios_que_deben_fallar vacío para sorteo automático',
+    buena: 'quita las fallas o cambia calidad_solicitada',
+  };
+  return `Con ${lista}${unica} la nota esperada es ${esperada.nota} (${esperada.calidad}), no ${calidadPedida} (buena >= ${config.calidad_buena_nota_min}, regular >= ${config.calidad_regular_nota_min}): ${sugerencias[calidadPedida] || 'cambia las fallas'}.`;
+}
+
 /**
  * Valida una lista de fallas pedidas: cada una por separado y las combinaciones entre ellas.
  * `config` y `filas` (opcionales) activan la revisión de aplicabilidad por datos conocidos
@@ -915,15 +984,42 @@ function completarEscenario(solicitud, contexto) {
   const cuenta = elegirCuenta(cuentas, aleatorio);
 
   // 5. Fallas: las del formulario (validadas con la calidad ya resuelta) o las sorteadas.
+  // La nota esperada (mismo scoring de JS-7) debe caer en la banda de la calidad pedida; si no,
+  // el formulario se rechaza con una sugerencia y el sorteo se repite (ver MAX_INTENTOS_SORTEO_FALLAS).
   let criterios = solicitud.criterios_que_deben_fallar || [];
+  const scoring = contexto.scoring || null;
+  const esperadaDe = (lista) => notaEsperada(lista, { versionReglas: config.version_reglas, criticos, config, fila: tipificacion, scoring });
+  let esperada = null;
   if (criterios.length > 0) {
     errores.push(...validarCriteriosPedidos(criterios, { versionReglas: config.version_reglas, criticos, calidad, config, filas: [tipificacion] }));
     if (errores.length) return { valido: false, errores, advertencias, escenario: null, cuenta: null, extras: null };
+    if (scoring) {
+      esperada = esperadaDe(criterios);
+      if (solicitud.calidad_solicitada === 'aleatoria') {
+        // Con "aleatoria" y fallas pedidas manda la nota: la calidad esperada es la que el scoring dará.
+        calidad = esperada.calidad;
+      } else if (esperada.calidad !== calidad) {
+        return { valido: false, errores: [mensajeNotaFueraDeBanda(criterios, calidad, esperada, config)], advertencias, escenario: null, cuenta: null, extras: null };
+      }
+    }
   } else {
-    const sorteo = sortearFallas({ calidad, criticos, versionReglas: config.version_reglas, config, aleatorio, filas: [tipificacion] });
+    let sorteo = null;
+    for (let intento = 1; intento <= MAX_INTENTOS_SORTEO_FALLAS; intento++) {
+      const candidato = sortearFallas({ calidad, criticos, versionReglas: config.version_reglas, config, aleatorio, filas: [tipificacion] });
+      esperada = scoring ? esperadaDe(candidato.criterios) : null;
+      if (!esperada || esperada.calidad === calidad) {
+        sorteo = candidato;
+        break;
+      }
+      // Fuera de banda: se vuelve a sortear con el mismo generador (sigue siendo reproducible).
+    }
+    if (!sorteo) {
+      return { valido: false, errores: [`No se encontró una combinación de fallas con nota esperada de calidad ${calidad} tras ${MAX_INTENTOS_SORTEO_FALLAS} intentos de sorteo (buena >= ${config.calidad_buena_nota_min}, regular >= ${config.calidad_regular_nota_min}); revisa generador_fallas_regular, generador_fallas_mala, las ponderaciones y los umbrales de calidad en config, o pide las fallas en el formulario`], advertencias, escenario: null, cuenta: null, extras: null };
+    }
     criterios = sorteo.criterios;
     advertencias = advertencias.concat(sorteo.advertencias);
   }
+  if (!scoring) advertencias.push('Nota esperada no verificada: el pegamento no pasó contexto.scoring');
 
   // 6. Tipificación errónea del agente
   let tipificacionAgente = null;
@@ -950,13 +1046,14 @@ function completarEscenario(solicitud, contexto) {
     partes.push('La información incorrecta no debe tener impacto (si no, sería error crítico).');
   }
   if (casos.length) partes.push(`Casos difíciles: ${casos.join(', ')}.`);
+  if (esperada) partes.push(`Nota esperada del scoring: ${esperada.nota}.`);
 
   return {
     valido: true,
     errores: [],
     advertencias,
     cuenta,
-    extras: { fecha_hora_inicio: fechaInicio, tipificacion_agente_prevista: tipificacionAgente, variante_datos_coinciden_sin_critico: variante },
+    extras: { fecha_hora_inicio: fechaInicio, tipificacion_agente_prevista: tipificacionAgente, variante_datos_coinciden_sin_critico: variante, nota_esperada: esperada ? esperada.nota : null },
     escenario: {
       conversation_id: conversationId,
       lote: solicitud.lote,
@@ -1296,6 +1393,8 @@ if (typeof module !== 'undefined' && module.exports) {
     parsearHorario,
     sortearFechaInicio,
     sortearFallas,
+    notaEsperada,
+    MAX_INTENTOS_SORTEO_FALLAS,
     elegirTipificacionErronea,
     motivoInaplicablePorFila,
     motivoInaplicablePorConfig,
@@ -1323,7 +1422,7 @@ if (typeof module !== 'undefined' && module.exports) {
 
 /* ---------------------------------------------------------------------------
  * BLOQUE PARA n8n
- * Pega TODO este archivo (y, para la revisión humana, también js/texto_legible.js) y, debajo,
+ * Pega TODO este archivo (junto con js/scoring.js, para la nota esperada, y, para la revisión humana, también js/texto_legible.js) y, debajo,
  * el bloque que corresponda sin comentar.
  *
  * --- W0 paso 2, nodo Code "Completar escenario" (Run Once for All Items) ---
@@ -1333,7 +1432,7 @@ if (typeof module !== 'undefined' && module.exports) {
  * if (!v.valido) throw new Error(v.errores.join(' | '));    // el Error Trigger lo registra
  * const ids = [...$('Leer escenarios').all(), ...$('Leer conversaciones').all()].map((i) => i.json.conversation_id);
  * const p = planificarEscenarios(v.solicitud, { config: cfg, catalogo: $('Leer catalogo').all().map((i) => i.json),
- *   cuentas: $('Leer cuentas').all().map((i) => i.json), idsExistentes: ids, semillaNueva: semillaDesdeAleatorio(Math.random()) });
+ *   cuentas: $('Leer cuentas').all().map((i) => i.json), idsExistentes: ids, scoring: { obtenerRubrica, calcularSecciones, calcularResultado }, semillaNueva: semillaDesdeAleatorio(Math.random()) });
  * if (!p.valido) throw new Error(p.errores.join(' | '));
  * return p.escenarios.map((e) => ({ json: e }));
  *

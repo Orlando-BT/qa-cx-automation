@@ -489,8 +489,9 @@ test('W0: formulario -> escenario -> petición a Claude -> filas y POST sin la v
   await e.correr('Config cargada', [{}]);
   const [plan] = await e.correr('Completar escenario', [{}]);
   assert.equal(plan.valido, true, JSON.stringify(plan.errores));
+  assert.ok(!plan.advertencias.some((a) => /Nota esperada no verificada/.test(a)), 'el pegamento pasa contexto.scoring');
   const [vg] = await e.correr('Valores del generador', plan.escenarios);
-  // Un valor por marcador de la plantilla de config (hoy prompts/generador_ce_v3.md).
+  // Un valor por marcador de la plantilla de config (hoy prompts/generador_ce_v4.md).
   const { marcadoresDePlantilla } = require('../../js/construccion_prompt');
   const plantillaGen = e.valorSet('Plantilla generador').plantilla_generador;
   assert.deepEqual(Object.keys(vg.valores_generador).sort(), [...new Set(marcadoresDePlantilla(plantillaGen))].sort());
@@ -602,6 +603,47 @@ test('W0: lote congelado y cantidad mayor al máximo se rechazan antes de llamar
     assert.equal(log.alerta_enviada, 'no');
     await verEscritura(e, wf, 'Escribir log_errores (formulario)', 'Fila log_errores (formulario)', [log]);
   }
+});
+
+test('W0: el pegamento pasa el scoring y la nota esperada decide si el formulario regular se acepta', async () => {
+  const wf = leer('workflows/00_simulador.json');
+  const sinVerificar = /Nota esperada no verificada/;
+  // El ¿Escenarios válidos? falso lleva a la misma rama de error del formulario.
+  const destinosFalso = wf.connections['¿Escenarios válidos?'].main[1].map((d) => d.node).sort();
+  assert.deepEqual(destinosFalso, ['Error de formulario', 'Formulario rechazado']);
+  const planDe = async (criterios, semilla) => {
+    const e = crearEjecutor(wf);
+    prepararW0(e, { calidad_solicitada: 'regular', cantidad: 1, lote: 'demo', tipo_interaccion: 'ce', semilla_sorteo: semilla, tema: '', error_critico: '', criterios_que_deben_fallar: criterios, casos_dificiles: '' });
+    await e.correr('Config general', [{}]);
+    const [vf] = await e.correr('Validar formulario', [{}]);
+    assert.equal(vf.valido, true, JSON.stringify(vf.errores));
+    await e.correr('Config cargada', [{}]);
+    const [plan] = await e.correr('Completar escenario', [{}]);
+    assert.ok(!plan.advertencias.some((a) => sinVerificar.test(a)), `el pegamento debe pasar contexto.scoring: ${JSON.stringify(plan.advertencias)}`);
+    return { e, plan };
+  };
+  // Sorteo automático (criterios vacíos): válido y con la nota esperada en la descripción.
+  for (const semilla of [12345, 777, 4242]) {
+    const { plan } = await planDe('', semilla);
+    assert.equal(plan.valido, true, JSON.stringify(plan.errores));
+    const nota = Number((plan.escenarios[0].escenario.descripcion_escenario.match(/Nota esperada del scoring: ([0-9.]+)\./) || [])[1]);
+    assert.ok(Number.isFinite(nota), plan.escenarios[0].escenario.descripcion_escenario);
+    assert.ok(nota >= CONFIG_CE.calidad_regular_nota_min && nota < CONFIG_CE.calidad_buena_nota_min, `semilla ${semilla}: nota esperada ${nota} fuera de la banda regular`);
+  }
+  // comunicacion.redaccion sola: la nota esperada es buena; el formulario se rechaza y se registra.
+  const { e, plan: malo } = await planDe('comunicacion.redaccion', 12345);
+  assert.equal(malo.valido, false);
+  assert.equal(malo.escenarios.length, 0);
+  assert.match(malo.errores.join(' | '), /comunicacion\.redaccion como única falla la nota esperada es 93\.5 \(buena\), no regular/);
+  const [err] = await e.correr('Error de formulario', [malo]);
+  assert.equal(err.enviar_alerta, false, 'formulario_invalido no manda Telegram');
+  const [log] = await e.correr('Fila log_errores (formulario)', [err]);
+  assert.equal(log.tipo_error, 'formulario_invalido');
+  assert.match(log.mensaje_error, /nota esperada es 93\.5/);
+  // Con otra complementaria de más peso cae en regular (78.5) y sigue.
+  const { plan: bueno } = await planDe('diagnostico.preguntas_necesarias|comunicacion.redaccion', 12345);
+  assert.equal(bueno.valido, true, JSON.stringify(bueno.errores));
+  assert.match(bueno.escenarios[0].escenario.descripcion_escenario, /Nota esperada del scoring: 78\.5\./);
 });
 
 // --- W4 y 99 -------------------------------------------------------------------------

@@ -79,7 +79,8 @@ test('v3: bloques, versión y los 17 marcadores (15 de v2 + ARTICULO_DEL_TEMA + 
   const { instrucciones, plantilla_entrada } = js4.leerPlantilla(V3, 'generador_ce_v3');
   assert.ok(instrucciones.length > 1000);
   assert.deepEqual(js4.marcadoresDePlantilla(V3).sort(), [...MARCADORES_V3].sort());
-  assert.deepEqual([...js4.MARCADORES_GENERADOR].sort(), [...MARCADORES_V3].sort());
+  // Desde generador_ce_v4 JS conoce además GUIA_SITUACIONES (ver generador_v4.test.js).
+  assert.deepEqual([...js4.MARCADORES_GENERADOR].sort(), [...MARCADORES_V3, 'GUIA_SITUACIONES'].sort());
   // GUIA_FALLAS va dentro de ESCENARIO; ARTICULO_DEL_TEMA, con su encabezado, antes de BASE DE CONOCIMIENTO.
   const iGuia = plantilla_entrada.indexOf('<<GUIA_FALLAS>>');
   assert.ok(plantilla_entrada.indexOf('ESCENARIO') < iGuia && iGuia < plantilla_entrada.indexOf('CUENTA (datos ficticios)'));

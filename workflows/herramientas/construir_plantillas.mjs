@@ -612,7 +612,7 @@ function w0() {
     ['Leer hoja conversaciones', 'conversaciones', true],
     ['Leer hoja revision_humana', 'revision_humana', true],
   ].map(([n, h, s], i) => hojaLeer(w, n, h, [2 + i, 0], { siempreSalida: s }));
-  const pl = setRelleno(w, 'Plantilla generador', 'plantilla_generador', 'prompts/generador_ce_v3.md', 'string', [10, 0]);
+  const pl = setRelleno(w, 'Plantilla generador', 'plantilla_generador', 'prompts/generador_ce_v4.md', 'string', [10, 0]);
   const es = setRelleno(w, 'Esquema generador', 'esquema_generador', 'prompts/generador_payload_salida.schema.json', 'object', [11, 0]);
   const cg = code(w, 'Config general', ['normalizacion'], 'config_general_simulador', [12, 0], { modo: 'all' });
   const vf = code(w, 'Validar formulario', ['simulador'], 'validar_formulario', [13, 0], { modo: 'all' });
@@ -620,7 +620,7 @@ function w0() {
   const okF = si(w, '¿Formulario válido?', '$json.valido', [14, 0]);
   w.une(vf, okF);
   const cc = code(w, 'Config cargada', ['normalizacion'], 'config_cargada_simulador', [15, 0], { modo: 'all' });
-  const ce = code(w, 'Completar escenario', ['simulador'], 'completar_escenario', [16, 0], { modo: 'all' });
+  const ce = code(w, 'Completar escenario', ['simulador', 'scoring'], 'completar_escenario', [16, 0], { modo: 'all' });
   const okE = si(w, '¿Escenarios válidos?', '$json.valido', [17, 0]);
   w.une(okF, cc, 0);
   w.cadena(cc, ce, okE);

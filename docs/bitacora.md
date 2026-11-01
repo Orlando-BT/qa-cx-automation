@@ -151,24 +151,36 @@ Nota: las entradas de la Fase 2 no son reconstrucciones; se escriben al cerrar c
 - Estado: el checkpoint no cierra la fase. Falta la revisión del `revisor`, la importación y el guion de pruebas del dueño en su n8n, el cierre y la etiqueta `fase-2-cierre`.
 - Decisión relacionada: criterio de terminado de la Fase 2 (lote `demo` más casos de prueba; `calibracion_v1` solo se ingesta como pendiente).
 
-### Correcciones de la revisión de la Fase 2 (pendiente de commit)
-- Fecha: 24-oct-2026.
-- Commit: pendiente de commit.
+### Correcciones de la revisión de la Fase 2
+- Fecha: 24-oct-2026 (commit del 24-oct-2026, hora de México, según `.git/logs/HEAD`).
+- Commit: "Fase 2: correcciones de la revisión del revisor".
 - Subagentes: `workflows-n8n`, `contrato-datos`, `evaluador-llm`, `reglas-js`, `documentacion`, orquestador (`.gitignore`).
 - Qué cambió: el `revisor` aprobó con condiciones y 0 críticos. Se corrigieron el disparador manual de calibración (M1), los conteos de `IMPORTAR.md` (m1) y la base de costo (m2); `resultados_prueba_b_lote.json` se movió a `prompts/verificacion/_privado/` (ignorada por Git; sigue en el historial anterior); los hashes de `docs/` pasaron a títulos o etiquetas; el estado de fases del README se actualizó. W3 sigue como esqueleto (M2). El mensaje de lote congelado sugiere `demo` o `calibracion_v2`. Detalle en `docs/registro-tecnico.md`, Fase 2, apartado 10.
 - Decisión relacionada: backlog de la Fase 4 sobre no escribir la verdad de `calibracion_v2` en el `escenarios` visible durante la calificación a ciegas.
 
 ### Generador v3: corte por max_tokens y reintento del generador (caso 9)
 - Fecha: 31-oct-2026 (la prueba que originó la entrada es del 30-oct-2026).
-- Commit: pendiente de commit.
+- Commits: "Fase 2: generador_ce_v3, sorteo con criterios aplicables y W4 recoge pendientes" y "Fase 2: el generador no reintenta si se corta por max_tokens". Entre ambos se registró también "Fase 2: rubrica §8 formaliza los pares que se anulan y la aplicabilidad".
 - Subagentes: `evaluador-llm` (`generador_ce_v3`), `reglas-js` (`js/simulador.js` y `js/tests/simulador_sorteo.test.js`), `contrato-datos` (descripciones de config), `workflows-n8n` (reensamblado de `workflows/00_simulador.json`); el orquestador midió el consumo.
 - Qué cambió:
   - Tres envíos con `generador_ce_v3` fallaron con `generacion_invalida` ("lectura incompleta (max_tokens)"). En los 6 intentos, `stop_reason` fue `max_tokens` y `output_tokens` fue 8000; el razonamiento usó de 6006 a 8000 tokens. Causa: con `esfuerzo_generador` = `medium`, el razonamiento cuenta dentro de `max_tokens_generador` = 8000, y v3 piensa casi el doble que v2 (2,700 a 4,300 tokens en v2).
   - Error de estimación del orquestador: la entrada real fue aproximadamente 20,400 tokens (estimada 13,100 a 14,100), alrededor de 1.6 veces más. Un intento cortado costó aproximadamente 0.0060 USD; las 6 llamadas cortadas, aproximadamente 0.036 USD.
   - Gasto acumulado de las pruebas de la Fase 2 del 28 al 30 de octubre, desde las ejecuciones de n8n: generador 0.0545 USD, evaluador 0.0182 USD, total 0.0727 USD (no incluye los scripts de la Fase 1; las filas de `escenarios` no suman los intentos fallidos).
   - Cambio de código: si el primer intento del generador termina en `max_tokens`, ya no se reintenta; pasa a `generacion_invalida` con un mensaje que indica subir `max_tokens_generador` o bajar `esfuerzo_generador` (`decidirIntentoGeneracion`, `detalle.sin_reintento` = `max_tokens`). `reintentos_generacion` sigue aplicando a las demás causas. El evaluador conserva su reintento ante respuesta incompleta.
-  - Pendiente: medir la opción A (`max_tokens_generador` = 16000 con `esfuerzo_generador` = `medium`) con 1 envío regular antes de los 3 regulares. Resultado: pendiente. El valor por defecto en `contrato/config.md` y `datos/config.csv` sigue en 8000.
+  - La opción A (`max_tokens_generador` = 16000 con `esfuerzo_generador` = `medium`) se midió el 30-oct y quedó como definitiva (ver la entrada del 1-nov-2026).
 - Decisión relacionada: decisiones del dueño del 30 y 31-oct-2026: superar el tope de 0.10 USD hasta 0.15 USD para terminar el caso 9; arrancar con la opción A (alternativas B, con esfuerzo `low`, y A+B, descartadas por ahora); y sin reintento ante `max_tokens` en el generador. Detalle y razones en `docs/registro-tecnico.md`, Fase 2, apartado 12.
+
+### Nota esperada en el sorteo, generador_ce_v4 y max_tokens definitivo
+- Fecha: 1-nov-2026.
+- Commit: pendiente de commit.
+- Subagentes: `reglas-js` (`js/simulador.js`, pruebas `simulador_nota_esperada.test.js` y `generador_v4.test.js`), `evaluador-llm` (`generador_ce_v4`, `js/construccion_prompt.js`), `contrato-datos` (`contrato/config.md` y `datos/config.csv`), `workflows-n8n` (reensamblado de W0 e `IMPORTAR.md`), `documentacion` (registro). Confirmado por el orquestador.
+- Qué cambió:
+  - El sorteo del simulador calcula la nota esperada con el scoring y re-sortea (máximo 30 intentos) si queda fuera de la banda de la calidad pedida; el formulario fuera de banda se rechaza con sugerencia. Motivo: CONV-0130, pedida regular, salió 91.
+  - Nuevo `generador_ce_v4` (v1 a v3 intactos) con ejemplo de mala redacción y marcador `GUIA_SITUACIONES`.
+  - `max_tokens_generador` = 16000 con `esfuerzo_generador` = `medium`, definitivo.
+  - Backlog: entrada de `reglas_ce_v2` sobre `apertura.ofrece_ayuda` (origen CONV-0129), e incidente del 31-oct sin conexión a Google (04 y 99 fallan al leer config).
+  - Criterio de cierre de la Fase 2: 3 envíos regulares; con al menos 2 regulares se cierra. Resultado: pendiente.
+- Decisión relacionada: decisiones del dueño del 1-nov-2026. Detalle en `docs/registro-tecnico.md`, Fase 2, apartado 13.
 
 ## Cómo se mantiene
 

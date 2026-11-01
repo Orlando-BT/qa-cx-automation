@@ -240,6 +240,12 @@ Se corrió el evaluador con salida estructurada `json_schema` estricta. Por regl
 - Que el LLM juzgue de quién es un RFC, con evidencia.
 - Medir los "críticos solo-LLM", sobre todo `critico.confidencialidad`.
 - D3: separar la clasificación de tema de la evaluación.
+- Indulgencia del evaluador en `diagnostico.preguntas_necesarias` (hallazgo del dueño, 31-oct-2026, conversación demo CONV-0129, tipificación "Cambio de correo del titular", artículo KB-07). El agente nunca pidió el correo nuevo, que KB-07 exige para registrar la solicitud y escalarla al área de Cuentas (en el catálogo, `campos_obligatorios` = `correo_nuevo`; por eso JS marcó `solucion.campos_obligatorios` = `no_cumple` con `correo_nuevo` ausente). Además, en el mensaje 2 el agente preguntó qué necesitaba el cliente, que ya lo había dicho en el mensaje 1. Aun así el evaluador marcó `preguntas_necesarias` = `cumple`, mirando solo los datos de identidad. Para v2: el prompt debe exigir que `preguntas_necesarias` revise los datos que el artículo necesita para resolver (no solo la validación de identidad), y que una pregunta por algo que el cliente ya dijo no cuente como pregunta necesaria. Medir en la Fase 4 contra la calificación humana.
+- **Backlog de reglas (`reglas_ce_v2`, Fase 4), distinto del backlog del evaluador de arriba.** Revisé esta sección y la 9: no había otra entrada de backlog de reglas o rúbrica v2 (solo la incoherencia entre `critico.informacion_incorrecta` y `solucion.informacion_correcta`, en el apartado 9 de la Fase 2). Esta es la primera. Decisión del dueño, 1-nov-2026; `reglas_ce_v1` está congelado, por eso no se aplica ahora.
+  - `apertura.ofrece_ayuda`: si el cliente ya planteó su solicitud (en su primer mensaje), el criterio se cumple CONFIRMÁNDOLA. Volver a preguntar "¿en qué te puedo ayudar?" no debe premiarse (`no_cumple`).
+  - Propuesta técnica: el criterio pasa a HÍBRIDO, usando la identificación de solicitudes del LLM (`solicitudes_cliente[].mensaje_n`) y una lista `confirma_solicitud` separada de `ofrece_ayuda`.
+  - Decisión: la pregunta repetida cuenta SOLO en `apertura.ofrece_ayuda` (sin doble castigo). `diagnostico.preguntas_necesarias` se limita a las preguntas que exige el artículo de la base de conocimiento (por ejemplo, KB-07 exige capturar el correo nuevo). Esto es el lado de reglas de la indulgencia descrita en la entrada anterior: allí se pedía que "una pregunta por algo ya dicho no cuente como necesaria"; con esta decisión esa pregunta se penaliza en `apertura.ofrece_ayuda` y no en `preguntas_necesarias`.
+  - Origen: CONV-0129 (caso 9), el agente preguntó qué necesitaba el cliente cuando ya lo había dicho en el mensaje [1].
 
 ### 4b. Backlog para la Fase 4 (métricas)
 
@@ -350,14 +356,33 @@ Veredicto: aprobado con condiciones, 0 críticos.
 - m5: hashes reemplazados por títulos de commit o etiquetas.
 - m6: documentado como riesgo, con recuperación desde el historial de ejecuciones de n8n.
 
-### 11. Estado de la Fase 2
+### 11. Estado de la Fase 2 (actualizado el 1-nov-2026)
 
-- Hecho: contrato, código, prompts y workflows en el checkpoint.
-- Falta: revisión del `revisor`; importación y guion de pruebas del dueño en su n8n (criterio de terminado: lote `demo` más los casos de prueba; `calibracion_v1` solo como pendiente); cierre y etiqueta `fase-2-cierre`. Resultados de esas pruebas: pendiente.
+Commits de la fase, por título (los de la Fase 2 en orden):
+- "Fase 2 (checkpoint): contrato, código JS, prompts y workflows de n8n".
+- "Fase 2: correcciones de la revisión del revisor" (resuelve los hallazgos del apartado 10).
+- "Fase 2: verificación sin concordancia en consola por defecto".
+- "Fase 2: correcciones tras la importación en n8n 2.32.6".
+- "Fase 2: correcciones de los casos de prueba 6 a 13".
+- "Fase 2: generador_ce_v3, sorteo con criterios aplicables y W4 recoge pendientes".
+- "Fase 2: rubrica §8 formaliza los pares que se anulan y la aplicabilidad".
+- "Fase 2: el generador no reintenta si se corta por max_tokens" (apartado 12.5).
+- Pendiente de commit: el bloque del apartado 13 (nota esperada en el sorteo, `generador_ce_v4`, `max_tokens_generador` definitivo).
+
+Qué cubren los cuatro últimos commits (según sus títulos y los apartados 12 y 13; no pude leer `git log --stat` ni los cuerpos de los mensajes porque no tengo acceso a una terminal, así que no listo archivos por commit):
+- Casos de prueba 6 a 13: correcciones surgidas de las pruebas del dueño en su n8n.
+- `generador_ce_v3`, sorteo con criterios aplicables y W4 que recoge pendientes (W4 ya reenvía también las conversaciones pendientes, no solo `reproceso` y atascadas).
+- Rúbrica sección 8: formaliza los pares de criterios que se anulan entre sí y la aplicabilidad (insumo del apartado 13).
+- Generador sin reintento ante `max_tokens`: apartado 12.5.
+
+Falta para cerrar la fase:
+- Criterio de cierre fijado por el dueño (1-nov-2026): 3 envíos regulares (uno con `comunicacion.redaccion` en el formulario); si al menos 2 salen regulares, se cierra la fase. Resultado: pendiente.
+- Revisión final del `revisor`, commit del apartado 13 y etiqueta `fase-2-cierre`.
+- Criterio de terminado general (lote `demo` más los casos de prueba; `calibracion_v1` solo como pendiente): resultados completos, pendiente.
 
 ### 12. Generador v3, primera prueba (caso 9) y cambio del reintento (30 y 31-oct-2026)
 
-Esta sección sigue abierta: la medición de la opción A (apartado 12.4) está pendiente. Los datos de consumo salen de las ejecuciones de n8n del dueño (solo campos de consumo); yo no las volví a consultar. No se cita ningún commit porque estos cambios aún no están guardados en uno (ver bitácora).
+Esta sección sigue abierta: la medición de la opción A (apartado 12.4) está pendiente. Los datos de consumo salen de las ejecuciones de n8n del dueño (solo campos de consumo); yo no las volví a consultar. Los cambios de este apartado quedaron guardados en los commits "Fase 2: generador_ce_v3, sorteo con criterios aplicables y W4 recoge pendientes" y "Fase 2: el generador no reintenta si se corta por max_tokens". La medición de la opción A se resolvió después: ver el apartado 13.4.
 
 #### 12.1 Qué pasó con `generador_ce_v3` (caso 9, 30-oct-2026)
 
@@ -422,3 +447,68 @@ Calculado desde las ejecuciones de n8n del 28 al 30 de octubre:
 - `contrato-datos`: descripciones de config.
 - `workflows-n8n`: reensamblado de W0.
 - Orquestador: midió el consumo en las ejecuciones de n8n.
+
+### 13. Nota esperada en el sorteo, generador_ce_v4 y max_tokens definitivo (1-nov-2026)
+
+Estado: cambios pendientes de commit. Las cifras son las que entregó el dueño o el orquestador; yo no ejecuté pruebas ni nuevas mediciones.
+
+#### 13.1 Problema
+
+- En CONV-0130 se pidió calidad regular. El sorteo eligió `comunicacion.frases_negativas` y `cierre.marca`. El evaluador detectó ambas y aun así la nota salió 91 (buena).
+- Al recomputar con JS-7 se vio que hay combinaciones de fallas que nunca pueden dar la calidad pedida, por el peso de las secciones.
+
+#### 13.2 Solución (`js/simulador.js`)
+
+- `notaEsperada` arma todos los subelementos:
+  - Los pedidos pasan a `no_cumple`.
+  - Los `no_aplica` conocidos: por config, por la fila del catálogo y por los pares excluyentes de la rúbrica sección 8.
+  - El resto se asume `cumple`.
+  - Los críticos inyectados se toman como detectados.
+- Usa `obtenerRubrica`, `calcularSecciones` y `calcularResultado` de `js/scoring.js`, inyectados por el pegamento (`contexto.scoring`, el mismo patrón que "Verificar escenario"; los módulos no se hacen `require` entre sí).
+- Bandas de config: `calidad_buena_nota_min` = 80 y `calidad_regular_nota_min` = 60.
+- Sorteo fuera de banda: re-sorteo, máximo 30 intentos (`MAX_INTENTOS_SORTEO_FALLAS`), reproducible con la semilla.
+- Formulario fuera de banda: rechazo con la nota y la calidad esperadas y una sugerencia.
+- La nota queda en `escenarios.descripcion_escenario` ("Nota esperada del scoring: X."). Ese campo no viaja al generador ni al payload.
+- SUPUESTO: lo que depende del texto generado (esperas, inactividad) se asume `cumple`; la nota real puede diferir.
+
+Notas esperadas (fila del catálogo sin restricciones):
+
+| Fallas pedidas | Solo las fallas pedidas | Más `solucion.campos_obligatorios` |
+|---|---|---|
+| `comunicacion.frases_negativas` + `cierre.marca` | 91 (buena) | 73.5 (regular) |
+| `diagnostico.preguntas_necesarias` + `solucion.ofrece_alternativas` | 67.5 | 67.5 |
+| `diagnostico.preguntas_necesarias` + `comunicacion.redaccion` | 78.5 | 61 |
+| `comunicacion.redaccion` sola | 93.5 (buena) | 76 (regular) |
+
+La segunda columna corresponde al caso real de CONV-0129, donde además faltó el correo nuevo (`solucion.campos_obligatorios` = `no_cumple`). Con solo las fallas pedidas, `frases_negativas` + `cierre.marca` (91) y `redaccion` sola (93.5) quedan en la banda buena aunque se pidió regular: es el problema del apartado 13.1.
+
+Alternativa descartada: subir `generador_fallas_regular` a 3. No garantiza la banda, porque depende de los pesos de sección.
+
+#### 13.3 generador_ce_v4
+
+`generador_ce_v1` a `v3` quedan intactos.
+- Ejemplo ficticio de mala redacción en `GUIA_FALLAS`: palabras bien escritas, pasos completos, ideas encimadas y referencias ambiguas, en al menos 2 mensajes.
+- Marcador nuevo `GUIA_SITUACIONES` (18 líneas, filtradas por el criterio pedido): crea el disparador de criterios situacionales para que no queden `no_aplica`. En CONV-0129, `solucion.ofrece_alternativas` quedó `no_aplica` por falta de situación.
+- El agente confirma la solicitud con frases de la lista `ofrece_ayuda`, tal cual, si el cliente ya la planteó.
+- Descartado (decisión del dueño): una señal de "oración larga" en W0.
+- Tamaño: +970 caracteres fijos; +1,462 a +1,928 en un caso típico de 2 fallas; aproximadamente +3 a 4 % de tokens. SUPUESTO: se estima con la razón de aproximadamente 2.23 caracteres por token medida en v3.
+- Riesgos:
+  - El ejemplo sin comas puede hacer que el evaluador marque ortografía.
+  - El modelo puede parafrasear la confirmación.
+  - Las situaciones de negativa pueden empujar a una promesa no autorizada o a una negación de servicio.
+
+#### 13.4 max_tokens_generador definitivo
+
+`max_tokens_generador` = 16000 con `esfuerzo_generador` = `medium`, definitivo en el contrato. Base: la medición del 30-oct-2026, con razonamiento de 7,383 y 7,949 tokens y salida de 9,278 y 10,343 tokens.
+
+#### 13.5 Incidente del 31-oct-2026, 02:50 y 03:00 (hora local)
+
+- 04 Reproceso (programado) falló en "Leer hoja config" con "The service refused the connection - perhaps it is offline": no había conexión a Google.
+- 99 Errores también falló en su propia lectura de config, por eso no hubo mensaje de Telegram ni fila en `log_errores`.
+- Ninguna conversación cambió de estado.
+- Es la limitación ya documentada: sin Google, 04 y 99 fallan al leer config.
+- Backlog: que 99 Errores tenga un camino de alerta que no dependa de Sheets. SUPUESTO de mejora, no decidido.
+
+#### 13.6 Criterio de cierre de la Fase 2
+
+Fijado por el dueño: 3 envíos regulares (uno con `comunicacion.redaccion` en el formulario). Si al menos 2 salen regulares, se cierra la fase. Resultado: pendiente.

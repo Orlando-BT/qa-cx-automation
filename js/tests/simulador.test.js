@@ -2,7 +2,8 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 
 const S = require('../simulador');
-const { RUBRICAS } = require('../scoring');
+const scoringJS = require('../scoring');
+const { RUBRICAS } = scoringJS;
 const { validarLote } = require('../validador_payload');
 const { textoLegible, metadatosCasoLegible } = require('../texto_legible');
 const { cargarConfig } = require('../normalizacion');
@@ -32,7 +33,7 @@ const solicitudBase = (cambios = {}) => ({
   ...cambios,
 });
 
-const contextoBase = (cambios = {}) => ({ config, catalogo, cuentas, conversationId: 'CONV-0200', aleatorio: secuencia([0]), ahora: new Date('2026-10-21T16:00:00Z'), ...cambios });
+const contextoBase = (cambios = {}) => ({ config, catalogo, cuentas, scoring: scoringJS, conversationId: 'CONV-0200', aleatorio: secuencia([0]), ahora: new Date('2026-10-21T16:00:00Z'), ...cambios });
 
 // --- Contrato ---------------------------------------------------------------
 
@@ -190,8 +191,9 @@ test('elegirCuenta toma una cuenta de la hoja con el generador recibido', () => 
 
 test('aleatoria se resuelve con el generador: buena, regular o mala', () => {
   const buena = S.completarEscenario(solicitudBase(), contextoBase({ aleatorio: secuencia([0, 0, 0, 0]) }));
-  const regular = S.completarEscenario(solicitudBase(), contextoBase({ aleatorio: secuencia([0.4, 0, 0, 0]) }));
-  const mala = S.completarEscenario(solicitudBase(), contextoBase({ aleatorio: secuencia([0.99, 0, 0, 0]) }));
+  // Sin scoring: la secuencia fija elegiría siempre las mismas fallas leves y el re-sorteo por nota esperada no avanzaría (eso se prueba en simulador_nota_esperada.test.js); lo mismo en mala, cuyas primeras claves son de secciones chicas.
+  const regular = S.completarEscenario(solicitudBase(), contextoBase({ scoring: undefined, aleatorio: secuencia([0.4, 0, 0, 0]) }));
+  const mala = S.completarEscenario(solicitudBase(), contextoBase({ scoring: undefined, aleatorio: secuencia([0.99, 0, 0, 0]) }));
   assert.equal(buena.escenario.calidad_esperada, 'buena');
   assert.equal(regular.escenario.calidad_esperada, 'regular');
   assert.equal(mala.escenario.calidad_esperada, 'mala');
@@ -249,11 +251,11 @@ test('tipo sin generador (sales) se rechaza', () => {
 
 test('criterios y casos difíciles del contexto se validan y pasan a la verdad del escenario', () => {
   const ok = S.completarEscenario(
-    solicitudBase({ calidad_solicitada: 'regular', criterios_que_deben_fallar: ['empatia.cordialidad'], casos_dificiles: ['amable_no_resuelve'] }),
+    solicitudBase({ calidad_solicitada: 'regular', criterios_que_deben_fallar: ['diagnostico.preguntas_necesarias', 'comunicacion.redaccion'], casos_dificiles: ['amable_no_resuelve'] }),
     contextoBase()
   );
   assert.equal(ok.valido, true);
-  assert.deepEqual(ok.escenario.criterios_que_deben_fallar, ['empatia.cordialidad']);
+  assert.deepEqual(ok.escenario.criterios_que_deben_fallar, ['diagnostico.preguntas_necesarias', 'comunicacion.redaccion']);
   assert.deepEqual(ok.escenario.casos_dificiles, ['amable_no_resuelve']);
   assert.deepEqual(ok.advertencias, []);
 

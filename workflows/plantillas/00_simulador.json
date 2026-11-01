@@ -433,7 +433,7 @@
         0
       ],
       "executeOnce": true,
-      "notes": "RELLENO plantilla_generador <- prompts/generador_ce_v3.md"
+      "notes": "RELLENO plantilla_generador <- prompts/generador_ce_v4.md"
     },
     {
       "parameters": {
@@ -535,7 +535,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// FUENTE: js/simulador.js\n// PEGAMENTO: pegamento/completar_escenario.js\n"
+        "jsCode": "// FUENTE: js/simulador.js\n// FUENTE: js/scoring.js\n// PEGAMENTO: pegamento/completar_escenario.js\n"
       },
       "id": "81769ef3-ea46-4b9f-8525-bf9f443ac71d",
       "name": "Completar escenario",

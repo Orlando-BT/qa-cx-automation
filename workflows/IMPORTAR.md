@@ -32,7 +32,7 @@ Las tres deben terminar sin fallas:
 
 **Estimación de costo de toda la sesión de pruebas** (sección 5), antes de cargar saldo. SUPUESTO: estimado, no medido.
 - Unas 5 evaluaciones con `gpt-6-luna` a ≈ 0.005 USD = ≈ 0.025 USD.
-- Unas 3 a 6 generaciones con `claude-haiku-5-5` con `generador_ce_v3`, a ≈ 0.006 a 0.0075 USD cada una = ≈ 0.02 a 0.045 USD (cifras de la sección 2.2).
+- Unas 3 a 6 generaciones con `claude-haiku-5-5` con `generador_ce_v4`, a ≈ 0.0068 a 0.0073 USD cada una (peor caso ≈ 0.0101) = ≈ 0.02 a 0.06 USD (cifras de la sección 2.2).
 - Total ≈ **0.05 USD**. Tope de la sesión: **0.15 USD** (ampliado por decisión del dueño, ver sección 2.2). La prueba 8 (mock) no llama a OpenAI y cuesta 0.
 
 ## 1. Orden de importación y error workflow
@@ -73,7 +73,17 @@ Cada workflow (menos "99 Errores" y el mock) trae `settings.errorWorkflow`. Conf
 ### 1.4 Actualizar un workflow ya importado (sin perder los IDs)
 Úsalo cada vez que cambien `js/`, `workflows/pegamento/`, `prompts/` o las plantillas. Reimporta **sobre el workflow existente**: crear uno nuevo daría otro ID y rompería `<ID_WORKFLOW_ERRORES>`, `<ID_WORKFLOW_EVALUACION>` y el error workflow de los demás.
 
-0. **Antes de reimportar esta versión:** en tu hoja `config`, cambia `version_prompt_generador` (fila `ce`) a `generador_ce_v3`. El nodo "Plantilla generador" ahora lleva `prompts/generador_ce_v3.md`; si la hoja sigue en `generador_ce_v2`, `leerPlantilla` (js/construccion_prompt.js) detiene "Construir petición generador" porque la versión de la plantilla no coincide con la de `config`. Si cambian otras claves en `datos/config.csv`, cópialas también a tu hoja.
+0. **Antes de reimportar esta versión (1-nov-2026):**
+   - En tu hoja `config`, copia estos valores (los mismos de `datos/config.csv`):
+     - `version_prompt_generador` (fila `ce`) = `generador_ce_v4`.
+     - `max_tokens_generador` (fila `todos`) = `16000` (ya lo tienes).
+     - `esfuerzo_generador` (fila `ce`) = `medium`.
+   - El nodo "Plantilla generador" ahora lleva `prompts/generador_ce_v4.md`; si la hoja sigue en `generador_ce_v3`, `leerPlantilla` (js/construccion_prompt.js) detiene "Construir petición generador" porque la versión de la plantilla no coincide con la de `config`.
+   - Qué reimportar en esta versión (según `git diff --stat workflows/`):
+     - **00 Simulador: obligatorio.** "Completar escenario" ahora lleva `js/simulador.js` + `js/scoring.js` y calcula la nota esperada; "Plantilla generador" pasa a v4.
+     - **02 Evaluación: recomendado.** Sus nodos "JS-4 Construcción del prompt" y los de reintento incluyen `js/construccion_prompt.js` completo, que cambió solo en funciones del generador (guía de situaciones). La evaluación se comporta igual, pero así tu n8n queda idéntico al repositorio.
+     - 01, 03, 04 y 99: sin cambios, no hace falta reimportarlos.
+   - Si cambian otras claves en `datos/config.csv`, cópialas también a tu hoja.
 1. Desde la raíz del repo, en este orden:
    ```bash
    node workflows/herramientas/construir_plantillas.mjs
@@ -129,6 +139,7 @@ Los totales de esta tabla los comprueba `workflows/tests/estructura.test.js` con
 **Costo esperado de las pruebas de esta fase**, antes de cargar saldo:
 - Generador `claude-haiku-5-5`: 0.10 USD por millón de tokens de entrada y 0.50 por millón de salida (tramo de prompts de hasta 100K tokens; precios en `contrato/config.md`).
   - **Medido:** `generador_ce_v3` usa ≈ 20,400 tokens de entrada (v2 ≈ 17,900), es decir ≈ **0.0020 USD** de entrada por intento.
+  - `generador_ce_v4` (estimación del orquestador, SUPUESTO hasta tu medición): ≈ **0.0068 a 0.0073 USD** de generación por envío; peor caso ≈ **0.0101 USD**.
   - **SUPUESTO (la parte de salida, no medida):** con `max_tokens_generador = 16000` y `esfuerzo_generador = medium`, un intento cuesta ≈ **0.006 a 0.0075 USD** en total.
   - Si el primer intento se corta por `max_tokens`, ya no se reintenta (caso 9), así que un envío fallido cuesta un solo intento.
 - Evaluador `gpt-6-luna`: ≈ 0.005 USD por evaluación (`costo_estimado_por_evaluacion_usd`; SUPUESTO, estimado).
@@ -332,16 +343,19 @@ Antes de empezar, anota cuántas filas tiene cada hoja: los resultados esperados
   - Nota: el mock alterna 503 y 200 en cada llamada. Si la primera recibió 200, repite con otro `conversation_id`.
 
 **9. Simulador**
-- Cómo: tres envíos del formulario, cada uno con `cantidad = 1` y `lote = demo`:
-  1. `calidad_solicitada = buena`.
-  2. `calidad_solicitada = regular`.
-  3. `calidad_solicitada = mala` con `error_critico = critico.no_genera_caso`.
+- Cómo (criterio de cierre con `generador_ce_v4`): tres envíos del formulario, cada uno con `cantidad = 1`, `lote = demo` y `calidad_solicitada = regular`:
+  1. Con `comunicacion.redaccion` escrita en `criterios_que_deben_fallar`, acompañada de otra complementaria de más peso: `diagnostico.preguntas_necesarias|comunicacion.redaccion` (nota esperada 78.5, regular).
+  2. Con `criterios_que_deben_fallar` vacío (JS sortea las fallas y comprueba la nota esperada).
+  3. Igual que el 2.
+- **Por qué no `comunicacion.redaccion` sola:** el formulario calcula la nota esperada con el mismo scoring de JS-7 (`js/scoring.js`). Esa falla sola da 93.5 (buena), así que la pantalla muestra **"Formulario rechazado"** con el motivo ("Con comunicacion.redaccion como única falla la nota esperada es 93.5 (buena), no regular ...") y `log_errores` registra +1 `formulario_invalido`, sin Telegram y sin llamar a la API. Con criterios vacíos, JS re-sortea (máximo 30 intentos) hasta que la nota esperada caiga en la banda de la calidad pedida.
+- **Dónde ver la nota esperada:** en `escenarios.descripcion_escenario`, al final: "Nota esperada del scoring: X.". Para estas filas `demo` sí puedes abrir `escenarios` y compararla con `evaluaciones.nota_final`. **No abras `escenarios` para filas de `calibracion_v1`** hasta terminar tu calificación a ciegas.
+- Costo: ≈ 0.0068 a 0.0073 USD de generación por envío (peor caso ≈ 0.0101) más ≈ 0.005 de evaluación; las tres juntas ≈ 0.036 a 0.045 USD. Revisa antes que el gasto acumulado más esto no pase el tope de la sesión (**0.15 USD**, sección 2.2). Primero haz el envío 1 y revisa `stop_reason` (sección "Medir antes de correr varios").
 - Esperado por envío:
-  - `escenarios`: +1 `demo` con modelo, `version_prompt_generador = generador_ce_v3`, tokens, costo y `semilla_sorteo`.
+  - `escenarios`: +1 `demo` con modelo, `version_prompt_generador = generador_ce_v4`, tokens, costo, `semilla_sorteo` y la nota esperada en `descripcion_escenario`.
   - `revision_humana`: +1 `lote = demo` en `pendiente`, con las columnas `h_*` vacías y sin verdad del escenario.
   - `conversaciones`: +1 `evaluada`.
   - `evaluaciones`: +1.
-- En el 3: al menos 1 alerta de calidad en Telegram, si el sistema detecta el crítico.
+- Opcional (fuera del criterio de cierre, cuesta otra generación): `calidad_solicitada = mala` con `error_critico = critico.no_genera_caso`; espera al menos 1 alerta de calidad en Telegram, si el sistema detecta el crítico.
 - Si una generación no pasa la validación: un reintento; si vuelve a fallar, `log_errores` +1 `generacion_invalida` con alerta, y esa conversación no se guarda.
 - Costo total de las tres dentro del tope de la sesión (0.15 USD, sección 2.2).
 - **Si el generador se corta por `max_tokens`** (el razonamiento de Claude consumió el tope antes de terminar la conversación), W0 **no reintenta**: termina en `generacion_invalida` sin guardar la conversación, con un mensaje que dice subir `max_tokens_generador` (o bajar `esfuerzo_generador`).

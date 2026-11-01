@@ -422,11 +422,12 @@ function agregarReintento(cuerpo, textoRespuestaAnterior, mensajeErrores) {
 //   content-type: application/json
 //
 // La versión del prompt sale de config.version_prompt_generador (generador_ce_v3
-// desde el 30-oct-2026; generador_ce_v1 y generador_ce_v2 siguen funcionando si
-// config apunta a ellas). leerPlantilla() detiene el nodo si el texto pegado no
+// desde el 30-oct-2026; generador_ce_v1, v2 y v4 también funcionan si config
+// apunta a ellas). leerPlantilla() detiene el nodo si el texto pegado no
 // es de esa versión. Solo se envían los bloques INSTRUCCIONES (system) y ENTRADA
-// (único mensaje user). El bloque GUIA_FALLAS de v3 NO se envía completo:
-// guiaFallas() copia solo las líneas de los criterios pedidos.
+// (único mensaje user). El bloque GUIA_FALLAS de v3 y v4 NO se envía completo:
+// guiaFallas() copia solo las líneas de los criterios pedidos. Lo mismo con el
+// bloque GUIA_SITUACIONES de v4 y guiaSituaciones().
 
 // Valores de output_config.effort que documenta la Messages API (OutputConfig).
 const ESFUERZOS_GENERADOR = ['low', 'medium', 'high', 'xhigh', 'max'];
@@ -435,7 +436,7 @@ const ESFUERZOS_GENERADOR = ['low', 'medium', 'high', 'xhigh', 'max'];
 //   plantilla, // texto completo de prompts/generador_ce_vN.md (N según config)
 //   esquema,   // prompts/generador_payload_salida.schema.json (objeto)
 //   valores,   // { CONVERSATION_ID: ..., CUENTA: ..., ... } todos los marcadores <<...>>
-//              // de la plantilla (13 en v1, 15 en v2, 17 en v3; ver valoresGenerador)
+//              // de la plantilla (13 en v1, 15 en v2, 17 en v3, 18 en v4; ver valoresGenerador)
 //   config,    // claves ya resueltas para el tipo (modelo_generador,
 //              // version_prompt_generador, max_tokens_generador, esfuerzo_generador)
 // }
@@ -518,9 +519,10 @@ function valoresExtrasGenerador(extras, tipificacionEsperada) {
 // Listas vacías -> "ninguno". Un dato obligatorio que falta -> error explícito
 // (mejor detener W0 que mandar un prompt incompleto al modelo).
 //
-// Cómo se adapta a la versión (v1, v2 o v3): por los MARCADORES PRESENTES en el
+// Cómo se adapta a la versión (v1 a v4): por los MARCADORES PRESENTES en el
 // bloque ENTRADA de la plantilla. valoresGenerador lee ese bloque, encuentra los
-// <<NOMBRE>> que contiene y calcula solo esos (13 en v1, 15 en v2, 17 en v3).
+// <<NOMBRE>> que contiene y calcula solo esos (13 en v1, 15 en v2, 17 en v3,
+// 18 en v4).
 // Así no hay una tabla "versión -> marcadores" que mantener a mano: la plantilla
 // pegada en n8n es la única fuente. Un marcador que JS no conoce detiene W0.
 // Cada valor se calcula solo si su marcador está en la plantilla: v1 no exige
@@ -537,13 +539,14 @@ const CLAVES_CONFIG_GENERADOR = [
   'mayusculas_min_palabras_consecutivas', 'mayusculas_min_longitud_palabra', 'ortografia_umbral_graves',
   'ortografia_umbral_menores', 'signos_apertura_max_omisiones',
 ];
-// Todos los marcadores que sabe llenar valoresGenerador (13 de v1 + 2 de v2 + 2 de v3).
+// Todos los marcadores que sabe llenar valoresGenerador (13 de v1 + 2 de v2 + 2 de v3 + 1 de v4).
 const MARCADORES_GENERADOR = [
   'CONVERSATION_ID', 'CUENTA', 'FECHA_HORA_INICIO', 'TEMA_ESPERADO', 'TIPIFICACION_ESPERADA', 'CALIDAD_ESPERADA',
   'ERRORES_CRITICOS_INYECTADOS', 'CRITERIOS_QUE_DEBEN_FALLAR', 'CASOS_DIFICILES', 'CATALOGO_TEMAS', 'BASE_CONOCIMIENTO',
   'FRASES_REFERENCIA', 'PARAMETROS_CONFIG',
   'TIPIFICACION_AGENTE', 'VARIANTE_IDENTIDAD',
   'ARTICULO_DEL_TEMA', 'GUIA_FALLAS',
+  'GUIA_SITUACIONES',
 ];
 const CALIDADES_GENERADOR = ['buena', 'regular', 'mala'];
 
@@ -632,18 +635,26 @@ function articuloDelTema(catalogoTemas, baseConocimiento, tipificacionEsperada, 
 //   - Un criterio pedido sin línea en la guía -> error (mejor detener W0 que
 //     pedir una falla sin instrucciones).
 // criterios: arreglo (de completarEscenario) o texto "a|b".
-function guiaFallas(plantilla, criterios) {
-  if (typeof plantilla !== 'string' || plantilla.trim() === '') throw new Error('Falta la plantilla del generador para leer la guía de fallas.');
-  const bloque = extraerBloque(plantilla.replace(/\r\n/g, '\n'), 'GUIA_FALLAS');
+// Lee un bloque de guía de la plantilla (GUIA_FALLAS o GUIA_SITUACIONES) y
+// devuelve un Map criterio -> línea completa. Mismas reglas para los dos:
+// títulos ignorados; línea "- " mal formada o criterio repetido -> error.
+function lineasDeGuia(plantilla, bloqueNombre, nombreLegible) {
+  if (typeof plantilla !== 'string' || plantilla.trim() === '') throw new Error(`Falta la plantilla del generador para leer la ${nombreLegible}.`);
+  const bloque = extraerBloque(plantilla.replace(/\r\n/g, '\n'), bloqueNombre);
   const lineas = new Map();
   for (const cruda of bloque.split('\n')) {
     const linea = cruda.trim();
     if (!linea.startsWith('- ')) continue;
     const m = linea.match(/^- ([a-z_]+\.[a-z_]+): \S/);
-    if (!m) throw new Error(`La guía de fallas tiene una línea mal formada (se espera "- seccion.subelemento: ..."): "${linea.slice(0, 80)}".`);
-    if (lineas.has(m[1])) throw new Error(`La guía de fallas tiene dos líneas para ${m[1]}.`);
+    if (!m) throw new Error(`La ${nombreLegible} tiene una línea mal formada (se espera "- seccion.subelemento: ..."): "${linea.slice(0, 80)}".`);
+    if (lineas.has(m[1])) throw new Error(`La ${nombreLegible} tiene dos líneas para ${m[1]}.`);
     lineas.set(m[1], linea);
   }
+  return lineas;
+}
+
+function guiaFallas(plantilla, criterios) {
+  const lineas = lineasDeGuia(plantilla, 'GUIA_FALLAS', 'guía de fallas');
   const pedidos = [...new Set(leerListaConfig(criterios))];
   if (pedidos.length === 0) return 'ninguno';
   const faltan = pedidos.filter((c) => !lineas.has(c));
@@ -651,6 +662,22 @@ function guiaFallas(plantilla, criterios) {
     throw new Error(`La guía de fallas de la plantilla no tiene línea para: ${faltan.join(', ')}. Agrega la línea en el bloque GUIA_FALLAS del prompt o quita el criterio del escenario.`);
   }
   return pedidos.map((c) => lineas.get(c)).join('\n');
+}
+
+// GUIA_SITUACIONES (generador v4): de la guía de situaciones de la plantilla
+// (bloque <!-- INICIO_GUIA_SITUACIONES --> ... <!-- FIN_GUIA_SITUACIONES -->,
+// que NO se envía), copia las líneas de los criterios pedidos que tienen una,
+// en el orden pedido. Solo tienen línea los criterios que necesitan que pase
+// algo en el chat para aplicar (una emoción, una negativa, una espera...).
+//   - Un criterio pedido sin línea NO es error: no necesita situación (a
+//     diferencia de guiaFallas, donde todo criterio pedido debe tener línea).
+//   - Ningún criterio con línea -> 'ninguna'.
+//   - Línea mal formada, criterio repetido o plantilla sin el bloque -> error.
+// criterios: arreglo (de completarEscenario) o texto "a|b".
+function guiaSituaciones(plantilla, criterios) {
+  const lineas = lineasDeGuia(plantilla, 'GUIA_SITUACIONES', 'guía de situaciones');
+  const elegidas = [...new Set(leerListaConfig(criterios))].filter((c) => lineas.has(c));
+  return elegidas.length ? elegidas.map((c) => lineas.get(c)).join('\n') : 'ninguna';
 }
 
 // Marcadores <<NOMBRE>> del bloque ENTRADA de una plantilla, sin repetir, en orden de aparición.
@@ -702,6 +729,7 @@ function valoresGenerador({ escenario, extras, cuenta, catalogo_temas, base_cono
     VARIANTE_IDENTIDAD: () => extrasV2().VARIANTE_IDENTIDAD,
     ARTICULO_DEL_TEMA: () => articuloDelTema(catalogo_temas, base_conocimiento, tipificacionEsperada, escenario.tema_esperado, tipo),
     GUIA_FALLAS: () => guiaFallas(plantilla, escenario.criterios_que_deben_fallar),
+    GUIA_SITUACIONES: () => guiaSituaciones(plantilla, escenario.criterios_que_deben_fallar),
   };
   return Object.fromEntries(marcadores.map((m) => [m, calculos[m]()]));
 }
@@ -840,6 +868,7 @@ const exportados = {
   formatearFrasesReferencia,
   articuloDelTema,
   guiaFallas,
+  guiaSituaciones,
   marcadoresDePlantilla,
   MARCADORES_GENERADOR,
   CLAVES_CONFIG_GENERADOR,

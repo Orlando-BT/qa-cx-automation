@@ -175,11 +175,11 @@ test('construirPeticionGenerador con las filas reales de datos/config.csv', () =
   const config = configCE();
   // La plantilla es la de config.version_prompt_generador (v2 desde el 24-oct-2026).
   const plantilla = fs.readFileSync(path.join(RAIZ, 'prompts', `${config.version_prompt_generador}.md`), 'utf8');
-  // Valores ficticios para los marcadores que tenga esa versión (15 en v2, 17 en v3).
+  // Valores ficticios para los marcadores que tenga esa versión (15 en v2, 17 en v3, 18 en v4).
   const valores = Object.fromEntries(js4.marcadoresDePlantilla(plantilla).map((m) => [m, `valor de ${m}`]));
   const c = peticionGen({ config, plantilla, valores });
   assert.equal(c.model, 'claude-haiku-5-5');
-  assert.strictEqual(c.max_tokens, 8000);
+  assert.strictEqual(c.max_tokens, 16000); // datos/config.csv: 16000 desde el 1-nov-2026 (con 8000 v3 se cortaba)
   assert.equal(c.output_config.effort, 'medium'); // esfuerzo_generador (ce)
   assert.equal('anthropic_version_api' in c, false); // va en el encabezado, no en el cuerpo
   assert.equal(config.anthropic_version_api, '2026-10-21');
