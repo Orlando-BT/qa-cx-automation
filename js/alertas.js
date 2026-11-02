@@ -381,10 +381,10 @@ function filtrarAlertasCalidadYaEnviadas(envios, filasAlertasExistentes) {
   const yaEnviadas = new Set();
   for (const fila of filasAlertasExistentes || []) {
     if (!fila || limpio(fila.tipo_alerta) !== 'calidad' || limpio(fila.estado_envio) !== 'enviada') continue;
-    yaEnviadas.add(`${limpio(fila.conversation_id)} ${limpio(fila.id_criterio)}`);
+    yaEnviadas.add(`${limpio(fila.conversation_id)}|${limpio(fila.id_criterio)}`);
   }
   const lista = envios || [];
-  const resultado = lista.filter((e) => !(e && e.tipo_alerta === 'calidad' && yaEnviadas.has(`${limpio(e.conversation_id)} ${limpio(e.id_criterio)}`)));
+  const resultado = lista.filter((e) => !(e && e.tipo_alerta === 'calidad' && yaEnviadas.has(`${limpio(e.conversation_id)}|${limpio(e.id_criterio)}`)));
   return { envios: resultado, omitidas_ya_enviadas: lista.length - resultado.length };
 }
 
