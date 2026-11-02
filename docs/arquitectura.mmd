@@ -92,9 +92,26 @@ flowchart TD
     W3c -- "si" --> W3d
   end
 
+  %% Workflow 4
+  subgraph W4["W4 Reproceso"]
+    W4a["Disparador programado (cada 30 min) o manual"]
+    W4b["Leer conversaciones en reproceso, atascadas y pendientes viejas (nunca calibracion)"]
+    W4c{"Intentos mayores al maximo?"}
+    W4d["Reenviar una por una a Evaluacion"]
+    W4e["Dejar en error y alerta operativa"]
+    W4a --> W4b --> W4c
+    W4c -- "no" --> W4d
+    W4c -- "si" --> W4e
+  end
+
   %% Flujo entre workflows
   W0f -- "payload + ?lote=" --> W1a
   W1f --> W2a
+  W4d --> W2a
+  H_conv --> W4b
+  W4e --> H_log
+  W4e --> TG
+  W2n -- "conversacion a reproceso" --> H_conv
   W1b -- "invalido" --> W1err["Registrar payload invalido y alerta operativa"]
 
   %% Claude y OpenAI
