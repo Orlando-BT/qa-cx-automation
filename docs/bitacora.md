@@ -172,15 +172,22 @@ Nota: las entradas de la Fase 2 no son reconstrucciones; se escriben al cerrar c
 
 ### Nota esperada en el sorteo, generador_ce_v4 y max_tokens definitivo
 - Fecha: 1-nov-2026.
-- Commit: pendiente de commit.
+- Commit: "Fase 2: nota esperada en el sorteo, generador_ce_v4 y max_tokens 16000".
 - Subagentes: `reglas-js` (`js/simulador.js`, pruebas `simulador_nota_esperada.test.js` y `generador_v4.test.js`), `evaluador-llm` (`generador_ce_v4`, `js/construccion_prompt.js`), `contrato-datos` (`contrato/config.md` y `datos/config.csv`), `workflows-n8n` (reensamblado de W0 e `IMPORTAR.md`), `documentacion` (registro). Confirmado por el orquestador.
 - Qué cambió:
   - El sorteo del simulador calcula la nota esperada con el scoring y re-sortea (máximo 30 intentos) si queda fuera de la banda de la calidad pedida; el formulario fuera de banda se rechaza con sugerencia. Motivo: CONV-0130, pedida regular, salió 91.
   - Nuevo `generador_ce_v4` (v1 a v3 intactos) con ejemplo de mala redacción y marcador `GUIA_SITUACIONES`.
   - `max_tokens_generador` = 16000 con `esfuerzo_generador` = `medium`, definitivo.
   - Backlog: entrada de `reglas_ce_v2` sobre `apertura.ofrece_ayuda` (origen CONV-0129), e incidente del 31-oct sin conexión a Google (04 y 99 fallan al leer config).
-  - Criterio de cierre de la Fase 2: 3 envíos regulares; con al menos 2 regulares se cierra. Resultado: pendiente.
+  - Criterio de cierre de la Fase 2: 3 envíos regulares; con al menos 2 regulares se cierra. Resultado en la entrada siguiente.
 - Decisión relacionada: decisiones del dueño del 1-nov-2026. Detalle en `docs/registro-tecnico.md`, Fase 2, apartado 13.
+
+### Prueba de cierre y fidelidad del simulador
+- Fecha: 1-nov-2026.
+- Commit: pendiente de commit.
+- Subagentes: `documentacion` (registro y bitácora); la prueba y la revisión de las fallas las hicieron el dueño y el orquestador.
+- Qué cambió: la prueba de cierre dio 0 de 3 regulares (CONV-0131 mala 52.5, CONV-0132 buena 93.5, CONV-0133 buena 93.5). En 5 conversaciones `demo`, 5 de 10 fallas pedidas fueron detectadas (con `generador_ce_v4`, 3 de 6). La revisión (no ciega, no es calibración humana) sugiere que el cuello de botella está más en la indulgencia del evaluador que en el generador. Se agregaron entradas al backlog de v2. Detalle en `docs/registro-tecnico.md`, Fase 2, apartado 14.
+- Decisión relacionada: el dueño cierra la Fase 2 porque los casos de `IMPORTAR.md` pasaron y registra la fidelidad de extremo a extremo como limitación. Pendientes: `revisor`, resumen, explicación del dueño, etiqueta `fase-2-cierre` y push.
 
 ## Cómo se mantiene
 

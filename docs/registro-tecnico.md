@@ -247,6 +247,14 @@ Se corrió el evaluador con salida estructurada `json_schema` estricta. Por regl
   - Decisión: la pregunta repetida cuenta SOLO en `apertura.ofrece_ayuda` (sin doble castigo). `diagnostico.preguntas_necesarias` se limita a las preguntas que exige el artículo de la base de conocimiento (por ejemplo, KB-07 exige capturar el correo nuevo). Esto es el lado de reglas de la indulgencia descrita en la entrada anterior: allí se pedía que "una pregunta por algo ya dicho no cuente como necesaria"; con esta decisión esa pregunta se penaliza en `apertura.ofrece_ayuda` y no en `preguntas_necesarias`.
   - Origen: CONV-0129 (caso 9), el agente preguntó qué necesitaba el cliente cuando ya lo había dicho en el mensaje [1].
 
+- **Entradas derivadas de la prueba de cierre (1-nov-2026; ver Fase 2, apartado 14).**
+  1. Evaluador v2, PATRÓN (agrupa aquí la entrada de indulgencia en `preguntas_necesarias` de CONV-0129): el evaluador marca `no_aplica` o `cumple` cuando la consulta del cliente se respondió, aunque falte una acción esperada por el artículo. Casos: CONV-0129 `preguntas_necesarias` (cumple), CONV-0131 `ofrece_alternativas` (no_aplica), CONV-0132 `informacion_completa` (cumple, sin el plazo de KB-03), CONV-0133 `preguntas_necesarias` (no_aplica). Medirlo en la Fase 4 contra la calificación humana.
+  2. Doble penalización: en CONV-0131 un solo error (webinar) bajó `solucion.informacion_correcta` y `comunicacion.congruencia`; congruencia costó 6.5 puntos (52.5 vs 59; aun sin ella la nota seguía en mala porque `informacion_correcta` es clave en Solución, peso 35). Relacionar con la entrada de `reglas_ce_v2` sobre doble castigo (`ofrece_ayuda` / `preguntas_necesarias`): definir en la rúbrica v2 qué criterio se lleva cada tipo de error.
+  3. Base de conocimiento: KB-08 es ambigua sobre si el webinar aplica con pago mensual. Aclararla en una versión nueva de la base (cuidado: `calibracion_v1` está congelado y se evalúa con la base vigente; decisión del dueño).
+  4. Simulador: mejorar la fidelidad de extremo a extremo antes de usarlo para `calibracion_v2` (meta y método a definir en la Fase 4; incluir la verificación contra la nota esperada).
+  5. `reglas_ce_v2`: la evidencia de las reglas de lista prohibida reporta solo el primer término por mensaje (CONV-0132: "Okey" no aparece en la evidencia); reportar todos.
+  6. 99 Errores sin camino de alerta cuando Google no responde: ya anotado en el apartado 13.5 de la Fase 2; no se duplica.
+
 ### 4b. Backlog para la Fase 4 (métricas)
 
 - Medir cuántas conversaciones fallan a la vez `cierre.despedida` y `recapitulacion.cierre_inactividad` por la misma omisión (recordatorio sin cierre al final) y comparar con la calificación humana del dueño, para decidir si esa doble penalización se mantiene.
@@ -367,7 +375,7 @@ Commits de la fase, por título (los de la Fase 2 en orden):
 - "Fase 2: generador_ce_v3, sorteo con criterios aplicables y W4 recoge pendientes".
 - "Fase 2: rubrica §8 formaliza los pares que se anulan y la aplicabilidad".
 - "Fase 2: el generador no reintenta si se corta por max_tokens" (apartado 12.5).
-- Pendiente de commit: el bloque del apartado 13 (nota esperada en el sorteo, `generador_ce_v4`, `max_tokens_generador` definitivo).
+- "Fase 2: nota esperada en el sorteo, generador_ce_v4 y max_tokens 16000" (apartado 13).
 
 Qué cubren los cuatro últimos commits (según sus títulos y los apartados 12 y 13; no pude leer `git log --stat` ni los cuerpos de los mensajes porque no tengo acceso a una terminal, así que no listo archivos por commit):
 - Casos de prueba 6 a 13: correcciones surgidas de las pruebas del dueño en su n8n.
@@ -375,10 +383,12 @@ Qué cubren los cuatro últimos commits (según sus títulos y los apartados 12 
 - Rúbrica sección 8: formaliza los pares de criterios que se anulan entre sí y la aplicabilidad (insumo del apartado 13).
 - Generador sin reintento ante `max_tokens`: apartado 12.5.
 
+Hecho el 1-nov-2026: prueba de cierre (apartado 14). Criterio del dueño (3 regulares, al menos 2): resultado 0 de 3. El dueño decidió cerrar la fase porque los casos de `IMPORTAR.md` pasaron y registrar la fidelidad del simulador como limitación.
+
 Falta para cerrar la fase:
-- Criterio de cierre fijado por el dueño (1-nov-2026): 3 envíos regulares (uno con `comunicacion.redaccion` en el formulario); si al menos 2 salen regulares, se cierra la fase. Resultado: pendiente.
-- Revisión final del `revisor`, commit del apartado 13 y etiqueta `fase-2-cierre`.
-- Criterio de terminado general (lote `demo` más los casos de prueba; `calibracion_v1` solo como pendiente): resultados completos, pendiente.
+- Revisión final del `revisor`.
+- Resumen para el dueño y su explicación de la fase.
+- Etiqueta `fase-2-cierre` y push.
 
 ### 12. Generador v3, primera prueba (caso 9) y cambio del reintento (30 y 31-oct-2026)
 
@@ -511,4 +521,48 @@ Alternativa descartada: subir `generador_fallas_regular` a 3. No garantiza la ba
 
 #### 13.6 Criterio de cierre de la Fase 2
 
-Fijado por el dueño: 3 envíos regulares (uno con `comunicacion.redaccion` en el formulario). Si al menos 2 salen regulares, se cierra la fase. Resultado: pendiente.
+Fijado por el dueño: 3 envíos regulares (uno con `comunicacion.redaccion` en el formulario). Si al menos 2 salen regulares, se cierra la fase. Resultado: 0 de 3; ver el apartado 14.
+
+### 14. Prueba de cierre y fidelidad del simulador (1-nov-2026)
+
+#### 14.1 Resultado del criterio de cierre
+
+- Criterio fijado por el dueño: 3 envíos regulares, con al menos 2 regulares. Resultado: 0 de 3 (CONV-0131 mala 52.5, CONV-0132 buena 93.5, CONV-0133 buena 93.5).
+- CONV-0133 cayó primero en reproceso por `sin_final_answer`; W4 la evaluó en el ciclo siguiente.
+- Un cuarto envío del formulario fue rechazado sin costo porque los criterios se escribieron en el campo de error crítico (la validación funcionó).
+- Decisión del dueño: cerrar la Fase 2 porque los casos de `IMPORTAR.md` pasaron, y registrar la fidelidad como limitación.
+
+#### 14.2 Fallas pedidas contra fallas observadas
+
+Nota esperada = scoring de JS-7 sobre las fallas pedidas. Para CONV-0129 y CONV-0130 se calculó después, porque la nota esperada aún no existía.
+
+| Conversación | Generador | Fallas pedidas | Nota esperada | Pedidas detectadas | Fallas no pedidas | Nota real |
+|---|---|---|---|---|---|---|
+| CONV-0129 | v3 | diagnostico.preguntas_necesarias, solucion.ofrece_alternativas | 67.5 regular | 0/2 (cumple, no_aplica) | solucion.campos_obligatorios | 82.5 buena |
+| CONV-0130 | v3 | comunicacion.frases_negativas, cierre.marca | 91 buena | 2/2 | — | 91 buena |
+| CONV-0131 | v4 | solucion.ofrece_alternativas, recapitulacion.recordatorio_inactividad | 76.5 regular | 1/2 (ofrece_alternativas no_aplica) | solucion.informacion_correcta, comunicacion.congruencia (mismo error: webinar) | 52.5 mala |
+| CONV-0132 | v4 | comunicacion.vicios_lenguaje, solucion.informacion_completa | 76 regular | 1/2 (informacion_completa cumple) | — | 93.5 buena |
+| CONV-0133 | v4 | diagnostico.preguntas_necesarias, comunicacion.redaccion | 78.5 regular | 1/2 (preguntas_necesarias no_aplica) | — | 93.5 buena |
+
+- Fidelidad de extremo a extremo (generador + evaluador): 5 de 10 fallas pedidas detectadas (50 %); con v4: 3 de 6.
+- Fallas no pedidas: 3 en 2 conversaciones (2 de ellas son el mismo error en CONV-0131).
+
+#### 14.3 Revisión de las 5 fallas no detectadas
+
+Lectura del dueño y del orquestador. NO es calibración humana (se mide en la Fase 3). Supuesto: muestra de 5 conversaciones y revisión no ciega.
+
+En 4 la falla sí está en el texto y el evaluador no la marcó:
+- CONV-0129 `preguntas_necesarias`: no pide el correo nuevo que exige KB-07 y repregunta la solicitud.
+- CONV-0131 `ofrece_alternativas`: el descuento no procedía con pago mensual y el agente no sugirió cambiar a pago anual, que KB-08 permite en Configuración > Mi plan.
+- CONV-0132 `informacion_completa`: omite el plazo de KB-03 (el complemento se emite a más tardar el día 5 del mes siguiente).
+- CONV-0133 `preguntas_necesarias`: el agente supone "supongo que quieres registrar una tarjeta nueva" y no pregunta si el cliente es Administrador, requisito de KB-06.
+
+En 1 la falla no se produjo: CONV-0129 `ofrece_alternativas` (v3; la solicitud sí era tramitable; v4 agrega `GUIA_SITUACIONES` para esto).
+
+#### 14.4 Otros hallazgos
+
+- CONV-0131 `solucion.informacion_correcta`: KB-08 dice "15% de descuento en el pago anual ... más acceso gratuito al webinar ... No aplica a pagos mensuales". La lectura más natural es que la restricción aplica a toda la campaña, incluido el webinar, así que la afirmación del agente es defendible y el `no_cumple` es probablemente un falso positivo del evaluador; el artículo es ambiguo.
+- Escenario contrafactual con JS-7 (si el evaluador hubiera marcado lo que la revisión ve): CONV-0131 76.5, CONV-0132 76, CONV-0133 78.5, los 3 regulares. Conclusión: el cuello de botella observado está más en la indulgencia del evaluador que en el generador; la limitación se registra como fidelidad de extremo a extremo, no solo del generador.
+- `generador_ce_v4`: `comunicacion.redaccion` se detectó en CONV-0133 (el evaluador citó el mensaje 8, «los datos de la tarjeta los captura ella eso»), lo que v3 no logró en el caso 9. El agente confirmó la solicitud en la apertura en CONV-0131, 0132 y 0133.
+- CONV-0132 `vicios_lenguaje`: "Okey" sí está en la lista `vicio_lenguaje` y sí coincide; el mensaje 4 tiene "Ahorita" y "Okey" y la regla (`reglaProhibida` en `js/reglas.js`) reporta solo el primer término de cada mensaje, por eso la evidencia muestra solo "ahorita". El resultado es correcto; la evidencia es incompleta.
+- Backlog derivado: ver las entradas nuevas del apartado 4 de esta fase.
