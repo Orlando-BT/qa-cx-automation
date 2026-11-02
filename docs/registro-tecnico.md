@@ -255,6 +255,8 @@ Se corrió el evaluador con salida estructurada `json_schema` estricta. Por regl
   5. `reglas_ce_v2`: la evidencia de las reglas de lista prohibida reporta solo el primer término por mensaje (CONV-0132: "Okey" no aparece en la evidencia); reportar todos.
   6. 99 Errores sin camino de alerta cuando Google no responde: ya anotado en el apartado 13.5 de la Fase 2; no se duplica.
 
+- **Prueba de consistencia del evaluador (Fase 4).** Decisión del dueño, 1-nov-2026. Evaluar cada conversación de `calibracion_v1` 3 veces con las mismas versiones (`reglas_ce_v1`, `evaluador_ce_v1`, mismo modelo) y medir el porcentaje de coincidencia por criterio (separando LLM e HÍBRIDO; los JS deben coincidir al 100 %) y la variación de la nota (rango y desviación por conversación). Requiere un modo que omita la deduplicación sin escribir filas duplicadas en `evaluaciones` (p. ej. resultados a una salida separada); el diseño del modo se decide en la Fase 4. Motivo: temperatura 0 no garantiza respuestas idénticas, y JS-7 solo es determinista sobre los juicios que recibe. Costo: estimarlo antes de correr (3 × 24 evaluaciones). Resultados: pendiente.
+
 ### 4b. Backlog para la Fase 4 (métricas)
 
 - Medir cuántas conversaciones fallan a la vez `cierre.despedida` y `recapitulacion.cierre_inactividad` por la misma omisión (recordatorio sin cierre al final) y comparar con la calificación humana del dueño, para decidir si esa doble penalización se mantiene.
@@ -385,14 +387,15 @@ Qué cubren los cuatro últimos commits (según sus títulos y los apartados 12 
 
 Hecho el 1-nov-2026: prueba de cierre (apartado 14). Criterio del dueño (3 regulares, al menos 2): resultado 0 de 3. El dueño decidió cerrar la fase porque los casos de `IMPORTAR.md` pasaron y registrar la fidelidad del simulador como limitación.
 
-Falta para cerrar la fase:
-- Revisión final del `revisor`.
-- Resumen para el dueño y su explicación de la fase.
-- Etiqueta `fase-2-cierre` y push.
+El dueño explicó la fase (1-nov-2026) y la fase se cierra con la etiqueta `fase-2-cierre`.
+
+Revisión de cierre del `revisor` (1-nov-2026): APROBADO CON CONDICIONES, sin hallazgos críticos ni mayores. Tres menores: (1) `js/alertas.js` en CRLF y (2) un byte NUL como separador en la clave de alertas enviadas, ambos corregidos en el commit "Fase 2: js/alertas.js en LF y separador visible en la clave de alertas enviadas"; (3) posible desfase de `esfuerzo_generador` en la documentación: verificado, sin desfase (apartado 13.4).
+
+Pendiente: etiqueta `fase-2-cierre` y push.
 
 ### 12. Generador v3, primera prueba (caso 9) y cambio del reintento (30 y 31-oct-2026)
 
-Esta sección sigue abierta: la medición de la opción A (apartado 12.4) está pendiente. Los datos de consumo salen de las ejecuciones de n8n del dueño (solo campos de consumo); yo no las volví a consultar. Los cambios de este apartado quedaron guardados en los commits "Fase 2: generador_ce_v3, sorteo con criterios aplicables y W4 recoge pendientes" y "Fase 2: el generador no reintenta si se corta por max_tokens". La medición de la opción A se resolvió después: ver el apartado 13.4.
+La medición de la opción A (apartado 12.4) se resolvió en el apartado 13.4. Los datos de consumo salen de las ejecuciones de n8n del dueño (solo campos de consumo); yo no las volví a consultar. Los cambios de este apartado quedaron guardados en los commits "Fase 2: generador_ce_v3, sorteo con criterios aplicables y W4 recoge pendientes" y "Fase 2: el generador no reintenta si se corta por max_tokens".
 
 #### 12.1 Qué pasó con `generador_ce_v3` (caso 9, 30-oct-2026)
 
