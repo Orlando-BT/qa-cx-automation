@@ -82,7 +82,8 @@ Cada workflow (menos "99 Errores" y el mock) trae `settings.errorWorkflow`. Conf
    - Qué reimportar en esta versión (según `git diff --stat workflows/`):
      - **00 Simulador: obligatorio.** "Completar escenario" ahora lleva `js/simulador.js` + `js/scoring.js` y calcula la nota esperada; "Plantilla generador" pasa a v4.
      - **02 Evaluación: recomendado.** Sus nodos "JS-4 Construcción del prompt" y los de reintento incluyen `js/construccion_prompt.js` completo, que cambió solo en funciones del generador (guía de situaciones). La evaluación se comporta igual, pero así tu n8n queda idéntico al repositorio.
-     - 01, 03, 04 y 99: sin cambios, no hace falta reimportarlos.
+     - **01, 04 y 99: recomendado.** El arreglo de `js/alertas.js` (LF y separador visible en la clave de alertas enviadas) cambió el código incrustado en 00, 01, 02, 04 y 99. No cambia cómo evalúan: es para que tu n8n quede idéntico al repositorio. Reimporta antes de la Fase 4, no antes de calificar (`calibracion_v1` solo se ingesta pendiente y no pasa por 02 hasta la Fase 4).
+     - **03: sin cambios**, no hace falta reimportarlo.
    - Si cambian otras claves en `datos/config.csv`, cópialas también a tu hoja.
 1. Desde la raíz del repo, en este orden:
    ```bash

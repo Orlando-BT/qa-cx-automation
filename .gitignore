@@ -9,3 +9,6 @@ workflows/_local/
 
 # Resultados con datos de calibracion_v1 contra la verdad del escenario; se restauran al cerrar la Fase 3
 prompts/verificacion/_privado/
+
+# Auditorías externas del dueño (no se versionan)
+auditorias/
