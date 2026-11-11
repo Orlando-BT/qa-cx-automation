@@ -5,4 +5,8 @@ El umbral del desempate (50%) es configurable.
 Hay una tercera clase de subelemento, informativo, que se registra pero no entra en la agregación (por ejemplo, el número de preguntas).
 Cuando algo se puede calcular, como la inactividad del cliente, el no_aplica lo decide JavaScript, no el LLM. # Mis decisiones
 
+Ok simulador genera la conversación, en un entorno de producción sería el CRM o desde donde se consuman las conversaciones, ya que utilizan el mismo payload, W0 hace POST a W01, ingesta valida y quita los duplicados con una llave generada por 3 elementos distintivos de cada conversación, la guarda en pendiente y llama a W2 con webhook, en evaliuación JS 1 - 3 normalizan y enmascaran los datos sensibles y aplican las reglas deterministas, JS4 arma el prompt para openai que devuelve los juicios aplicados a las conversaciones con evidencia. JS6 aplica reglas híbridas y JS7 calcula la nota ya que es determinista con el LLM podríamos tener variación para la misma evaluación JS8 cálcula el costo 
+
+Dejé las 6 advertencias D1 sin anotar: mi calificación de sección refleja mi criterio de supervisor y se comparará con D1 en la Fase 4.
+
 Este archivo lo escribo yo al cerrar cada fase.

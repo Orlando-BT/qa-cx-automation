@@ -4,7 +4,7 @@ Bitácora cronológica de commits y decisiones del proyecto. Cada entrada indica
 
 - El detalle técnico de cada fase está en `docs/registro-tecnico.md`. Las decisiones del dueño (D1 a D6) están descritas ahí y sus razones en `docs/decisiones.md`, que escribe el dueño.
 - Los documentos citan etiquetas de Git (`fase-0-cierre`, `fase-1-cierre`) en vez de hashes. Para commits sin etiqueta se usa el título del commit.
-- No se reportan métricas ni resultados por conversación. Del lote solo se citan totales. No hay métricas de confiabilidad: la calificación humana no existe todavía.
+- No se reportan métricas ni resultados por conversación. Del lote solo se citan totales. No hay métricas de confiabilidad: la calificación humana ya existe (11-nov-2026), pero el sistema aún no evalúa el lote (Fase 4).
 
 ## Nota sobre las entradas reconstruidas
 
@@ -184,10 +184,60 @@ Nota: las entradas de la Fase 2 no son reconstrucciones; se escriben al cerrar c
 
 ### Prueba de cierre y fidelidad del simulador
 - Fecha: 1-nov-2026.
-- Commit: pendiente de commit.
+- Commit: "Docs Fase 2: prueba de cierre, fidelidad del simulador y backlog de la Fase 4" (1-nov-2026).
 - Subagentes: `documentacion` (registro y bitácora); la prueba y la revisión de las fallas las hicieron el dueño y el orquestador.
 - Qué cambió: la prueba de cierre dio 0 de 3 regulares (CONV-0131 mala 52.5, CONV-0132 buena 93.5, CONV-0133 buena 93.5). En 5 conversaciones `demo`, 5 de 10 fallas pedidas fueron detectadas (con `generador_ce_v4`, 3 de 6). La revisión (no ciega, no es calibración humana) sugiere que el cuello de botella está más en la indulgencia del evaluador que en el generador. Se agregaron entradas al backlog de v2. Detalle en `docs/registro-tecnico.md`, Fase 2, apartado 14.
 - Decisión relacionada: el dueño cierra la Fase 2 porque los casos de `IMPORTAR.md` pasaron y registra la fidelidad de extremo a extremo como limitación. Pendientes: `revisor`, resumen, explicación del dueño, etiqueta `fase-2-cierre` y push.
+
+### Fase 2: js/alertas.js en LF y separador visible en la clave de alertas enviadas
+- Fecha: 1-nov-2026 18:21 (hora de México, -0600; confirmada en `git log`).
+- Commit: "Fase 2: js/alertas.js en LF y separador visible en la clave de alertas enviadas".
+- Resumen desde el título y el registro técnico (Fase 2, apartado 11): corrige dos menores del `revisor` (archivo en CRLF y un byte NUL como separador de la clave). Cambió el código incrustado en 00, 01, 02, 04 y 99; ver `workflows/IMPORTAR.md`, sección 1.4, punto 0.
+- Subagentes: `reglas-js` (según el mensaje del commit).
+
+### Docs Fase 2: backlog de consistencia del evaluador y cierre de la fase
+- Fecha: 1-nov-2026 20:37 (hora de México, -0600; confirmada en `git log`).
+- Commit: "Docs Fase 2: backlog de consistencia del evaluador y cierre de la fase".
+- Resumen desde el título (no leí el contenido del commit): documentación del backlog sobre la consistencia del evaluador y del cierre de la Fase 2. Subagente: `documentacion` (según el mensaje del commit).
+
+### Etiqueta fase-2-cierre
+- Fecha: 1-nov-2026 20:37 (hora de México, -0600; confirmada en `git for-each-ref`).
+- Etiqueta: `fase-2-cierre`, sobre el commit "Docs Fase 2: backlog de consistencia del evaluador y cierre de la fase".
+
+### Docs: README para lectores no tecnicos y W4 en el diagrama de arquitectura
+- Fecha: 1-nov-2026 21:13 (hora de México, -0600; confirmada en `git log`).
+- Commit: "Docs: README para lectores no tecnicos y W4 en el diagrama de arquitectura".
+- Resumen desde el título: README para lectores no técnicos y W4 (reproceso) agregado al diagrama de arquitectura. Subagente: `documentacion` (según el mensaje del commit).
+
+## Fase 3: Calibración humana (4 al 11-nov-2026)
+
+### Fase 3: guía de calificación a ciegas, validador de forma y auditorias/ ignorada
+- Fecha: 4-nov-2026 12:04 (hora de México, -0600).
+- Commit: "Fase 3: guía de calificación a ciegas, validador de forma de revision_humana y auditorias/ ignorada".
+- Subagentes: `documentacion`, `reglas-js` (según el mensaje del commit). Revisión previa del `revisor`: aprobado con condiciones, ya atendidas.
+- Qué cambió: `.gitignore` (+`auditorias/`); `docs/guia_calificacion.md` (generada solo desde `contrato/rubrica.md` y `contrato/sheets.md`); `js/validador_revision_humana.js` (valida solo forma: los errores bloquean y las diferencias con D1 son advertencias); pruebas `js/tests/guia_calificacion.test.js` y `js/tests/validador_revision_humana.test.js` (fixtures sintéticos); `workflows/IMPORTAR.md` sección 0 (reimportar 01, 04 y 99 antes de la Fase 4).
+- Decisión relacionada: ningún agente puede generar, sugerir ni completar la calificación; el validador no compara contra escenarios ni evaluaciones.
+
+### Calificación humana a ciegas de calibracion_v1
+- Fecha: 11-nov-2026 10:33 (hora de México, -0600).
+- Commit: "Fase 3: calificación humana a ciegas de calibracion_v1" (mensaje: "Cambios del dueño (sin subagente)").
+- Qué cambió: se agregó `datos/lotes/calibracion_v1/revision_humana_calificada.csv`. El dueño calificó a ciegas las 24 conversaciones; ningún agente generó, sugirió ni completó la calificación.
+- Validación de forma (la corrió el dueño): 0 errores y **6 advertencias D1 sin anotar**. El dueño decidió dejarlas sin anotar a propósito. Sus razones van en `docs/decisiones.md`, que escribe él.
+- Orden del historial: el commit se hizo y se subió a GitHub antes de cualquier evaluación del sistema sobre el lote, para que el historial muestre que la calificación humana fue primero.
+- No se reportan notas ni métricas: no existen métricas de confiabilidad todavía.
+
+### Restauración de resultados_prueba_b_lote.json
+- Fecha: 11-nov-2026.
+- Commit: "Fase 3: cierre, registro técnico, bitácora y restauración de resultados_prueba_b_lote.json".
+- Qué cambió: el orquestador movió `prompts/verificacion/_privado/resultados_prueba_b_lote.json` a `prompts/verificacion/resultados_prueba_b_lote.json` sin abrirlo, según lo anotado en el hallazgo m4 de la Fase 2. `_privado/` quedó vacía y la línea de `.gitignore` sigue.
+- `prompts/verificacion/README.md` (líneas 69, 79, 88 y 120) se corrigió el 11-nov-2026 por `evaluador-llm` a petición del dueño: el archivo antiguo está versionado en `prompts/verificacion/`; los fechados nuevos siguen en `_privado/`, fuera de Git.
+
+### Cierre de la Fase 3
+- Fecha: 11-nov-2026.
+- Commit: "Fase 3: cierre, registro técnico, bitácora y restauración de resultados_prueba_b_lote.json".
+- Subagentes: `documentacion` (registro y bitácora), `evaluador-llm` (`prompts/verificacion/README.md`), `revisor` (aprobado, sin hallazgos críticos; 651 de 651 pruebas).
+- Qué cambió: apartado "Fase 3: Calibración humana" en `docs/registro-tecnico.md`; `docs/decisiones.md` (el dueño: razón de dejar las 6 advertencias D1 sin anotar); README de verificación corregido; `resultados_prueba_b_lote.json` restaurado.
+- Decisión relacionada: el dueño aprobó el cierre el 11-nov-2026. Etiqueta `fase-3-cierre` y push siguen a este commit.
 
 ## Cómo se mantiene
 

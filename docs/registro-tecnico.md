@@ -362,7 +362,7 @@ Veredicto: aprobado con condiciones, 0 críticos.
 - M2: W3 es un esqueleto y no escribe en `metricas`. Queda así; las métricas son de la Fase 4.
 - m1: conteos en `IMPORTAR.md`. Corregidos.
 - m2: la base de costo se corrigió a "3 evaluaciones en 2 corridas".
-- m4: `prompts/verificacion/resultados_prueba_b_lote.json` se movió a `prompts/verificacion/_privado/` (ignorada por Git, sin borrarlo) porque contiene la comparación de 2 conversaciones de `calibracion_v1` contra la verdad del escenario. Se restaura al repositorio al cerrar la Fase 3. Sigue en el historial de Git de commits anteriores: no se reescribió el historial.
+- m4: `prompts/verificacion/resultados_prueba_b_lote.json` se movió a `prompts/verificacion/_privado/` (ignorada por Git, sin borrarlo) porque contiene la comparación de 2 conversaciones de `calibracion_v1` contra la verdad del escenario. Se restaura al repositorio al cerrar la Fase 3 (ya restaurado el 11-nov-2026; ver la Fase 3, apartado 4). Sigue en el historial de Git de commits anteriores: no se reescribió el historial.
 - m5: hashes reemplazados por títulos de commit o etiquetas.
 - m6: documentado como riesgo, con recuperación desde el historial de ejecuciones de n8n.
 
@@ -391,7 +391,7 @@ El dueño explicó la fase (1-nov-2026) y la fase se cierra con la etiqueta `fas
 
 Revisión de cierre del `revisor` (1-nov-2026): APROBADO CON CONDICIONES, sin hallazgos críticos ni mayores. Tres menores: (1) `js/alertas.js` en CRLF y (2) un byte NUL como separador en la clave de alertas enviadas, ambos corregidos en el commit "Fase 2: js/alertas.js en LF y separador visible en la clave de alertas enviadas"; (3) posible desfase de `esfuerzo_generador` en la documentación: verificado, sin desfase (apartado 13.4).
 
-Pendiente: etiqueta `fase-2-cierre` y push.
+Etiqueta `fase-2-cierre` y push: hechos el 1-nov-2026 (la etiqueta apunta al commit "Docs Fase 2: backlog de consistencia del evaluador y cierre de la fase").
 
 ### 12. Generador v3, primera prueba (caso 9) y cambio del reintento (30 y 31-oct-2026)
 
@@ -569,3 +569,47 @@ En 1 la falla no se produjo: CONV-0129 `ofrece_alternativas` (v3; la solicitud s
 - `generador_ce_v4`: `comunicacion.redaccion` se detectó en CONV-0133 (el evaluador citó el mensaje 8, «los datos de la tarjeta los captura ella eso»), lo que v3 no logró en el caso 9. El agente confirmó la solicitud en la apertura en CONV-0131, 0132 y 0133.
 - CONV-0132 `vicios_lenguaje`: "Okey" sí está en la lista `vicio_lenguaje` y sí coincide; el mensaje 4 tiene "Ahorita" y "Okey" y la regla (`reglaProhibida` en `js/reglas.js`) reporta solo el primer término de cada mensaje, por eso la evidencia muestra solo "ahorita". El resultado es correcto; la evidencia es incompleta.
 - Backlog derivado: ver las entradas nuevas del apartado 4 de esta fase.
+
+## Fase 3: Calibración humana (4 al 11-nov-2026)
+
+La Fase 3 la hace el dueño: ningún agente puede generar, sugerir ni completar la calificación. Los agentes solo prepararon herramientas (guía y validador). Este apartado no cita notas, calificaciones ni métricas de confiabilidad: no existen todavía, porque el sistema aún no evalúa `calibracion_v1` (eso es la Fase 4).
+
+### 1. Qué se construyó
+
+Commit "Fase 3: guía de calificación a ciegas, validador de forma de revision_humana y auditorias/ ignorada" (4-nov-2026 12:04, hora de México). Subagentes según el mensaje: `documentacion` y `reglas-js`; revisión previa del `revisor`: aprobado con condiciones ya atendidas.
+- `docs/guia_calificacion.md`: guía para calificar a ciegas, generada solo desde `contrato/rubrica.md` y `contrato/sheets.md`. Incluye el caso `sin_caso` y `chat_primera_respuesta_seg`. Explica la regla D1 solo como referencia, no como instrucción.
+- `js/validador_revision_humana.js`: valida solo la forma del CSV exportado de `revision_humana` (columnas tomadas del contrato, valores permitidos, fechas, filas esperadas; 24 por defecto). No compara contra escenarios ni evaluaciones, no califica y su salida nunca imprime `texto_legible` ni `comentarios_humano`. Los errores bloquean (código de salida 1); las advertencias nunca lo cambian.
+- Pruebas `js/tests/guia_calificacion.test.js` y `js/tests/validador_revision_humana.test.js`, con fixtures sintéticos (no usan el lote real).
+- `.gitignore` agrega `auditorias/`. `workflows/IMPORTAR.md`, sección 0: reimportar 01, 04 y 99 antes de la Fase 4 (no antes de calificar).
+
+### 2. Qué es una advertencia D1
+
+Según `js/validador_revision_humana.js` (función `diferenciaD1`) y `docs/guia_calificacion.md` (sección 3): es el aviso informativo, que nunca bloquea, de que la sección que calificó el dueño difiere de lo que daría la regla D1 (`contrato/rubrica.md` §2.1) calculada solo con los subelementos clave que tienen columna. Casos: un clave `no_cumple` con sección distinta de `no_cumple`; sección `no_aplica` con claves aplicables; sección aplicable sin claves aplicables. Es parcial: no ve los complementarios, así que la ausencia de advertencia no confirma coincidencia con D1. El formato sugerido para anotar una diferencia es `D1: <seccion> difiero: <motivo breve>` en `comentarios_humano`.
+
+### 3. Calificación del dueño y decisión sobre las advertencias D1
+
+- El dueño calificó a ciegas las 24 conversaciones de `calibracion_v1`. Ningún agente intervino.
+- Validador de forma (lo corrió el dueño): 0 errores y 6 advertencias D1.
+- Decisión del dueño: dejar las 6 advertencias D1 sin anotar, a propósito. Sus razones van en `docs/decisiones.md`, que escribe él; aquí no se resumen.
+- Implicación (inferida de la guía, que dice que las diferencias anotadas son evidencia para revisar D1 en la Fase 4): las 6 diferencias no tienen motivo escrito en `comentarios_humano`. Su tratamiento en la Fase 4 queda pendiente de decidir.
+
+### 4. Orden de commits como evidencia de calificación a ciegas
+
+1. "Fase 3: guía de calificación a ciegas, validador de forma de revision_humana y auditorias/ ignorada" (4-nov-2026 12:04).
+2. "Fase 3: calificación humana a ciegas de calibracion_v1" (11-nov-2026 10:33; mensaje "Cambios del dueño (sin subagente)"). Solo agrega `datos/lotes/calibracion_v1/revision_humana_calificada.csv`.
+
+El segundo commit se hizo y se subió a GitHub antes de cualquier evaluación del sistema sobre el lote, para que el historial demuestre que la calificación humana fue primero. Limitación: la evidencia es el orden y las fechas de Git (que el propio dueño controla), no una prueba externa.
+
+Restauración del archivo privado: el 11-nov-2026 el orquestador movió `prompts/verificacion/_privado/resultados_prueba_b_lote.json` a `prompts/verificacion/resultados_prueba_b_lote.json` sin abrirlo, cumpliendo el hallazgo m4 de la Fase 2 (apartado 10). `_privado/` quedó vacía y la línea de `.gitignore` sigue. `prompts/verificacion/README.md` se corrigió el mismo día (`evaluador-llm`, a petición del dueño): el archivo antiguo está versionado y los fechados nuevos siguen en `_privado/`, fuera de Git.
+
+### 5. Estado y pendientes
+
+Hecho: guía, validador, calificación del dueño (validada en forma), restauración del archivo privado y corrección del README de verificación. Revisión del `revisor` (11-nov-2026): aprobado, sin hallazgos críticos; 651 de 651 pruebas pasan (`js/tests` y `workflows/tests`).
+
+Pendientes del cierre (requieren aprobación del dueño): revisión del `revisor`, resumen para el dueño, explicación del dueño, commit de cierre, etiqueta `fase-3-cierre` y push.
+
+Para la Fase 4:
+- Reimportar 01, 04 y 99 en n8n (`workflows/IMPORTAR.md`, sección 0) antes de evaluar el lote.
+- Evaluar `calibracion_v1` con el sistema y calcular las métricas por lote; recién entonces se comparan contra la calificación humana y la verdad del escenario.
+- Decidir qué hacer con las 6 diferencias D1 sin anotar al revisar la regla D1.
+- Métricas de confiabilidad: pendiente.
