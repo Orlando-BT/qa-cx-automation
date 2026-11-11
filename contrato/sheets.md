@@ -358,7 +358,7 @@ Toda alerta enviada (o intentada) se registra aquí. El modo de las alertas de c
 
 ## `metricas`
 
-Formato largo: una fila por métrica calculada. Solo usa conversaciones con `revision_humana.estado_revision = calificada` y siempre se reporta por lote.
+Formato largo: una fila por métrica calculada. Solo usa conversaciones con `revision_humana.estado_revision = calificada` y siempre se reporta por lote. Los valores de `ambito` y `nombre_metrica` son los del glosario (sección de enums). `falsos_positivos` y `falsos_negativos` cubren "fallas inventadas" y "fallas no vistas" y se reportan con `origen` = `JS`, `LLM` o `HIBRIDO`.
 
 | # | Columna | Tipo | Descripción | Escribe |
 |---|---|---|---|---|

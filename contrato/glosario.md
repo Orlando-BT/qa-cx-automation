@@ -143,8 +143,10 @@ Derivación determinista a partir del ID:
 | `tipo_lista` | `frase_criterio`, `termino_prohibido`, `frase_negativa`, `vicio_lenguaje`, `palabra_altisonante`, `sigla_permitida` | `listas.tipo_lista` |
 | `giro` | `comercializadora`, `servicios_profesionales`, `restaurante`, `manufactura`, `construccion`, `transporte_logistica`, `salud` | `cuentas.giro`. Los cuatro últimos son SUPUESTO. |
 | `tamano` | `micro`, `pequena`, `mediana` | `cuentas.tamano` |
-| `ambito_metrica` | `global`, `origen`, `seccion`, `subelemento`, `critico`, `operacion`, `generador` | `metricas.ambito` |
-| `nombre_metrica` | `acuerdo`, `kappa_cohen`, `falsos_positivos`, `falsos_negativos`, `diferencia_promedio_nota`, `precision_criticos`, `recall_criticos`, `costo_promedio_evaluacion`, `tasa_fallos`, `acuerdo_generador_humano` | `metricas.nombre_metrica`, `alertas.nombre_metrica` |
+| `ambito_metrica` | `global`, `origen`, `seccion`, `subelemento`, `critico`, `operacion`, `generador`, `identidad`, `banda` | `metricas.ambito` |
+| `nombre_metrica` | `acuerdo`, `kappa_cohen`, `falsos_positivos`, `falsos_negativos`, `diferencia_promedio_nota`, `precision_criticos`, `recall_criticos`, `costo_promedio_evaluacion`, `tasa_fallos`, `acuerdo_generador_humano`, `coincidencia_banda`, `diferencia_nota`, `acuerdo_sistema_escenario`, `acuerdo_humano_escenario`, `d1_coincidencia`, `criticos_solo_llm`, `tasa_anomalias`, `costo_lote` | `metricas.nombre_metrica`, `alertas.nombre_metrica` |
+
+Aclaración (Fase 4): `falsos_positivos` y `falsos_negativos` cubren "fallas inventadas" (el sistema marca una falla que la referencia no tiene) y "fallas no vistas" (el sistema no marca una falla que la referencia sí tiene), respectivamente, y se reportan con `origen` = `JS`, `LLM` o `HIBRIDO`.
 
 ### `clave_lista` (hoja `listas`)
 
